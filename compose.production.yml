@@ -31,7 +31,10 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-    ports: !reset []
+    # Bind to localhost by default so an existing host reverse proxy can route
+    # a domain/subdomain to RokViet Hub without exposing the app server directly.
+    ports: !override
+      - "${WEB_BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-3030}:3000"
     deploy:
       replicas: ${WEB_REPLICAS:-1}
       resources:

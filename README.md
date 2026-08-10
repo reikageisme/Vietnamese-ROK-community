@@ -45,6 +45,8 @@ DOMAIN=forum.example.vn
 APP_URL=https://forum.example.vn
 NEXTAUTH_URL=https://forum.example.vn
 AUTH_SECRET=mot-chuoi-ngau-nhien-dai-va-bi-mat
+WEB_BIND_ADDRESS=127.0.0.1
+WEB_PORT=3030
 
 POSTGRES_PASSWORD=mat-khau-postgres-manh
 DATABASE_URL=postgresql://rokviet:mat-khau-postgres-manh@postgres:5432/rokviet?schema=public
@@ -69,11 +71,21 @@ mật khẩu trong `DATABASE_URL`.
 Với Google OAuth, thêm URI chuyển hướng:
 `https://forum.example.vn/api/auth/callback/google`.
 
-2. Build và khởi động production:
+2. Nếu host đã có Nginx, Caddy hoặc web khác giữ cổng `80/443`, khởi động
+RokViet Hub ở `127.0.0.1:3030`:
 
 ```powershell
-docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml --profile production up -d --build --wait
+docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml up -d --build --wait
 ```
+
+Sau đó cấu hình reverse proxy hiện có chuyển domain/subdomain của RokViet Hub tới
+`http://127.0.0.1:3030`. Không thêm `--profile production`, vì profile đó bật Caddy
+bundled trên cổng `80/443`. Nếu host chưa có web hoặc reverse proxy nào khác, bạn có
+thể thêm `--profile production` để dùng Caddy bundled và HTTPS tự động.
+
+Để mở trực tiếp `http://IP-HOST:3030` khi chạy thử, đặt `WEB_BIND_ADDRESS=0.0.0.0`
+và mở firewall cổng 3030. Cách này không có HTTPS, chỉ nên dùng tạm thời; khi public
+chính thức nên dùng một subdomain riêng qua reverse proxy.
 
 Service `migrate` sẽ tự chạy migration và seed bằng Prisma 6 đã khóa trong dự án.
 Không chạy `docker compose exec web npx prisma ...`, vì image web production không chứa
@@ -82,8 +94,8 @@ Prisma CLI và `npx` có thể tải nhầm Prisma 7. Caddy tự cấp HTTPS khi
 3. Kiểm tra hoặc xem log:
 
 ```powershell
-docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml --profile production ps
-docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml --profile production logs -f web caddy migrate
+docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml ps
+docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml logs -f web migrate
 ```
 
 Khi cập nhật mã nguồn, chạy lại lệnh `up -d --build --wait`. Dữ liệu PostgreSQL,
