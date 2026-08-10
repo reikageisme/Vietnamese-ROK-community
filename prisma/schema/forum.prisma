@@ -1,0 +1,289 @@
+enum ForumContentStatus {
+  DRAFT
+  PUBLISHED
+  LOCKED
+  REMOVED
+}
+
+enum ReportReason {
+  SPAM
+  OFFENSIVE
+  HARASSMENT
+  MISINFORMATION
+  OFF_TOPIC
+  COPYRIGHT
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  OPEN
+  REVIEWING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+  ACTION_TAKEN
+}
+
+enum ForumEditTargetType {
+  TOPIC
+  REPLY
+}
+
+enum ForumNotificationType {
+  REPLY_TO_TOPIC
+  REPLY_TO_YOUR_REPLY
+  MENTION
+  ACCEPTED_ANSWER
+  REPORT_RESOLVED
+  MODERATION_ACTION
+}
+
+model Category {
+  id             String       @id @default(cuid())
+  slug           String       @unique @db.VarChar(100)
+  nameKey        String       @unique @db.VarChar(191)
+  descriptionKey String?      @unique @db.VarChar(191)
+  sortOrder      Int          @default(0)
+  icon           String?      @db.VarChar(100)
+  topicCount     Int          @default(0)
+  lastActivityAt DateTime?
+  isActive       Boolean      @default(true)
+  name           I18nMessage  @relation("CategoryName", fields: [nameKey], references: [key], onDelete: Restrict)
+  description    I18nMessage? @relation("CategoryDescription", fields: [descriptionKey], references: [key], onDelete: Restrict)
+  topics         Topic[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Topic {
+  id              String              @id @default(cuid())
+  slug            String              @unique @db.VarChar(191)
+  categoryId      String
+  authorId        String
+  title           String              @db.VarChar(240)
+  body            String              @db.Text
+  bodyHtml        String              @default("") @db.Text
+  isPinned        Boolean             @default(false)
+  isLocked        Boolean             @default(false)
+  viewCount       Int                 @default(0)
+  replyCount      Int                 @default(0)
+  upvoteCount     Int                 @default(0)
+  downvoteCount   Int                 @default(0)
+  lastReplyAt     DateTime?
+  lastReplyById   String?
+  acceptedReplyId String?             @unique
+  deletedAt       DateTime?
+  locale          Locale              @default(vi)
+  status          ForumContentStatus  @default(PUBLISHED)
+  category        Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  author          User                @relation("TopicAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  lastReplyBy     User?               @relation("TopicLastReplier", fields: [lastReplyById], references: [id], onDelete: SetNull)
+  replies         Reply[]             @relation("TopicReplies")
+  acceptedReply   Reply?              @relation("AcceptedReply", fields: [acceptedReplyId], references: [id], onDelete: SetNull)
+  votes           TopicVote[]
+  reports         ForumReport[]
+  tags            TopicTag[]
+  bookmarks       ForumBookmark[]
+  subscriptions   ForumSubscription[]
+  editHistory     ForumEditHistory[]
+  notifications   ForumNotification[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([categoryId, isPinned, lastReplyAt])
+  @@index([authorId])
+  @@index([status, updatedAt])
+  @@index([deletedAt])
+}
+
+model Reply {
+  id               String              @id @default(cuid())
+  topicId          String
+  authorId         String
+  parentId         String?
+  body             String              @db.Text
+  bodyHtml         String              @default("") @db.Text
+  isAcceptedAnswer Boolean             @default(false)
+  deletedAt        DateTime?
+  upvoteCount      Int                 @default(0)
+  downvoteCount    Int                 @default(0)
+  locale           Locale              @default(vi)
+  status           ForumContentStatus  @default(PUBLISHED)
+  topic            Topic               @relation("TopicReplies", fields: [topicId], references: [id], onDelete: Cascade)
+  acceptedFor      Topic?              @relation("AcceptedReply")
+  author           User                @relation("ReplyAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  parent           Reply?              @relation("ReplyThread", fields: [parentId], references: [id], onDelete: SetNull)
+  children         Reply[]             @relation("ReplyThread")
+  votes            ReplyVote[]
+  reports          ForumReport[]
+  mentions         ForumMention[]
+  editHistory      ForumEditHistory[]
+  notifications    ForumNotification[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@index([topicId, createdAt])
+  @@index([authorId])
+  @@index([deletedAt])
+}
+
+model TopicVote {
+  topicId   String
+  userId    String
+  value     Int
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([topicId, userId])
+  @@index([userId])
+}
+
+model ReplyVote {
+  replyId   String
+  userId    String
+  value     Int
+  reply     Reply    @relation(fields: [replyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([replyId, userId])
+  @@index([userId])
+}
+
+model ForumReport {
+  id           String       @id @default(cuid())
+  reporterId   String
+  topicId      String?
+  replyId      String?
+  reason       ReportReason
+  detail       String?      @db.Text
+  status       ReportStatus @default(PENDING)
+  reviewedById String?
+  reviewedAt   DateTime?
+  actionTaken  String?      @db.Text
+  reporter     User         @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Restrict)
+  reviewedBy   User?        @relation("ReportReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  topic        Topic?       @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  reply        Reply?       @relation(fields: [replyId], references: [id], onDelete: Cascade)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // Application validation enforces exactly one of topicId/replyId.
+  @@index([status, createdAt])
+  @@index([reporterId])
+  @@index([reporterId, createdAt])
+}
+
+model ForumBookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  topicId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+  @@index([topicId])
+  @@map("forum_bookmarks")
+}
+
+model ForumSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  topicId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+  @@index([topicId])
+  @@map("forum_subscriptions")
+}
+
+model ForumMention {
+  id              String   @id @default(cuid())
+  replyId         String
+  mentionedUserId String
+  createdAt       DateTime @default(now())
+  reply           Reply    @relation(fields: [replyId], references: [id], onDelete: Cascade)
+  mentionedUser   User     @relation("MentionedUser", fields: [mentionedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([replyId, mentionedUserId])
+  @@index([mentionedUserId, createdAt])
+  @@map("forum_mentions")
+}
+
+model ForumEditHistory {
+  id           String              @id @default(cuid())
+  targetType   ForumEditTargetType
+  topicId      String?
+  replyId      String?
+  editedById   String
+  previousBody String              @db.Text
+  editedAt     DateTime            @default(now())
+  topic        Topic?              @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  reply        Reply?              @relation(fields: [replyId], references: [id], onDelete: Cascade)
+  editedBy     User                @relation("EditHistoryEditor", fields: [editedById], references: [id], onDelete: Restrict)
+
+  @@index([topicId, editedAt])
+  @@index([replyId, editedAt])
+  @@map("forum_edit_history")
+}
+
+model ForumNotification {
+  id        String                @id @default(cuid())
+  userId    String
+  type      ForumNotificationType
+  actorId   String?
+  topicId   String?
+  replyId   String?
+  isRead    Boolean               @default(false)
+  createdAt DateTime              @default(now())
+  user      User                  @relation("NotificationOwner", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User?                 @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  topic     Topic?                @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  reply     Reply?                @relation(fields: [replyId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
+}
+
+model ForumModerationAuditLog {
+  id          String   @id @default(cuid())
+  moderatorId String
+  action      String   @db.VarChar(100)
+  targetType  String   @db.VarChar(50)
+  targetId    String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  moderator   User     @relation("ForumModeratorAudit", fields: [moderatorId], references: [id], onDelete: Restrict)
+
+  @@index([moderatorId, createdAt])
+  @@index([targetType, targetId])
+  @@map("forum_moderation_audit_log")
+}
+
+model Tag {
+  id        String      @id @default(cuid())
+  slug      String      @unique @db.VarChar(100)
+  nameKey   String      @unique @db.VarChar(191)
+  name      I18nMessage @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+  topics    TopicTag[]
+  createdAt DateTime    @default(now())
+}
+
+model TopicTag {
+  topicId       String
+  tagId         String
+  isVerifiedTag Boolean   @default(false)
+  verifiedAt    DateTime?
+  topic         Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  tag           Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([topicId, tagId])
+  @@index([tagId])
+}

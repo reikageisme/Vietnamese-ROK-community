@@ -1,0 +1,116 @@
+enum UploadPurpose {
+  PROFILE_SCREENSHOT
+  FORUM_ATTACHMENT
+  CODEX_EVIDENCE
+  ALLIANCE_CSV
+}
+
+enum IngestionStatus {
+  QUEUED
+  PROCESSING
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  FAILED
+}
+
+enum SubmissionEntityType {
+  COMMANDER
+  EQUIPMENT
+  TALENT
+  CIVILIZATION
+  TROOP
+  EVENT
+  GOVERNOR_PROFILE
+}
+
+enum ModerationDecision {
+  APPROVE
+  REJECT
+  REQUEST_CHANGES
+}
+
+model UploadAsset {
+  id               String             @id @default(cuid())
+  ownerId          String
+  purpose          UploadPurpose
+  objectKey        String             @unique @db.VarChar(512)
+  mimeType         String             @db.VarChar(100)
+  byteSize         Int
+  sha256           String             @db.Char(64)
+  owner            User               @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  ocrJob           OcrJob?
+  snapshotEvidence GovernorSnapshot[]
+  csvImport        CsvImportJob?
+  createdAt        DateTime           @default(now())
+
+  @@index([ownerId, createdAt])
+}
+
+model OcrJob {
+  id                String             @id @default(cuid())
+  uploadId          String             @unique
+  governorProfileId String
+  status            IngestionStatus    @default(QUEUED)
+  result            Json?
+  confidence        Json?
+  errorCode         String?            @db.VarChar(100)
+  upload            UploadAsset        @relation(fields: [uploadId], references: [id], onDelete: Restrict)
+  governorProfile   GovernorProfile    @relation(fields: [governorProfileId], references: [id], onDelete: Restrict)
+  reviews           ModerationReview[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model IngestionSubmission {
+  id          String               @id @default(cuid())
+  submitterId String
+  entityType  SubmissionEntityType
+  entityId    String?
+  payload     Json
+  sourceNote  String               @db.Text
+  status      IngestionStatus      @default(PENDING_REVIEW)
+  submitter   User                 @relation(fields: [submitterId], references: [id], onDelete: Restrict)
+  reviews     ModerationReview[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([status, createdAt])
+  @@index([submitterId])
+}
+
+model ModerationReview {
+  id           String               @id @default(cuid())
+  moderatorId  String
+  submissionId String?
+  ocrJobId     String?
+  decision     ModerationDecision
+  note         String?              @db.Text
+  moderator    User                 @relation(fields: [moderatorId], references: [id], onDelete: Restrict)
+  submission   IngestionSubmission? @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  ocrJob       OcrJob?              @relation(fields: [ocrJobId], references: [id], onDelete: Cascade)
+  createdAt    DateTime             @default(now())
+
+  // Application validation enforces exactly one of submissionId/ocrJobId.
+  @@index([moderatorId, createdAt])
+}
+
+model CsvImportJob {
+  id         String          @id @default(cuid())
+  ownerId    String
+  allianceId String
+  uploadId   String          @unique
+  status     IngestionStatus @default(QUEUED)
+  summary    Json?
+  errorCode  String?         @db.VarChar(100)
+  owner      User            @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  alliance   Alliance        @relation(fields: [allianceId], references: [id], onDelete: Restrict)
+  upload     UploadAsset     @relation(fields: [uploadId], references: [id], onDelete: Restrict)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([status, createdAt])
+  @@index([allianceId])
+}

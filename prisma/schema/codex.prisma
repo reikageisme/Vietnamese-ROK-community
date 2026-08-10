@@ -1,0 +1,177 @@
+enum CodexStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CodexEntityType {
+  COMMANDER
+  EQUIPMENT
+  TALENT
+  CIVILIZATION
+  TROOP
+  EVENT
+}
+
+enum CommanderRarity {
+  ADVANCED
+  ELITE
+  EPIC
+  LEGENDARY
+}
+
+enum EquipmentRarity {
+  NORMAL
+  ADVANCED
+  ELITE
+  EPIC
+  LEGENDARY
+}
+
+enum CodexSourceKind {
+  MANUAL_EDITORIAL
+  COMMUNITY_SUBMISSION
+  PUBLIC_PATCH_NOTE
+  PARTNER_IMPORT
+}
+
+model Patch {
+  id         String          @id @default(cuid())
+  version    String          @unique @db.VarChar(50)
+  releasedAt DateTime?
+  titleKey   String?         @unique @db.VarChar(191)
+  title      I18nMessage?    @relation(fields: [titleKey], references: [key], onDelete: Restrict)
+  revisions  CodexRevision[]
+  createdAt  DateTime        @default(now())
+}
+
+model Civilization {
+  id         String      @id @default(cuid())
+  slug       String      @unique @db.VarChar(100)
+  nameKey    String      @unique @db.VarChar(191)
+  name       I18nMessage @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+  status     CodexStatus @default(DRAFT)
+  commanders Commander[]
+  troops     Troop[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Commander {
+  id             String            @id @default(cuid())
+  slug           String            @unique @db.VarChar(100)
+  nameKey        String            @unique @db.VarChar(191)
+  civilizationId String?
+  rarity         CommanderRarity
+  status         CodexStatus       @default(DRAFT)
+  sourceKind     CodexSourceKind   @default(MANUAL_EDITORIAL)
+  name           I18nMessage       @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+  civilization   Civilization?     @relation(fields: [civilizationId], references: [id], onDelete: SetNull)
+  skills         CommanderSkill[]
+  talents        CommanderTalent[]
+  revisions      CodexRevision[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([status, rarity])
+}
+
+model CommanderSkill {
+  id          String      @id @default(cuid())
+  commanderId String
+  position    Int
+  nameKey     String      @unique @db.VarChar(191)
+  data        Json
+  commander   Commander   @relation(fields: [commanderId], references: [id], onDelete: Cascade)
+  name        I18nMessage @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+
+  @@unique([commanderId, position])
+}
+
+model Talent {
+  id         String            @id @default(cuid())
+  slug       String            @unique @db.VarChar(100)
+  nameKey    String            @unique @db.VarChar(191)
+  tree       String            @db.VarChar(80)
+  name       I18nMessage       @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+  commanders CommanderTalent[]
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+}
+
+model CommanderTalent {
+  commanderId String
+  talentId    String
+  commander   Commander @relation(fields: [commanderId], references: [id], onDelete: Cascade)
+  talent      Talent    @relation(fields: [talentId], references: [id], onDelete: Cascade)
+
+  @@id([commanderId, talentId])
+}
+
+model Equipment {
+  id         String          @id @default(cuid())
+  slug       String          @unique @db.VarChar(100)
+  nameKey    String          @unique @db.VarChar(191)
+  rarity     EquipmentRarity
+  slot       String          @db.VarChar(50)
+  stats      Json
+  recipe     Json?
+  status     CodexStatus     @default(DRAFT)
+  sourceKind CodexSourceKind @default(MANUAL_EDITORIAL)
+  name       I18nMessage     @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([status, slot])
+}
+
+model Troop {
+  id             String        @id @default(cuid())
+  slug           String        @unique @db.VarChar(100)
+  nameKey        String        @unique @db.VarChar(191)
+  civilizationId String?
+  tier           Int
+  troopType      String        @db.VarChar(50)
+  stats          Json
+  name           I18nMessage   @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+  civilization   Civilization? @relation(fields: [civilizationId], references: [id], onDelete: SetNull)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([troopType, tier])
+}
+
+model GameEvent {
+  id        String      @id @default(cuid())
+  slug      String      @unique @db.VarChar(100)
+  nameKey   String      @unique @db.VarChar(191)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  status    CodexStatus @default(DRAFT)
+  name      I18nMessage @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model CodexRevision {
+  id          String          @id @default(cuid())
+  entityType  CodexEntityType
+  entityId    String
+  commanderId String?
+  editorId    String
+  patchId     String?
+  sourceKind  CodexSourceKind
+  sourceNote  String?         @db.Text
+  changeNote  String          @db.Text
+  snapshot    Json
+  isPublished Boolean         @default(false)
+  commander   Commander?      @relation(fields: [commanderId], references: [id], onDelete: Cascade)
+  editor      User            @relation(fields: [editorId], references: [id], onDelete: Restrict)
+  patch       Patch?          @relation(fields: [patchId], references: [id], onDelete: SetNull)
+  createdAt   DateTime        @default(now())
+
+  // entityType + entityId is the generic revision target. commanderId adds a hard FK for the first MVP editor.
+  @@index([entityType, entityId, createdAt])
+  @@index([editorId])
+}

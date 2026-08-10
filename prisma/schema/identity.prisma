@@ -1,0 +1,175 @@
+enum UserRoleName {
+  MEMBER
+  CONTRIBUTOR
+  MODERATOR
+  ADMIN
+  R4
+  R5
+}
+
+enum ReputationReason {
+  TOPIC_UPVOTED
+  REPLY_UPVOTED
+  TOPIC_DOWNVOTED
+  REPLY_DOWNVOTED
+  ACCEPTED_ANSWER
+  ACCEPTED_ANSWER_REVERSED
+  REPORT_ACTION_TAKEN
+  REPORT_ACTION_REVERSED
+  CODEX_APPROVED
+  MODERATION_ADJUSTMENT
+}
+
+model User {
+  id                      String                    @id @default(cuid())
+  // Auth.js uses `name`; displayName remains the domain-facing profile field.
+  name                    String?                   @db.VarChar(100)
+  displayName             String?                   @db.VarChar(100)
+  email                   String?                   @unique @db.VarChar(320)
+  emailVerified           DateTime?
+  image                   String?                   @db.Text
+  googleSub               String?                   @unique @db.VarChar(255)
+  passwordHash            String?                   @db.Text
+  loginMethods            String[]                  @default([])
+  sessionVersion          Int                       @default(0)
+  locale                  Locale                    @default(vi)
+  isActive                Boolean                   @default(true)
+  accounts                Account[]
+  sessions                Session[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  securityActionTokens    SecurityActionToken[]
+  roles                   UserRole[]
+  reputationEvents        ReputationEvent[]
+  topics                  Topic[]                   @relation("TopicAuthor")
+  lastRepliedTopics       Topic[]                   @relation("TopicLastReplier")
+  replies                 Reply[]                   @relation("ReplyAuthor")
+  topicVotes              TopicVote[]
+  replyVotes              ReplyVote[]
+  reports                 ForumReport[]             @relation("ReportReporter")
+  reportsReviewed         ForumReport[]             @relation("ReportReviewer")
+  forumBookmarks          ForumBookmark[]
+  forumSubscriptions      ForumSubscription[]
+  forumMentions           ForumMention[]            @relation("MentionedUser")
+  forumEdits              ForumEditHistory[]        @relation("EditHistoryEditor")
+  notifications           ForumNotification[]       @relation("NotificationOwner")
+  notificationActions     ForumNotification[]       @relation("NotificationActor")
+  forumModerationAudit    ForumModerationAuditLog[] @relation("ForumModeratorAudit")
+  codexRevisions          CodexRevision[]
+  governorProfiles        GovernorProfile[]
+  uploads                 UploadAsset[]
+  submissions             IngestionSubmission[]
+  moderationReviews       ModerationReview[]
+  csvImports              CsvImportJob[]
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+
+  @@index([displayName])
+}
+
+enum SecurityActionPurpose {
+  LINK_GOOGLE
+  SET_PASSWORD
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique @db.Char(64)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("email_verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique @db.Char(64)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("password_reset_tokens")
+}
+
+model SecurityActionToken {
+  id         String                @id @default(cuid())
+  userId     String
+  purpose    SecurityActionPurpose
+  tokenHash  String                @unique @db.Char(64)
+  expiresAt  DateTime
+  verifiedAt DateTime?
+  usedAt     DateTime?
+  createdAt  DateTime              @default(now())
+  user       User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose, expiresAt])
+  @@map("security_action_tokens")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model UserRole {
+  userId     String
+  role       UserRoleName
+  assignedAt DateTime     @default(now())
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, role])
+}
+
+model ReputationEvent {
+  id        String           @id @default(cuid())
+  userId    String
+  reason    ReputationReason
+  points    Int
+  sourceRef String?          @db.VarChar(191)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, createdAt])
+}

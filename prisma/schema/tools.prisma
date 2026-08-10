@@ -1,0 +1,3 @@
+// The tools bounded context intentionally owns no persistence model.
+// MVP calculators are deterministic pure functions: validated JSON input -> JSON output.
+// This file exists to make the module boundary explicit in the multi-file Prisma layout.

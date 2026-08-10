@@ -1,0 +1,74 @@
+enum GovernorVerificationStatus {
+  SELF_REPORTED
+  SCREENSHOT_VERIFIED
+  MODERATOR_VERIFIED
+}
+
+enum MetricSource {
+  SELF_REPORTED
+  SCREENSHOT_OCR
+  ALLIANCE_CSV
+  MODERATOR_ENTRY
+}
+
+model Kingdom {
+  id        String            @id @default(cuid())
+  number    Int               @unique
+  name      String?           @db.VarChar(120)
+  alliances Alliance[]
+  governors GovernorProfile[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model Alliance {
+  id         String            @id @default(cuid())
+  kingdomId  String
+  tag        String            @db.VarChar(16)
+  name       String?           @db.VarChar(120)
+  kingdom    Kingdom           @relation(fields: [kingdomId], references: [id], onDelete: Restrict)
+  governors  GovernorProfile[]
+  csvImports CsvImportJob[]
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@unique([kingdomId, tag])
+}
+
+model GovernorProfile {
+  id                 String                     @id @default(cuid())
+  ownerId            String
+  governorId         String                     @unique @db.VarChar(32)
+  governorName       String                     @db.VarChar(120)
+  kingdomId          String?
+  allianceId         String?
+  verificationStatus GovernorVerificationStatus @default(SELF_REPORTED)
+  verifiedAt         DateTime?
+  owner              User                       @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  kingdom            Kingdom?                   @relation(fields: [kingdomId], references: [id], onDelete: SetNull)
+  alliance           Alliance?                  @relation(fields: [allianceId], references: [id], onDelete: SetNull)
+  snapshots          GovernorSnapshot[]
+  ocrJobs            OcrJob[]
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+
+  @@index([ownerId])
+  @@index([kingdomId])
+  @@index([allianceId])
+}
+
+model GovernorSnapshot {
+  id                String          @id @default(cuid())
+  governorProfileId String
+  power             BigInt
+  killPoints        BigInt
+  deadTroops        BigInt
+  source            MetricSource
+  capturedAt        DateTime
+  evidenceUploadId  String?
+  governorProfile   GovernorProfile @relation(fields: [governorProfileId], references: [id], onDelete: Cascade)
+  evidenceUpload    UploadAsset?    @relation(fields: [evidenceUploadId], references: [id], onDelete: SetNull)
+  createdAt         DateTime        @default(now())
+
+  @@index([governorProfileId, capturedAt])
+}

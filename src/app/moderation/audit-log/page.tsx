@@ -1,0 +1,5 @@
+import { notFound, redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import { Card } from "@/components/ui";
+export default async function AuditPage() { const session = await auth(); if (!session?.user) redirect("/auth/signin?callbackUrl=/moderation/audit-log"); if (session.user.role !== "ADMIN") notFound(); const entries = await prisma.forumModerationAuditLog.findMany({ orderBy: { createdAt: "desc" }, take: 200, include: { moderator: { select: { displayName: true, name: true } } } }); return <div className="shell page narrow-page"><div className="page-intro"><p className="eyebrow">ADMIN</p><h1>Nhật ký kiểm duyệt</h1></div><div className="moderation-list">{entries.map((entry) => <Card className="moderation-card" key={entry.id}><strong>{entry.action}</strong><p>{entry.targetType} · {entry.targetId}</p><small>{entry.moderator.displayName ?? entry.moderator.name} · {entry.createdAt.toLocaleString("vi-VN")}</small></Card>)}</div></div>; }

@@ -1,0 +1,35 @@
+enum Locale {
+  vi
+  en
+}
+
+model I18nMessage {
+  key                  String            @id @db.VarChar(191)
+  translations         I18nTranslation[]
+  categoryNames        Category[]        @relation("CategoryName")
+  categoryDescriptions Category[]        @relation("CategoryDescription")
+  tagNames             Tag[]
+  patchTitles          Patch[]
+  civilizationNames    Civilization[]
+  commanderNames       Commander[]
+  commanderSkillNames  CommanderSkill[]
+  talentNames          Talent[]
+  equipmentNames       Equipment[]
+  troopNames           Troop[]
+  gameEventNames       GameEvent[]
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+}
+
+model I18nTranslation {
+  id        String      @id @default(cuid())
+  messageId String
+  locale    Locale
+  value     String      @db.Text
+  message   I18nMessage @relation(fields: [messageId], references: [key], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([messageId, locale])
+  @@index([locale])
+}
