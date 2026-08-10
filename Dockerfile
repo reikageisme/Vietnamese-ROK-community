@@ -26,7 +26,9 @@ ARG AUTH_SECRET=build-only-placeholder
 ENV DATABASE_URL=${DATABASE_URL}
 ENV AUTH_SECRET=${AUTH_SECRET}
 COPY . .
-RUN mkdir -p public && npm run build
+RUN mkdir -p public \
+    && npx prisma generate --schema prisma/schema \
+    && npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app
