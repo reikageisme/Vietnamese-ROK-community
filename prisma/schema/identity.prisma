@@ -61,6 +61,11 @@ model User {
   submissions             IngestionSubmission[]
   moderationReviews       ModerationReview[]
   csvImports              CsvImportJob[]
+  creditWallet            CreditWallet?
+  scanServiceRequests     ScanServiceRequest[]      @relation("ScanRequester")
+  topUpRequests           TopUpRequest[]            @relation("TopUpRequester")
+  reviewedTopUpRequests   TopUpRequest[]            @relation("TopUpReviewer")
+  creditTransactions      CreditTransaction[]       @relation("CreditTransactionActor")
   createdAt               DateTime                  @default(now())
   updatedAt               DateTime                  @updatedAt
 

@@ -78,6 +78,18 @@ RokViet Hub ở `127.0.0.1:3030`:
 docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml up -d --build --wait
 ```
 
+Web công khai dùng port `3030`. Ops Console chứa batch thiết bị, phiếu nạp và hàng
+đợi quét dùng port `3031`, mặc định chỉ bind `127.0.0.1` và chỉ MODERATOR/ADMIN truy
+cập được. Không public port 3031 ra Internet. Quản trị từ máy cá nhân qua SSH tunnel:
+
+```bash
+ssh -L 3031:127.0.0.1:3031 root@IP_HOST
+```
+
+Sau đó mở `http://localhost:3031/ops/scans`. Trang `/scans` trên web công khai chỉ
+hiển thị ví credit, yêu cầu nạp và đơn quét của chính người đang đăng nhập. Phiếu nạp
+được quản trị viên đối soát thủ công; chưa có cổng thanh toán tự động.
+
 Sau đó cấu hình reverse proxy hiện có chuyển domain/subdomain của RokViet Hub tới
 `http://127.0.0.1:3030`. Không thêm `--profile production`, vì profile đó bật Caddy
 bundled trên cổng `80/443`. Nếu host chưa có web hoặc reverse proxy nào khác, bạn có
@@ -95,7 +107,7 @@ Prisma CLI và `npx` có thể tải nhầm Prisma 7. Caddy tự cấp HTTPS khi
 
 ```powershell
 docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml ps
-docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml logs -f web migrate
+docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml logs -f web ops-web migrate
 ```
 
 Khi cập nhật mã nguồn, chạy lại lệnh `up -d --build --wait`. Dữ liệu PostgreSQL,

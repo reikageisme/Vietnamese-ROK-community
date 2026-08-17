@@ -31,6 +31,103 @@ enum ModerationDecision {
   REQUEST_CHANGES
 }
 
+enum ScanProduct {
+  KINGDOM_OVERVIEW
+  GOVERNOR_TOP_300
+  KVK_CAMP
+}
+
+enum ScanServiceStatus {
+  QUEUED
+  ASSIGNED
+  RUNNING
+  REVIEWING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum TopUpStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CreditTransactionKind {
+  TOP_UP
+  SCAN_CHARGE
+  REFUND
+  ADMIN_ADJUSTMENT
+}
+
+model CreditWallet {
+  id           String              @id @default(cuid())
+  userId       String              @unique
+  balance      Int                 @default(0)
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions CreditTransaction[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+model CreditTransaction {
+  id           String                @id @default(cuid())
+  walletId     String
+  actorId      String?
+  kind         CreditTransactionKind
+  amount       Int
+  balanceAfter Int
+  reference    String?               @db.VarChar(191)
+  note         String?               @db.Text
+  wallet       CreditWallet          @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  actor        User?                 @relation("CreditTransactionActor", fields: [actorId], references: [id], onDelete: SetNull)
+  createdAt    DateTime              @default(now())
+
+  @@index([walletId, createdAt])
+  @@index([reference])
+}
+
+model ScanServiceRequest {
+  id               String            @id @default(cuid())
+  requestCode      String            @unique @db.VarChar(32)
+  requesterId      String
+  kingdomNumber    Int
+  product          ScanProduct
+  costCredits      Int
+  status           ScanServiceStatus @default(QUEUED)
+  note             String?           @db.Text
+  assignedDeviceId String?           @db.VarChar(100)
+  collectorBatchId String?
+  requester        User              @relation("ScanRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+  collectorBatch   CollectorBatch?   @relation(fields: [collectorBatchId], references: [id], onDelete: SetNull)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  completedAt      DateTime?
+
+  @@index([requesterId, createdAt])
+  @@index([status, createdAt])
+  @@index([kingdomNumber, createdAt])
+}
+
+model TopUpRequest {
+  id                String      @id @default(cuid())
+  requesterId       String
+  reviewerId        String?
+  amountVnd         Int
+  credits           Int
+  transferReference String      @db.VarChar(100)
+  status            TopUpStatus @default(PENDING)
+  reviewerNote      String?     @db.Text
+  requester         User        @relation("TopUpRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+  reviewer          User?       @relation("TopUpReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  createdAt         DateTime    @default(now())
+  reviewedAt        DateTime?
+
+  @@unique([requesterId, transferReference])
+  @@index([requesterId, createdAt])
+  @@index([status, createdAt])
+}
+
 model UploadAsset {
   id               String             @id @default(cuid())
   ownerId          String
@@ -117,22 +214,23 @@ model CsvImportJob {
 }
 
 model CollectorBatch {
-  id                 String             @id @default(cuid())
-  externalId         String             @unique @db.VarChar(191)
-  deviceId           String             @db.VarChar(100)
+  id                 String               @id @default(cuid())
+  externalId         String               @unique @db.VarChar(191)
+  deviceId           String               @db.VarChar(100)
   kingdomId          String
-  status             IngestionStatus    @default(PENDING_REVIEW)
+  status             IngestionStatus      @default(PENDING_REVIEW)
   recordCount        Int
   evidenceObjectKeys Json?
-  payloadHash        String             @db.Char(64)
+  payloadHash        String               @db.Char(64)
   summary            Json?
-  errorCode          String?            @db.VarChar(100)
+  errorCode          String?              @db.VarChar(100)
   capturedAt         DateTime
-  kingdom            Kingdom            @relation(fields: [kingdomId], references: [id], onDelete: Restrict)
+  kingdom            Kingdom              @relation(fields: [kingdomId], references: [id], onDelete: Restrict)
   governorSnapshots  GovernorSnapshot[]
   kingdomSnapshot    KingdomSnapshot?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  serviceRequests    ScanServiceRequest[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 
   @@index([kingdomId, capturedAt])
   @@index([status, createdAt])

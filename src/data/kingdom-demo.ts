@@ -59,12 +59,6 @@ export const governors: GovernorRow[] = [
   { rank: 8, id: "168698603", name: "July212", alliance: "CS35", power: 91_417_681, killPoints: 3_638_708_640, deadTroops: 3_886_560, t4Kills: 244_770_911, t5Kills: 680_311_405, helps: 83_963, capturedAt: "16/08 08:19" },
 ];
 
-export const scanRuns = [
-  { id: "scan_2812_20260817_1623", device: "phone01", kingdom: 2812, rows: 300, images: 1214, status: "Đã duyệt", duration: "01:42:18", createdAt: "17/08/2026 16:23" },
-  { id: "scan_3104_20260817_1551", device: "phone02", kingdom: 3104, rows: 300, images: 1196, status: "Chờ kiểm tra", duration: "01:39:04", createdAt: "17/08/2026 15:51" },
-  { id: "scan_2926_20260817_1042", device: "phone01", kingdom: 2926, rows: 184, images: 742, status: "Đang xử lý", duration: "00:58:45", createdAt: "17/08/2026 10:42" },
-];
-
 export const kvkTimeline = [
   { name: "Crusader Camp", subtitle: "Mở bản đồ", state: "done", date: "31/07" },
   { name: "Crusader Fortress", subtitle: "Tìm chỗ đứng", state: "done", date: "03/08" },

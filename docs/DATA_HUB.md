@@ -71,3 +71,14 @@ DEMO_MODERATOR_PASSWORD=RokVietMod!2026
 
 Không bật mật khẩu mặc định trên host public. Đặt `SEED_DEMO_ACCOUNTS=false`, build
 lại web và vô hiệu hóa/xóa hai user demo trước khi mở website chính thức.
+
+## Tách public và operations
+
+- Public `:3030/scans`: khách đăng nhập, nạp credit, đặt quét và chỉ xem đơn của mình.
+- Private `127.0.0.1:3031/ops/scans`: MODERATOR/ADMIN đối soát phiếu nạp, điều phối
+  hàng đợi và xem batch collector.
+- Public container trả 404 cho `/ops/*`; Ops API còn kiểm tra đồng thời
+  `APP_SURFACE=ops` và role trong database.
+- Không mở firewall port 3031. Dùng SSH tunnel hoặc reverse proxy có VPN/Access policy.
+- Phiếu nạp hiện được đối soát thủ công. Chưa ghi nhận thanh toán tự động cho tới khi
+  tích hợp một cổng thanh toán chính thức và webhook đã xác thực chữ ký.

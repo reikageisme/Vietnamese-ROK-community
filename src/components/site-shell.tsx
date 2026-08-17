@@ -19,7 +19,7 @@ export function SiteHeader({ user }: { user?: HeaderUser }) {
     ["/forum", t.navForum],
     ["/kingdoms", locale === "vi" ? "Vương quốc" : "Kingdoms"],
     ["/kvk", "KvK"],
-    ["/scans", locale === "vi" ? "Lượt quét" : "Scans"],
+    ["/scans", locale === "vi" ? "Dịch vụ quét" : "Scan service"],
     ["/tools", t.navTools],
   ];
   return (
@@ -56,7 +56,7 @@ export function SiteFooter() {
         </div>
         <div className="footer-links">
           <strong>{t.footerExplore}</strong>
-          <Link href="/forum">{t.navForum}</Link><Link href="/kingdoms">Vương quốc</Link><Link href="/kvk">KvK</Link><Link href="/scans">Lượt quét</Link><Link href="/tools">{t.navTools}</Link>
+          <Link href="/forum">{t.navForum}</Link><Link href="/kingdoms">Vương quốc</Link><Link href="/kvk">KvK</Link><Link href="/scans">Dịch vụ quét</Link><Link href="/tools">{t.navTools}</Link>
         </div>
         <div className="footer-links">
           <strong>{t.footerAbout}</strong>
