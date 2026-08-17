@@ -7,6 +7,9 @@ services:
       target: migration
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set for production}
+      SEED_DEMO_ACCOUNTS: ${SEED_DEMO_ACCOUNTS:-false}
+      DEMO_MEMBER_PASSWORD: ${DEMO_MEMBER_PASSWORD:-RokVietDemo!2026}
+      DEMO_MODERATOR_PASSWORD: ${DEMO_MODERATOR_PASSWORD:-RokVietMod!2026}
     depends_on:
       postgres:
         condition: service_healthy
@@ -21,6 +24,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set for production}
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set for production}
+      COLLECTOR_API_TOKEN: ${COLLECTOR_API_TOKEN:?COLLECTOR_API_TOKEN must be set for production}
       S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:?S3_ACCESS_KEY_ID must be set for production}
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?S3_SECRET_ACCESS_KEY must be set for production}
       SMTP_HOST: ${SMTP_HOST:?SMTP_HOST must be set for production}

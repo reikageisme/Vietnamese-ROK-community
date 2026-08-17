@@ -12,13 +12,16 @@ enum MetricSource {
 }
 
 model Kingdom {
-  id        String            @id @default(cuid())
-  number    Int               @unique
-  name      String?           @db.VarChar(120)
-  alliances Alliance[]
-  governors GovernorProfile[]
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
+  id               String            @id @default(cuid())
+  number           Int               @unique
+  name             String?           @db.VarChar(120)
+  alliances        Alliance[]
+  governors        GovernorProfile[]
+  snapshots        KingdomSnapshot[]
+  campMemberships  KvkCampKingdom[]
+  collectorBatches CollectorBatch[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model Alliance {
@@ -63,12 +66,86 @@ model GovernorSnapshot {
   power             BigInt
   killPoints        BigInt
   deadTroops        BigInt
+  t1Kills           BigInt?
+  t2Kills           BigInt?
+  t3Kills           BigInt?
+  t4Kills           BigInt?
+  t5Kills           BigInt?
+  rangedPoints      BigInt?
+  resourcesGathered BigInt?
+  helps             BigInt?
   source            MetricSource
   capturedAt        DateTime
   evidenceUploadId  String?
+  collectorBatchId  String?
   governorProfile   GovernorProfile @relation(fields: [governorProfileId], references: [id], onDelete: Cascade)
   evidenceUpload    UploadAsset?    @relation(fields: [evidenceUploadId], references: [id], onDelete: SetNull)
+  collectorBatch    CollectorBatch? @relation(fields: [collectorBatchId], references: [id], onDelete: SetNull)
   createdAt         DateTime        @default(now())
 
   @@index([governorProfileId, capturedAt])
+  @@index([collectorBatchId])
+}
+
+enum KvkCampaignStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+}
+
+model KingdomSnapshot {
+  id               String          @id @default(cuid())
+  kingdomId        String
+  collectorBatchId String?         @unique
+  power            BigInt
+  killPoints       BigInt
+  deadTroops       BigInt
+  t4Kills          BigInt
+  t5Kills          BigInt
+  governorCount    Int
+  coveragePercent  Int
+  capturedAt       DateTime
+  kingdom          Kingdom         @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
+  collectorBatch   CollectorBatch? @relation(fields: [collectorBatchId], references: [id], onDelete: SetNull)
+  createdAt        DateTime        @default(now())
+
+  @@index([kingdomId, capturedAt])
+}
+
+model KvkCampaign {
+  id        String            @id @default(cuid())
+  code      String            @unique @db.VarChar(40)
+  name      String            @db.VarChar(120)
+  mapName   String?           @db.VarChar(120)
+  status    KvkCampaignStatus @default(UPCOMING)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  camps     KvkCamp[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model KvkCamp {
+  id         String           @id @default(cuid())
+  campaignId String
+  code       String           @db.VarChar(8)
+  name       String           @db.VarChar(80)
+  color      String           @db.VarChar(20)
+  campaign   KvkCampaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  kingdoms   KvkCampKingdom[]
+  createdAt  DateTime         @default(now())
+
+  @@unique([campaignId, code])
+}
+
+model KvkCampKingdom {
+  campId    String
+  kingdomId String
+  seed      Int?
+  camp      KvkCamp  @relation(fields: [campId], references: [id], onDelete: Cascade)
+  kingdom   Kingdom  @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([campId, kingdomId])
+  @@index([kingdomId])
 }

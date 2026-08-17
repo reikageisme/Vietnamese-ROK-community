@@ -101,6 +101,26 @@ docker compose --env-file .env.production -f docker-compose.yml -f compose.produ
 Khi cập nhật mã nguồn, chạy lại lệnh `up -d --build --wait`. Dữ liệu PostgreSQL,
 Redis, MinIO và chứng chỉ Caddy nằm trong Docker volumes nên không mất khi recreate container.
 
+## Thử nghiệm điện thoại vật lý
+
+Bộ điều khiển ADB an toàn theo serial cho hai điện thoại nằm tại
+[`tools/rok-device-lab`](tools/rok-device-lab/README.md). Công cụ này dùng để nhận
+diện thiết bị, kiểm tra kết nối, mở Wi-Fi, chụp màn hình và quan sát scrcpy trên
+Windows trước khi chuyển collector sang Proxmox. Thư mục `RoK Tracker` được xem là
+bản binary upstream cục bộ và không được commit vào repository.
+
+## Data Hub và tài khoản demo
+
+- Dashboard Kingdom: `/kingdoms`
+- Chi tiết governor/nguồn scan: `/kingdoms/2812`
+- Trung tâm trại KvK: `/kvk`
+- Lịch sử và luồng collector: `/scans`
+
+Để seed hai tài khoản thử nghiệm, đặt `SEED_DEMO_ACCOUNTS=true` trước khi chạy
+service migration. Xem payload Collector API và lưu ý an toàn trong
+[`docs/DATA_HUB.md`](docs/DATA_HUB.md). Không bật tài khoản có mật khẩu mặc định
+trên host public.
+
 ## Trạng thái hiện tại
 
 Đây là foundation/MVP đầu tiên, gồm:

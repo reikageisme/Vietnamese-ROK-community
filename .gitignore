@@ -27,3 +27,12 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
+
+# Local Android device-lab output and secrets
+tools/rok-device-lab/artifacts/
+tools/rok-device-lab/config/devices.local.json
+
+# The copied upstream tracker is a local binary distribution. Keep the clean-room
+# multi-device source in tools/rok-device-lab instead of committing its runtime,
+# third-party OCR data and generated scans.
+RoK Tracker/

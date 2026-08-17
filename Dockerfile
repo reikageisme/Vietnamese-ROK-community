@@ -23,8 +23,10 @@ FROM deps AS builder
 ENV NODE_ENV=production
 ARG DATABASE_URL=postgresql://build:build@localhost:5432/build
 ARG AUTH_SECRET=build-only-placeholder
+ARG NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS=false
 ENV DATABASE_URL=${DATABASE_URL}
 ENV AUTH_SECRET=${AUTH_SECRET}
+ENV NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS=${NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS}
 COPY . .
 RUN mkdir -p public \
     && npx prisma generate --schema prisma/schema \

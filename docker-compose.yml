@@ -10,6 +10,7 @@ x-common-environment: &common-environment
   S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-rokviet_dev_minio_password}
   S3_BUCKET: ${S3_BUCKET:-rokviet-uploads}
   S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+  COLLECTOR_API_TOKEN: ${COLLECTOR_API_TOKEN:-dev-collector-token-change-me-now}
 
 services:
   web:
@@ -17,6 +18,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
+      args:
+        NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS: ${NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS:-false}
     environment:
       <<: *common-environment
       NODE_ENV: production

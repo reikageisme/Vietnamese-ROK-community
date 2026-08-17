@@ -1,5 +1,6 @@
 enum UploadPurpose {
   PROFILE_SCREENSHOT
+  SCAN_EVIDENCE
   FORUM_ATTACHMENT
   CODEX_EVIDENCE
   ALLIANCE_CSV
@@ -113,4 +114,27 @@ model CsvImportJob {
 
   @@index([status, createdAt])
   @@index([allianceId])
+}
+
+model CollectorBatch {
+  id                 String             @id @default(cuid())
+  externalId         String             @unique @db.VarChar(191)
+  deviceId           String             @db.VarChar(100)
+  kingdomId          String
+  status             IngestionStatus    @default(PENDING_REVIEW)
+  recordCount        Int
+  evidenceObjectKeys Json?
+  payloadHash        String             @db.Char(64)
+  summary            Json?
+  errorCode          String?            @db.VarChar(100)
+  capturedAt         DateTime
+  kingdom            Kingdom            @relation(fields: [kingdomId], references: [id], onDelete: Restrict)
+  governorSnapshots  GovernorSnapshot[]
+  kingdomSnapshot    KingdomSnapshot?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([kingdomId, capturedAt])
+  @@index([status, createdAt])
+  @@index([deviceId, createdAt])
 }

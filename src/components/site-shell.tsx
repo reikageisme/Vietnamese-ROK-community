@@ -15,18 +15,23 @@ export function SiteHeader({ user }: { user?: HeaderUser }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const links = [
-    ["/", t.navHome], ["/forum", t.navForum], ["/codex", t.navCodex], ["/tools", t.navTools]
+    ["/", t.navHome],
+    ["/forum", t.navForum],
+    ["/kingdoms", locale === "vi" ? "Vương quốc" : "Kingdoms"],
+    ["/kvk", "KvK"],
+    ["/scans", locale === "vi" ? "Lượt quét" : "Scans"],
+    ["/tools", t.navTools],
   ];
   return (
     <header className="site-header">
       <div className="shell header-inner">
         <Link className="brand" href="/" aria-label="RokViet Hub">
-          <span className="brand-mark">RV</span>
-          <span><strong>RokViet Hub</strong><small>{t.brandTagline}</small></span>
+          <span className="brand-mark"><i>R</i><b>V</b></span>
+          <span><strong>RokViet <em>Hub</em></strong><small>{t.brandTagline}</small></span>
         </Link>
         <button className="mobile-menu" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={t.menu}>☰</button>
         <nav className={open ? "nav open" : "nav"} aria-label="Primary navigation">
-          {links.map(([href, label]) => <Link key={href} className={pathname === href ? "active" : ""} href={href} onClick={() => setOpen(false)}>{label}</Link>)}
+          {links.map(([href, label]) => <Link key={href} className={href === "/" ? pathname === "/" ? "active" : "" : pathname.startsWith(href) ? "active" : ""} href={href} onClick={() => setOpen(false)}>{label}</Link>)}
           <div className="language" aria-label={t.language}>
             <button className={locale === "vi" ? "selected" : ""} onClick={() => setLocale("vi")}>VI</button>
             <span>/</span>
@@ -45,13 +50,13 @@ export function SiteFooter() {
     <footer className="site-footer">
       <div className="shell footer-grid">
         <div>
-          <div className="brand footer-brand"><span className="brand-mark">RV</span><span><strong>RokViet Hub</strong><small>{t.brandTagline}</small></span></div>
+          <div className="brand footer-brand"><span className="brand-mark"><i>R</i><b>V</b></span><span><strong>RokViet <em>Hub</em></strong><small>{t.brandTagline}</small></span></div>
           <p className="disclaimer">{t.disclaimer}</p>
           <p className="data-notice">{t.dataNotice}</p>
         </div>
         <div className="footer-links">
           <strong>{t.footerExplore}</strong>
-          <Link href="/forum">{t.navForum}</Link><Link href="/codex">{t.navCodex}</Link><Link href="/tools">{t.navTools}</Link>
+          <Link href="/forum">{t.navForum}</Link><Link href="/kingdoms">Vương quốc</Link><Link href="/kvk">KvK</Link><Link href="/scans">Lượt quét</Link><Link href="/tools">{t.navTools}</Link>
         </div>
         <div className="footer-links">
           <strong>{t.footerAbout}</strong>
