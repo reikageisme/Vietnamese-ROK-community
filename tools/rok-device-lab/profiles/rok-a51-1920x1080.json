@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "name": "ROK Samsung A51 landscape 1920x1080",
+  "gamePackage": "com.rok.gp.vn",
+  "referenceResolution": [1920, 1080],
+  "taps": {
+    "ranking.individual-power": [0.2708, 0.5741],
+    "ranking.individual-kills": [0.5135, 0.5741],
+    "ranking.resource-gathering": [0.2708, 0.8241]
+  },
+  "regions": {
+    "ranking.row1": [0.1979, 0.2685, 0.6354, 0.0926],
+    "ranking.row2": [0.1979, 0.3815, 0.6354, 0.0926],
+    "ranking.row3": [0.1979, 0.4935, 0.6354, 0.0926],
+    "ranking.row4": [0.1979, 0.6056, 0.6354, 0.0926],
+    "ranking.row5": [0.1979, 0.7176, 0.6354, 0.0926],
+    "ranking.row6": [0.1979, 0.8296, 0.6354, 0.0926]
+  },
+  "screens": {
+    "rankings-menu": {
+      "fingerprints": [
+        {
+          "region": [0.20, 0.02, 0.60, 0.08],
+          "dhash": "c0f0cccccccce0e9",
+          "maxDistance": 8
+        }
+      ]
+    },
+    "individual-power-ranking": {
+      "fingerprints": [
+        {
+          "region": [0.20, 0.02, 0.60, 0.08],
+          "dhash": "c0c0b2129a8ae0e9",
+          "maxDistance": 8
+        }
+      ]
+    }
+  }
+}

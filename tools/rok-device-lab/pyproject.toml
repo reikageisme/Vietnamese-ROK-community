@@ -7,7 +7,9 @@ name = "rokviet-device-lab"
 version = "0.1.0"
 description = "Safe multi-device ADB control lab for RokViet Hub"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+  "Pillow>=10.4,<13",
+]
 
 [project.scripts]
 rok-device = "rok_lab.cli:main"

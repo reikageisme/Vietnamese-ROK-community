@@ -4,17 +4,20 @@ import argparse
 import json
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .adb import AdbClient, AdbError, load_aliases, resolve_device
-from .scrcpy import find_scrcpy, launch_scrcpy
 from .collector import upload_scan
-
+from .profiles import load_profile
+from .ranking_reader import read_visible_power_ranking
+from .rankings import open_ranking, probe_rankings_menu
+from .scrcpy import find_scrcpy, launch_scrcpy
 
 LAB_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = LAB_ROOT / "config" / "devices.local.json"
 DEFAULT_ARTIFACTS = LAB_ROOT / "artifacts"
+DEFAULT_PROFILE = LAB_ROOT / "profiles" / "rok-a51-1920x1080.json"
 
 
 def _configure_console() -> None:
@@ -41,6 +44,12 @@ def build_parser() -> argparse.ArgumentParser:
         "snapshot", help="Đọc trạng thái mọi thiết bị song song và lưu JSON."
     )
     snapshot.add_argument("--output", type=Path)
+    fleet_probe = subcommands.add_parser(
+        "fleet-probe",
+        help="Chụp và kiểm tra màn Rankings của mọi thiết bị, không chạm game.",
+    )
+    fleet_probe.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
+    fleet_probe.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
     upload = subcommands.add_parser(
         "upload-scan", help="Gửi scan JSON đã chuẩn hóa lên RokViet Hub."
     )
@@ -70,6 +79,41 @@ def build_parser() -> argparse.ArgumentParser:
     tap.add_argument("device", help="Alias hoặc ADB serial.")
     tap.add_argument("x", type=int)
     tap.add_argument("y", type=int)
+
+    rankings_probe = subcommands.add_parser(
+        "rankings-probe",
+        help="Xác minh một máy đang mở đúng menu Rankings, không chạm game.",
+    )
+    rankings_probe.add_argument("device", help="Alias hoặc ADB serial.")
+    rankings_probe.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
+    rankings_probe.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
+
+    rankings_open = subcommands.add_parser(
+        "rankings-open",
+        help="Mở một bảng xếp hạng sau khi guard xác minh đúng màn hình.",
+    )
+    rankings_open.add_argument("device", help="Alias hoặc ADB serial.")
+    rankings_open.add_argument(
+        "ranking",
+        choices=("individual-power", "individual-kills", "resource-gathering"),
+    )
+    rankings_open.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
+    rankings_open.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
+    rankings_open.add_argument(
+        "--confirm",
+        action="store_true",
+        help="Xác nhận cho phép gửi đúng một thao tác chạm vào thiết bị.",
+    )
+
+    rankings_read = subcommands.add_parser(
+        "rankings-read",
+        help="OCR 6 thống đốc đang hiển thị trong bảng Individual Power.",
+    )
+    rankings_read.add_argument("device", help="Alias hoặc ADB serial.")
+    rankings_read.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
+    rankings_read.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
+    rankings_read.add_argument("--tesseract", help="Đường dẫn tesseract.exe.")
+    rankings_read.add_argument("--tessdata", help="Thư mục chứa *.traineddata.")
     return parser
 
 
@@ -152,6 +196,32 @@ def _snapshot(client: AdbClient, config: Path, output: Path | None) -> int:
     return 0 if all(item.get("ok") for item in results.values()) else 2
 
 
+def _fleet_probe(
+    client: AdbClient, profile_path: Path, artifacts: Path
+) -> int:
+    profile = load_profile(profile_path)
+    devices = [device for device in client.devices() if device.ready]
+    if not devices:
+        raise AdbError("Chưa có thiết bị ADB sẵn sàng để probe.")
+    results: list[dict[str, object]] = []
+    workers = min(4, len(devices))
+    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="rok-probe") as pool:
+        futures = {
+            pool.submit(
+                probe_rankings_menu, client, device.serial, profile, artifacts
+            ): device.serial
+            for device in devices
+        }
+        for future in as_completed(futures):
+            serial = futures[future]
+            try:
+                results.append(future.result())
+            except AdbError as exc:
+                results.append({"ok": False, "serial": serial, "error": str(exc)})
+    print(json.dumps({"devices": results}, ensure_ascii=False, indent=2))
+    return 0 if all(result.get("ok") for result in results) else 2
+
+
 def main(argv: list[str] | None = None) -> int:
     _configure_console()
     parser = build_parser()
@@ -168,12 +238,14 @@ def main(argv: list[str] | None = None) -> int:
             return _print_devices(client)
         if args.command == "snapshot":
             return _snapshot(client, args.config, args.output)
+        if args.command == "fleet-probe":
+            return _fleet_probe(client, args.profile, args.artifacts)
 
         serial = _serial(args)
         if args.command == "inspect":
             print(json.dumps(client.inspect(serial), ensure_ascii=False, indent=2))
         elif args.command == "screenshot":
-            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
             output = args.output or DEFAULT_ARTIFACTS / "screenshots" / f"{args.device}-{timestamp}.png"
             print(client.screenshot(serial, output).resolve())
         elif args.command == "wifi-open":
@@ -188,6 +260,37 @@ def main(argv: list[str] | None = None) -> int:
             print(client.keyevent(serial, "KEYCODE_HOME"))
         elif args.command == "tap":
             print(client.tap(serial, args.x, args.y))
+        elif args.command == "rankings-probe":
+            result = probe_rankings_menu(
+                client,
+                serial,
+                load_profile(args.profile),
+                args.artifacts,
+            )
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["ok"] else 2
+        elif args.command == "rankings-open":
+            result = open_ranking(
+                client,
+                serial,
+                load_profile(args.profile),
+                args.artifacts,
+                args.ranking,
+                confirmed=args.confirm,
+            )
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["ok"] else 2
+        elif args.command == "rankings-read":
+            result = read_visible_power_ranking(
+                client,
+                serial,
+                load_profile(args.profile),
+                args.artifacts,
+                tesseract_path=args.tesseract,
+                tessdata_path=args.tessdata,
+            )
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["ok"] else 2
         elif args.command == "live":
             client.require_ready(serial)
             pid = launch_scrcpy(

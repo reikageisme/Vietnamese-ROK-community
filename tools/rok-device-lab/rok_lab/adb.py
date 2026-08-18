@@ -5,9 +5,9 @@ import os
 import re
 import shutil
 import subprocess
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterable
 
 
 class AdbError(RuntimeError):
@@ -63,7 +63,7 @@ def parse_devices(output: str) -> list[Device]:
     devices: list[Device] = []
     for raw_line in output.splitlines():
         line = raw_line.strip()
-        if not line or line.startswith("List of devices attached") or line.startswith("*"):
+        if not line or line.startswith(("List of devices attached", "*")):
             continue
 
         parts = line.split()
@@ -212,6 +212,19 @@ class AdbClient:
 
     def tap(self, serial: str, x: int, y: int) -> str:
         return self.shell(serial, "input", "tap", str(x), str(y))
+
+    def foreground_activity(self, serial: str) -> str:
+        """Return the currently resumed Android activity for a device."""
+        output = self.shell(serial, "dumpsys", "activity", "activities", timeout=30)
+        for pattern in (
+            r"mResumedActivity:.*?\s([\w.]+/[\w.$]+)",
+            r"topResumedActivity=.*?\s([\w.]+/[\w.$]+)",
+            r"mFocusedApp=.*?\s([\w.]+/[\w.$]+)",
+        ):
+            match = re.search(pattern, output)
+            if match:
+                return match.group(1)
+        return ""
 
 
 def load_aliases(path: Path) -> dict[str, str]:

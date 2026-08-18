@@ -48,6 +48,21 @@ List of devices attached
         self.assertEqual(["adb", "-s", "R58M111"], command[:3])
         self.assertFalse(run.call_args.kwargs.get("shell", False))
 
+    def test_foreground_activity_extracts_package_and_activity(self) -> None:
+        client = object.__new__(AdbClient)
+        with patch.object(
+            client,
+            "shell",
+            return_value=(
+                "mResumedActivity: ActivityRecord{1 u0 "
+                "com.rok.gp.vn/com.harry.engine.MainActivity t10}"
+            ),
+        ):
+            self.assertEqual(
+                "com.rok.gp.vn/com.harry.engine.MainActivity",
+                client.foreground_activity("R58M111"),
+            )
+
     def test_collector_requires_url_before_reading_scan(self) -> None:
         with (
             patch.dict("os.environ", {}, clear=True),

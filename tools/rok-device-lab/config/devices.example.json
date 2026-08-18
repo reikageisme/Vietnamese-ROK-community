@@ -1,6 +1,7 @@
 {
   "devices": {
     "phone01": "THAY_BANG_SERIAL_MAY_01",
-    "phone02": "THAY_BANG_SERIAL_MAY_02"
+    "phone02": "THAY_BANG_SERIAL_MAY_02",
+    "phone03": "THAY_BANG_SERIAL_MAY_03"
   }
 }

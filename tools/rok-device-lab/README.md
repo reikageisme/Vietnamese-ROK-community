@@ -1,116 +1,141 @@
 # RokViet Device Lab
 
-Bộ điều khiển thử nghiệm cho 2 điện thoại Android vật lý. Công cụ bắt buộc định
-danh thiết bị bằng ADB serial để tránh gửi thao tác nhầm máy, chạy trực tiếp trên
-Windows 11 và giữ tương thích với Ubuntu/Proxmox về sau.
+USB-first scanner dành cho điện thoại Android vật lý. Mọi lệnh đều định danh bằng
+ADB serial, mỗi máy có lock riêng và mỗi lần chạy có thư mục ảnh/JSON/CSV riêng.
+Thiết kế này thay lớp ADB một-port và thư mục ảnh dùng chung của RokTracker cũ.
 
-Đây là lớp mới nằm cạnh bản `RoK Tracker` đóng gói. Hai file Scanner cũ chỉ hỗ trợ
-BlueStacks/LDPlayer, một ADB port và tọa độ giao diện cố định; không nên dùng trực
-tiếp để điều khiển nhiều điện thoại vật lý.
+Mốc hiện tại đã được thử thật với 2 Samsung SM-A516B:
 
-## Chuẩn bị Windows 11
+- phát hiện song song nhiều thiết bị;
+- xác minh đúng app ROK và đúng màn Rankings trước khi chạm;
+- mở `Individual Power` bằng đúng một thao tác có `--confirm`;
+- OCR 6 hàng đang nhìn thấy thành JSON và CSV, giữ ảnh gốc/ảnh crop/chuỗi OCR;
+- khóa một worker trên một serial để các job không giẫm dữ liệu nhau.
 
-- Python 3.11 trở lên. Bản Scanner `.exe` có runtime nội bộ nhưng không cung cấp
-  một Python interpreter dùng để phát triển, vì vậy vẫn cần cài Python riêng.
-- Bật Developer options và USB debugging trên từng điện thoại.
-- Chấp nhận RSA prompt trên từng điện thoại.
-- ADB được tự tìm trong `RoK Tracker/deps/platform-tools`.
-- Cài scrcpy riêng nếu muốn mở màn hình trực tiếp, rồi thêm vào `PATH` hoặc đặt
-  biến `SCRCPY_PATH`.
+Đây là scanner thống kê cộng đồng, không phải bot farm tài nguyên và không có cơ
+chế né phát hiện. Bản hiện tại chưa tự cuộn/quét toàn bộ kingdom; cần hiệu chỉnh
+thêm profile governor trước khi bật vòng lặp dài.
 
-Có thể cài hai thành phần còn thiếu bằng Windows Package Manager:
+## 1. Cài trên Windows 11
 
-```powershell
-winget install --id Python.Python.3.12 --exact
-winget install --id Genymobile.scrcpy --exact
-```
-
-Mở cửa sổ PowerShell mới sau khi cài để `PATH` được cập nhật.
-
-Không cần `pip install` để chạy các lệnh cơ bản:
+Yêu cầu Python 3.11+, ADB và Tesseract OCR. Nếu đang dùng box XiaoWei, có thể trỏ
+thẳng đến ADB đi kèm phần mềm. Tesseract có thể cài bằng:
 
 ```powershell
-cd "D:\ROK Forum\tools\rok-device-lab"
-py -3.11 -m rok_lab doctor
-py -3.11 -m rok_lab devices
-py -3.11 -m rok_lab snapshot
+winget install --id UB-Mannheim.TesseractOCR --exact
 ```
 
-Nếu `py -3.11` báo `No suitable Python runtime found`, cài Python 3.11/3.12 từ
-python.org, chọn `Add Python to PATH`, rồi chạy lại. Khi bản thử nghiệm ổn định,
-Device Lab có thể được đóng thành `.exe` để máy vận hành không cần cài Python.
-
-Sau khi `adb devices -l` hiện hai serial ở trạng thái `device`, sao chép
-`config/devices.example.json` thành `config/devices.local.json` rồi điền hai
-alias. File `.local` đã được gitignore:
+Tại thư mục repository:
 
 ```powershell
-Copy-Item config\devices.example.json config\devices.local.json
+cd "D:\ROK Forum"
+py -3.11 -m venv tools\rok-device-lab\.venv
+tools\rok-device-lab\.venv\Scripts\python.exe -m pip install -e tools\rok-device-lab
 ```
 
-```json
-{
-  "devices": {
-    "phone01": "R58M111111A",
-    "phone02": "R58M222222B"
-  }
-}
-```
+Nếu `py -3.11` không thấy Python nhưng máy có Python riêng, thay phần đầu bằng
+đường dẫn tới `python.exe` đó.
 
-## Kiểm thử từng thiết bị
+Đặt đường dẫn một lần cho cửa sổ PowerShell hiện tại:
 
 ```powershell
-py -3.11 -m rok_lab inspect phone01
-py -3.11 -m rok_lab screenshot phone01
-py -3.11 -m rok_lab wifi-status phone01
-py -3.11 -m rok_lab wifi-open phone01
-py -3.11 -m rok_lab ui-dump phone01
-py -3.11 -m rok_lab live phone01
+$env:ADB_PATH = "D:\Program Files (x86)\xiaowei_android\tools\adb.exe"
+$env:TESSERACT_PATH = "C:\Program Files\Tesseract-OCR\tesseract.exe"
+$env:TESSDATA_DIR = "D:\ROK Forum\RoK Tracker\deps\tessdata"
+$rok = "tools\rok-device-lab\.venv\Scripts\python.exe"
 ```
 
-`snapshot` đọc hai điện thoại bằng hai worker song song và ghi
-`artifacts/device-snapshot.json`. Đây là bài test đầu tiên để xác nhận cơ chế tách
-worker trước khi nối OCR và database.
+`TESSDATA_DIR` nên chứa `eng.traineddata`; thêm `vie.traineddata` và
+`kor.traineddata` để đọc tốt tên Việt/Hàn. Khi không đặt biến này, công cụ tìm
+tessdata bên cạnh Tesseract và chỉ dùng các ngôn ngữ thực sự có mặt.
 
-Khi scanner đã tạo JSON đúng schema, gửi batch lên website bằng token riêng:
+## 2. Kiểm tra 2 máy mà không chạm game
 
 ```powershell
-$env:ROK_COLLECTOR_URL = "https://forum.example.vn"
-$env:ROK_COLLECTOR_TOKEN = "token-dai-trung-khop-voi-host"
-py -3.11 -m rok_lab upload-scan artifacts\scan-kd2812.json
+& $rok -m rok_lab.cli doctor
+& $rok -m rok_lab.cli devices
+& $rok -m rok_lab.cli snapshot
+& $rok -m rok_lab.cli fleet-probe
 ```
 
-Token chỉ nằm trong biến môi trường của collector, không ghi vào JSON hoặc commit
-lên Git. Server chống gửi trùng bằng `externalId` và đưa batch vào hàng chờ duyệt.
+`fleet-probe` chạy song song tối đa 4 worker nhưng chỉ chụp màn hình. Kết quả hợp
+lệ phải có `gamePackageMatched: true`, `screenMatched: true` và đúng độ phân giải.
 
-`ui-dump` dùng để thu cây giao diện Wi-Fi thật của model/ROM. Chỉ sau khi có dữ
-liệu này mới thêm automation nhập SSID/mật khẩu bằng selector; không dùng tọa độ
-cố định của emulator cũ.
-
-Lệnh chạm tọa độ chỉ dành cho kiểm thử thủ công có quan sát:
+Muốn dùng alias, sao chép file mẫu rồi điền serial thật:
 
 ```powershell
-py -3.11 -m rok_lab tap phone01 500 900
+Copy-Item tools\rok-device-lab\config\devices.example.json `
+  tools\rok-device-lab\config\devices.local.json
 ```
 
-## Nguyên tắc an toàn
+File `.local` và toàn bộ `artifacts/` không được commit lên Git.
 
-- Không chạy thao tác ghi nếu thiết bị không ở trạng thái `device`.
-- Mọi lệnh điều khiển đều thêm `adb -s <serial>`.
-- Dừng automation nếu phát hiện hai thiết bị trùng serial.
-- Không lưu mật khẩu Wi-Fi/proxy trong repository hoặc log.
-- Chụp màn hình và xác nhận trạng thái trước khi tự động chạm.
+## 3. Smoke test một máy
 
-## Kiểm tra source
+Để điện thoại ở menu `RANKINGS`, rồi chạy probe read-only:
 
 ```powershell
-cd "D:\ROK Forum\tools\rok-device-lab"
-py -3.11 -m unittest discover -s tests -v
+& $rok -m rok_lab.cli rankings-probe 520007cc4bef354d
 ```
 
-## Đưa sang Proxmox sau này
+Sau khi nhìn đúng serial, cho phép đúng một chạm mở bảng Individual Power:
 
-Source không phụ thuộc PowerShell hay đường dẫn Windows. Trên Ubuntu Collector VM,
-đặt `ADB_PATH=/usr/bin/adb`, cấp USB passthrough và chạy cùng các lệnh trên. Bước
-OCR/worker/API sẽ được thêm sau khi xác nhận model, độ phân giải và UI của hai máy
-thật.
+```powershell
+& $rok -m rok_lab.cli rankings-open 520007cc4bef354d `
+  individual-power --confirm
+```
+
+Đọc 6 hàng đang hiển thị, không chạm hoặc cuộn:
+
+```powershell
+& $rok -m rok_lab.cli rankings-read 520007cc4bef354d
+```
+
+Mỗi lệnh tạo một run tại:
+
+```text
+artifacts/runs/<serial>/<timestamp>-<operation>/
+```
+
+Run OCR gồm `manifest.json`, `screen.png`, ảnh crop từng hàng,
+`governors.json` và `governors.csv`. Trường `needsReview` đánh dấu hàng OCR chưa
+đọc được tên hoặc power; `ocrRaw` giữ nguyên chuỗi để đối chiếu.
+
+## 4. Đưa dữ liệu lên RokViet Hub
+
+Khi batch đã đúng schema collector:
+
+```powershell
+$env:ROK_COLLECTOR_URL = "https://rokforum.example.vn"
+$env:ROK_COLLECTOR_TOKEN = "token-rieng-khong-commit"
+& $rok -m rok_lab.cli upload-scan C:\duong-dan\scan.json
+```
+
+Server chống gửi trùng bằng `externalId` và giữ batch ở trạng thái chờ duyệt.
+
+## 5. Mở rộng 18 điện thoại
+
+Không tạo 18 VM. Một Linux collector VM/LXC quản lý USB passthrough và chạy pool
+worker giới hạn (khởi đầu 2–4 worker). Hàng đợi phân job theo serial; lock trong
+Device Lab bảo đảm một điện thoại chỉ có một job. Ảnh được ghi tạm theo run, upload
+lên object storage rồi mới xóa theo retention. PostgreSQL chỉ lưu dữ liệu chuẩn
+hóa và provenance, không nhét ảnh trực tiếp vào DB.
+
+```text
+18 điện thoại -> ADB inventory -> queue theo serial -> 2-4 scanner worker
+-> OCR -> review/validation -> Collector API -> PostgreSQL + MinIO -> website
+```
+
+Trên Ubuntu/Proxmox, cài `adb`, `tesseract-ocr`, `tesseract-ocr-eng`,
+`tesseract-ocr-vie`, `tesseract-ocr-kor`; đặt `ADB_PATH=/usr/bin/adb`. Source và
+profile vẫn dùng nguyên vì tọa độ được chuẩn hóa theo kích thước ảnh.
+
+## 6. Kiểm tra source
+
+```powershell
+& $rok -m unittest discover -s tools\rok-device-lab\tests -v
+```
+
+Nguyên tắc vận hành: không gửi lệnh khi máy `unauthorized/offline`, không dùng tọa
+độ nếu guard màn hình thất bại, không lưu Wi-Fi/proxy/token vào repo, và luôn giữ
+ảnh bằng chứng cùng serial/thời gian quét.
