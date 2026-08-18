@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rokviet-device-lab"
-version = "0.2.0"
-description = "Multi-phone ADB kingdom scanner for RokViet Hub"
+version = "0.3.0"
+description = "Multi-phone ADB kingdom and ranking scanner for RokViet Hub"
 requires-python = ">=3.11"
 dependencies = [
   "openpyxl>=3.1,<4",

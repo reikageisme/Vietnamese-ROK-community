@@ -1,7 +1,7 @@
 # RokViet Multi-Phone Scanner
 
-Bản viết lại workflow Kingdom Scanner của RokTracker cho điện thoại Android vật
-lý. Scanner dùng ADB serial thay vì một cổng giả lập, vì vậy nhiều điện thoại có
+Bản viết lại các workflow Kingdom, Alliance, Honor và Seed của RokTracker cho
+điện thoại Android vật lý. Scanner dùng ADB serial thay vì một cổng giả lập, vì vậy nhiều điện thoại có
 thể quét đồng thời mà không gửi nhầm thao tác hoặc ghi đè ảnh của nhau.
 
 Đã kiểm thử thật trên 2 Samsung SM-A516B:
@@ -14,6 +14,8 @@ thể quét đồng thời mà không gửi nhầm thao tác hoặc ghi đè ả
 - tự cuộn, bỏ profile không mở được, chống governor trùng và lưu state sau từng người;
 - resume sau khi dừng, xuất XLSX/CSV/JSONL và `scan.json` đúng Collector API;
 - fleet worker nhiều serial; bài test 2 điện thoại/2 worker đã hoàn thành.
+- CLI Alliance/Honor/Seed dùng chung ranking engine, giữ crop tên và nhúng ảnh
+  đó vào Excel giống mục đích của RokTracker gốc.
 
 Đây là scanner dữ liệu thống kê, không phải bot farm và không có cơ chế né phát
 hiện. Guard dừng thao tác nếu app/màn hình không đúng profile đã hiệu chỉnh.
@@ -115,7 +117,29 @@ artifacts/scans/<serial>/<scan-name>-kd<kingdom>-<timestamp>/
 `state.json` giữ toàn bộ OCR raw, trạng thái validation và `needsReview`.
 `scan.json` dùng BigInt dạng chuỗi và có thể gửi thẳng lên Collector API.
 
-## 4. Quét nhiều điện thoại
+## 4. Quét Alliance, Honor và Seed
+
+Mở đúng bảng xếp hạng cần đọc và kéo về đầu danh sách. Ví dụ Seed:
+
+```powershell
+& $rok -m rok_lab.cli ranking-scan 520007cc4bef354d seed `
+  --amount 300 `
+  --name KD2812-seed `
+  --evidence all `
+  --confirm
+```
+
+Thay `seed` bằng `alliance` hoặc `honor`. Scanner đọc 6 dòng/màn cho
+Alliance/Seed, 5 dòng/màn cho Honor, tự cuộn, dừng khi gặp dòng trống/trùng và
+xuất `ranking.xlsx`, `ranking.csv`, `ranking.jsonl`, `ranking.json`. Hai cột tên
+và điểm được OCR riêng; số tăng bất thường không bị sửa âm thầm mà được đánh
+dấu `needsReview`.
+
+Profile mới lấy vùng tham chiếu từ RokTracker 1600×900 và chuẩn hóa sang tỷ lệ.
+Trước lần quét dài, chạy thử `--amount 6` trên từng loại màn A51 để kiểm tra crop
+vì giao diện game Việt có thể thay đổi sau cập nhật.
+
+## 5. Quét nhiều điện thoại
 
 Sao chép hai file mẫu:
 
@@ -153,11 +177,22 @@ Chạy:
   --confirm
 ```
 
+Alliance/Honor/Seed dùng file `config/fleet-ranking.example.json`:
+
+```powershell
+Copy-Item tools\rok-device-lab\config\fleet-ranking.example.json `
+  tools\rok-device-lab\config\fleet-ranking.local.json
+& $rok -m rok_lab.cli fleet-ranking-scan `
+  tools\rok-device-lab\config\fleet-ranking.local.json `
+  --workers 2 `
+  --confirm
+```
+
 Không đặt 18 worker ngay lập tức. Với Windows test dùng 2 worker; VM/LXC vận hành
 bắt đầu 2–4 worker rồi tăng theo CPU/RAM/USB stability. Mỗi serial có lock riêng,
 nên một máy không thể nhận hai job cùng lúc.
 
-## 5. Gửi lên RokViet Hub
+## 6. Gửi lên RokViet Hub
 
 ```powershell
 $env:ROK_COLLECTOR_URL = "https://rokforum.example.vn"
@@ -168,7 +203,7 @@ $env:ROK_COLLECTOR_TOKEN = "token-rieng-khong-commit"
 Collector chống trùng bằng `externalId` và đưa dữ liệu vào `PENDING_REVIEW` trước
 khi public.
 
-## 6. Đưa lên Proxmox cho 18 điện thoại
+## 7. Đưa lên Proxmox cho 18 điện thoại
 
 Một collector VM/LXC nhận USB passthrough cho cả hub và chạy pool worker chung;
 không cần 18 VM:
@@ -182,7 +217,7 @@ Trên Ubuntu cài `adb`, `tesseract-ocr`, `tesseract-ocr-eng`,
 `tesseract-ocr-vie`, `tesseract-ocr-kor`; đặt `ADB_PATH=/usr/bin/adb`. PostgreSQL
 chỉ lưu dữ liệu chuẩn hóa; ảnh bằng chứng đưa lên MinIO theo retention.
 
-## 7. Kiểm tra source
+## 8. Kiểm tra source
 
 ```powershell
 & $rok -m unittest discover -s tools\rok-device-lab\tests -v
@@ -190,3 +225,6 @@ chỉ lưu dữ liệu chuẩn hóa; ảnh bằng chứng đưa lên MinIO theo 
 
 Không commit `devices.local.json`, `fleet.local.json`, token, Wi-Fi/proxy hoặc thư
 mục `artifacts/`.
+
+Kết quả rà soát đầy đủ 74 file RokTracker nằm tại
+`ROKTRACKER_FILE_AUDIT.md`; thông báo giấy phép ở `THIRD_PARTY_NOTICES.md`.

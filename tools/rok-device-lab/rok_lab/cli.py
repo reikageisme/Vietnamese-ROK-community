@@ -4,15 +4,17 @@ import argparse
 import json
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from .adb import AdbClient, AdbError, load_aliases, resolve_device
 from .collector import upload_scan
+from .fleet_ranking_scanner import run_fleet_ranking_job
 from .fleet_scanner import load_fleet_job, run_fleet_job
 from .kingdom_scanner import KingdomScanner, ScanOptions
 from .profiles import load_profile
 from .ranking_reader import read_visible_power_ranking
+from .ranking_scanner import RankingScanner, RankingScanOptions
 from .rankings import open_ranking, probe_rankings_menu
 from .scrcpy import find_scrcpy, launch_scrcpy
 
@@ -147,6 +149,36 @@ def build_parser() -> argparse.ArgumentParser:
     fleet_scan.add_argument("--tesseract", help="Đường dẫn tesseract.exe.")
     fleet_scan.add_argument("--tessdata", help="Thư mục chứa *.traineddata.")
     fleet_scan.add_argument("--confirm", action="store_true")
+
+    ranking_scan = subcommands.add_parser(
+        "ranking-scan",
+        help="Quét đầy đủ Alliance, Honor hoặc Seed; tự cuộn và xuất dữ liệu.",
+    )
+    ranking_scan.add_argument("device", help="Alias hoặc ADB serial.")
+    ranking_scan.add_argument("ranking_type", choices=("alliance", "honor", "seed"))
+    ranking_scan.add_argument("--amount", type=int, default=100)
+    ranking_scan.add_argument("--name", default="ranking")
+    ranking_scan.add_argument("--formats", default="xlsx,csv,jsonl")
+    ranking_scan.add_argument(
+        "--evidence", choices=("all", "review", "none"), default="all"
+    )
+    ranking_scan.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
+    ranking_scan.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
+    ranking_scan.add_argument("--tesseract", help="Đường dẫn tesseract.exe.")
+    ranking_scan.add_argument("--tessdata", help="Thư mục chứa *.traineddata.")
+    ranking_scan.add_argument("--confirm", action="store_true")
+
+    fleet_ranking = subcommands.add_parser(
+        "fleet-ranking-scan",
+        help="Quét Alliance/Honor/Seed đồng thời trên nhiều điện thoại.",
+    )
+    fleet_ranking.add_argument("job", type=Path)
+    fleet_ranking.add_argument("--workers", type=int)
+    fleet_ranking.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
+    fleet_ranking.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
+    fleet_ranking.add_argument("--tesseract", help="Đường dẫn tesseract.exe.")
+    fleet_ranking.add_argument("--tessdata", help="Thư mục chứa *.traineddata.")
+    fleet_ranking.add_argument("--confirm", action="store_true")
     return parser
 
 
@@ -173,6 +205,16 @@ def _print_scan_progress(event: dict[str, object]) -> None:
         print(
             f"[{serial}] cuộn sau page {event.get('page')} "
             f"({event.get('records')}/{event.get('target')})",
+            file=sys.stderr,
+            flush=True,
+        )
+    elif event.get("event") == "ranking-row":
+        review = " REVIEW" if event.get("needsReview") else ""
+        print(
+            f"[{serial}] {event.get('rankingType')} "
+            f"{event.get('rank')}/{event.get('target')} "
+            f"{event.get('name') or '(không đọc được tên)'} "
+            f"score={event.get('score')}{review}",
             file=sys.stderr,
             flush=True,
         )
@@ -310,12 +352,27 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(json.dumps(result, ensure_ascii=False, indent=2))
             return 0 if result["ok"] else 2
+        if args.command == "fleet-ranking-scan":
+            result = run_fleet_ranking_job(
+                client,
+                load_profile(args.profile),
+                args.artifacts,
+                _aliases(args.config),
+                load_fleet_job(args.job),
+                confirmed=args.confirm,
+                workers=args.workers,
+                tesseract_path=args.tesseract,
+                tessdata_path=args.tessdata,
+                progress=_print_scan_progress,
+            )
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["ok"] else 2
 
         serial = _serial(args)
         if args.command == "inspect":
             print(json.dumps(client.inspect(serial), ensure_ascii=False, indent=2))
         elif args.command == "screenshot":
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+            timestamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
             output = (
                 args.output
                 or DEFAULT_ARTIFACTS / "screenshots" / f"{args.device}-{timestamp}.png"
@@ -380,6 +437,29 @@ def main(argv: list[str] | None = None) -> int:
                     formats=formats,
                     evidence=args.evidence,
                     resume_directory=args.resume,
+                ),
+                confirmed=args.confirm,
+                tesseract_path=args.tesseract,
+                tessdata_path=args.tessdata,
+                progress=_print_scan_progress,
+            ).scan()
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["ok"] else 2
+        elif args.command == "ranking-scan":
+            formats = {item.strip() for item in args.formats.split(",") if item.strip()}
+            if not formats or not formats <= {"xlsx", "csv", "jsonl"}:
+                raise AdbError("--formats chỉ hỗ trợ xlsx,csv,jsonl.")
+            result = RankingScanner(
+                client,
+                serial,
+                load_profile(args.profile),
+                args.artifacts,
+                RankingScanOptions(
+                    ranking_type=args.ranking_type,
+                    amount=args.amount,
+                    scan_name=args.name,
+                    formats=formats,
+                    evidence=args.evidence,
                 ),
                 confirmed=args.confirm,
                 tesseract_path=args.tesseract,

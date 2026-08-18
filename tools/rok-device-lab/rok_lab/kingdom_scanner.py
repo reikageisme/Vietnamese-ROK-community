@@ -6,7 +6,7 @@ import shutil
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -72,7 +72,7 @@ class KingdomScanner:
         if options.resume_directory:
             self.directory = options.resume_directory.resolve()
         else:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
             scan_id = safe_serial(
                 f"{options.scan_name}-kd{options.kingdom}-{timestamp}"
             )

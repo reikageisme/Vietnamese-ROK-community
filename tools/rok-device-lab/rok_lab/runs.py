@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 from contextlib import AbstractContextManager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Self
 
@@ -11,7 +11,7 @@ from .adb import AdbError
 
 
 def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def safe_serial(serial: str) -> str:
@@ -63,7 +63,7 @@ class DeviceRun(AbstractContextManager["DeviceRun"]):
         self.serial = serial
         self.operation = operation
         self.device_root = root / "runs" / safe_serial(serial)
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S-%f")
         self.path = self.device_root / f"{timestamp}-{operation}"
         self._lock = DeviceLock(root, serial, operation)
         self.manifest: dict[str, Any] = {

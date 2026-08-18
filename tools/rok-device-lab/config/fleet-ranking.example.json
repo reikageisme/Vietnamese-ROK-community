@@ -1,0 +1,14 @@
+{
+  "jobId": "kvk-ranking-demo",
+  "workers": 2,
+  "defaults": {
+    "rankingType": "seed",
+    "amount": 300,
+    "formats": ["xlsx", "csv", "jsonl"],
+    "evidence": "all"
+  },
+  "devices": [
+    {"device": "phone01", "scanName": "KD2812-seed"},
+    {"device": "phone02", "rankingType": "honor", "amount": 100}
+  ]
+}
