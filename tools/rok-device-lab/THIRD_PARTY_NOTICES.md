@@ -4,8 +4,8 @@ Thiết kế các workflow Kingdom, Alliance, Honor và Seed cùng một số t�
 tham chiếu được nghiên cứu từ dự án **RokTracker 6.0.0**, phát hành theo giấy
 phép MIT.
 
-Copyright (c) 2021-2022 nikolakis1919  
-Copyright (c) 2026 mausmeister  
+Copyright (c) 2021-2022 nikolakis1919<br>
+Copyright (c) 2026 mausmeister<br>
 Copyright (c) 2022-2026 Cyrexxis
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
