@@ -24,6 +24,17 @@ export async function POST(request: Request) {
           note: input.note || null,
         },
       });
+      await tx.kingdom.upsert({ where: { number: input.kingdomNumber }, create: { number: input.kingdomNumber }, update: {} });
+      await tx.automationJob.create({
+        data: {
+          type: input.product === "GOVERNOR_TOP_300" ? "KINGDOM_FULL" : input.product === "KVK_CAMP" ? "KVK_DISCOVERY" : "RANKING_SEED",
+          kingdomNumber: input.kingdomNumber,
+          amount: 300,
+          priority: input.product === "KVK_CAMP" ? 1_000 : 500,
+          scanName: created.requestCode.toLowerCase(),
+          serviceRequestId: created.id,
+        },
+      });
       await tx.creditTransaction.create({ data: { walletId: wallet.id, actorId: session.user.id, kind: "SCAN_CHARGE", amount: -cost, balanceAfter: updatedWallet.balance, reference: created.requestCode } });
       return { request: created, balance: updatedWallet.balance };
     });

@@ -1,0 +1,186 @@
+enum DeviceAgentStatus {
+  ONLINE
+  DEGRADED
+  OFFLINE
+}
+
+enum CollectorDeviceStatus {
+  READY
+  BUSY
+  OFFLINE
+  ERROR
+  DISABLED
+}
+
+enum GameCharacterStatus {
+  READY
+  VERIFYING
+  INVALID
+  DISABLED
+}
+
+enum AutomationJobType {
+  KINGDOM_FULL
+  RANKING_SEED
+  RANKING_ALLIANCE
+  RANKING_HONOR
+  KVK_DISCOVERY
+}
+
+enum AutomationJobStatus {
+  QUEUED
+  LEASED
+  SWITCHING
+  SCANNING
+  UPLOADING
+  REVIEWING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model DeviceAgent {
+  id              String            @id @db.VarChar(100)
+  name            String            @db.VarChar(120)
+  hostname        String            @db.VarChar(191)
+  version         String            @db.VarChar(40)
+  status          DeviceAgentStatus @default(OFFLINE)
+  capabilities    Json?
+  lastHeartbeatAt DateTime?
+  lastError       String?           @db.Text
+  devices         CollectorDevice[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([status, lastHeartbeatAt])
+}
+
+model CollectorDevice {
+  id                  String                @id @default(cuid())
+  serial              String                @unique @db.VarChar(100)
+  alias               String                @db.VarChar(80)
+  agentId             String                @db.VarChar(100)
+  model               String?               @db.VarChar(120)
+  adbState            String?               @db.VarChar(40)
+  resolution          String?               @db.VarChar(40)
+  batteryPercent      Int?
+  status              CollectorDeviceStatus @default(OFFLINE)
+  currentCharacterKey String?               @db.VarChar(100)
+  lastHeartbeatAt     DateTime?
+  lastError           String?               @db.Text
+  agent               DeviceAgent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  characters          GameCharacter[]
+  jobs                AutomationJob[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  @@index([agentId, status])
+  @@index([status, lastHeartbeatAt])
+}
+
+model GameCharacter {
+  id             String              @id @default(cuid())
+  deviceId       String
+  key            String              @db.VarChar(100)
+  label          String              @db.VarChar(120)
+  accountLabel   String?             @db.VarChar(120)
+  governorId     String?             @db.VarChar(32)
+  kingdomNumber  Int
+  switchOrder    Int                 @default(0)
+  switchRoute    Json
+  scanRoutes     Json                @default("{}")
+  status         GameCharacterStatus @default(VERIFYING)
+  lastVerifiedAt DateTime?
+  lastError      String?             @db.Text
+  device         CollectorDevice     @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  jobs           AutomationJob[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@unique([deviceId, key])
+  @@index([kingdomNumber, status])
+  @@index([deviceId, switchOrder])
+}
+
+model AutomationJob {
+  id               String              @id @default(cuid())
+  type             AutomationJobType
+  status           AutomationJobStatus @default(QUEUED)
+  priority         Int                 @default(100)
+  kingdomNumber    Int
+  amount           Int                 @default(300)
+  scanName         String              @db.VarChar(120)
+  scheduleKey      String?             @unique @db.VarChar(191)
+  serviceRequestId String?             @unique
+  assignedDeviceId String?
+  characterId      String?
+  leaseOwner       String?             @db.VarChar(100)
+  leaseExpiresAt   DateTime?
+  attempts         Int                 @default(0)
+  maxAttempts      Int                 @default(3)
+  progress         Json?
+  result           Json?
+  error            String?             @db.Text
+  scheduledAt      DateTime            @default(now())
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  serviceRequest   ScanServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
+  assignedDevice   CollectorDevice?    @relation(fields: [assignedDeviceId], references: [id], onDelete: SetNull)
+  character        GameCharacter?      @relation(fields: [characterId], references: [id], onDelete: SetNull)
+  rankingBatch     RankingScanBatch?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@index([status, scheduledAt, priority])
+  @@index([assignedDeviceId, status])
+  @@index([kingdomNumber, createdAt])
+  @@index([leaseExpiresAt])
+}
+
+model RankingScanBatch {
+  id            String             @id @default(cuid())
+  jobId         String             @unique
+  kingdomNumber Int
+  rankingType   AutomationJobType
+  target        Int                @default(300)
+  recordCount   Int
+  capturedAt    DateTime
+  job           AutomationJob      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  entries       RankingScanEntry[]
+  createdAt     DateTime           @default(now())
+
+  @@index([kingdomNumber, capturedAt])
+  @@index([rankingType, capturedAt])
+}
+
+model RankingScanEntry {
+  id          String           @id @default(cuid())
+  batchId     String
+  rank        Int
+  name        String?          @db.VarChar(160)
+  score       BigInt?
+  needsReview Boolean          @default(false)
+  batch       RankingScanBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@unique([batchId, rank])
+  @@index([batchId, score])
+}
+
+model KingdomScanPolicy {
+  id             String    @id @default(cuid())
+  kingdomNumber  Int       @unique
+  enabled        Boolean   @default(true)
+  fullScan       Boolean   @default(false)
+  amount         Int       @default(300)
+  cadenceMinutes Int       @default(10080)
+  priority       Int       @default(100)
+  activeKvk      Boolean   @default(false)
+  reason         String?   @db.VarChar(191)
+  nextScanAt     DateTime  @default(now())
+  lastQueuedAt   DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([enabled, nextScanAt, priority])
+  @@index([activeKvk, nextScanAt])
+}

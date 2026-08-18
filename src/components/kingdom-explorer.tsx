@@ -2,35 +2,62 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { campMeta, formatCompact, kingdoms, type CampCode } from "@/data/kingdom-demo";
 
-const camps: Array<CampCode | "ALL"> = ["ALL", "A", "B", "C", "D"];
+export type KingdomCoverageRow = {
+  number: number;
+  name: string | null;
+  power: string | null;
+  recordCount: number;
+  target: number;
+  reviewCount: number;
+  capturedAt: string | null;
+};
 
-export function KingdomExplorer() {
+function compact(value: string | null) {
+  if (!value) return "—";
+  return new Intl.NumberFormat("vi-VN", { notation: "compact", maximumFractionDigits: 2 }).format(Number(value));
+}
+
+function freshness(capturedAt: string | null) {
+  if (!capturedAt) return "Chưa có dữ liệu";
+  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(capturedAt));
+}
+
+export function KingdomExplorer({ kingdoms }: { kingdoms: KingdomCoverageRow[] }) {
   const [query, setQuery] = useState("");
-  const [camp, setCamp] = useState<CampCode | "ALL">("ALL");
+  const [filter, setFilter] = useState<"ALL" | "SCANNED" | "PENDING">("ALL");
   const rows = useMemo(() => kingdoms.filter((kingdom) => {
-    const matchesQuery = `${kingdom.number} ${kingdom.name}`.toLowerCase().includes(query.toLowerCase());
-    return matchesQuery && (camp === "ALL" || kingdom.camp === camp);
-  }), [query, camp]);
+    const matchesQuery = `${kingdom.number} ${kingdom.name ?? ""}`.toLowerCase().includes(query.toLowerCase());
+    const matchesFilter = filter === "ALL" || (filter === "SCANNED" ? kingdom.capturedAt : !kingdom.capturedAt);
+    return matchesQuery && matchesFilter;
+  }), [filter, kingdoms, query]);
+  const scannedRanks = useMemo(() => new Map(kingdoms.filter((item) => item.power !== null).map((item, index) => [item.number, index + 1])), [kingdoms]);
 
   return <>
     <div className="data-toolbar">
-      <div className="segment-control">{camps.map((code) => <button key={code} className={camp === code ? "active" : ""} onClick={() => setCamp(code)}>{code === "ALL" ? "Tất cả" : `Trại ${code}`}</button>)}</div>
+      <div className="segment-control">
+        <button className={filter === "ALL" ? "active" : ""} onClick={() => setFilter("ALL")}>Tất cả</button>
+        <button className={filter === "SCANNED" ? "active" : ""} onClick={() => setFilter("SCANNED")}>Đã quét</button>
+        <button className={filter === "PENDING" ? "active" : ""} onClick={() => setFilter("PENDING")}>Chờ quét</button>
+      </div>
       <label className="data-search"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm số KD hoặc tên..." /></label>
     </div>
     <div className="data-table-wrap">
       <table className="data-table kingdom-table">
-        <thead><tr><th>Hạng</th><th>Kingdom</th><th>Trại</th><th>Lực chiến Top 300</th><th>Kill Points</th><th>Quân chết</th><th>Độ phủ</th><th /></tr></thead>
-        <tbody>{rows.map((kingdom) => <tr key={kingdom.number}>
-          <td><span className="rank-number">{kingdom.seed}</span></td>
-          <td><Link className="kingdom-cell" href={`/kingdoms/${kingdom.number}`}><span className={`camp-orb camp-${kingdom.camp.toLowerCase()}`}>{kingdom.camp}</span><span><strong>KD {kingdom.number}</strong><small>{kingdom.name}</small></span></Link></td>
-          <td><span className="camp-label" style={{ "--camp-color": campMeta[kingdom.camp].color } as React.CSSProperties}>{campMeta[kingdom.camp].name}</span></td>
-          <td><strong>{formatCompact(kingdom.power)}</strong><small className="table-sub">Top {kingdom.top300} thống đốc</small></td>
-          <td>{formatCompact(kingdom.killPoints)}</td><td>{formatCompact(kingdom.deadTroops)}</td>
-          <td><span className={`coverage ${kingdom.coverage < 85 ? "coverage-warn" : ""}`}>{kingdom.coverage}%</span></td>
-          <td><Link className="row-arrow" href={`/kingdoms/${kingdom.number}`}>→</Link></td>
-        </tr>)}</tbody>
+        <thead><tr><th>Hạng</th><th>Kingdom</th><th>Lực chiến bảng xếp hạng</th><th>Hồ sơ</th><th>Cần kiểm tra</th><th>Lần quét gần nhất</th><th>Độ phủ</th><th /></tr></thead>
+        <tbody>{rows.map((kingdom) => {
+          const coverage = kingdom.capturedAt ? Math.min(100, Math.round(kingdom.recordCount * 100 / Math.max(kingdom.target, 1))) : 0;
+          return <tr key={kingdom.number}>
+            <td><span className="rank-number">{scannedRanks.get(kingdom.number) ?? "—"}</span></td>
+            <td><Link className="kingdom-cell" href={`/kingdoms/${kingdom.number}`}><span className="camp-orb kingdom-orb">{String(kingdom.number).slice(-2)}</span><span><strong>KD {kingdom.number}</strong><small>{kingdom.name ?? "Chưa xác minh tên"}</small></span></Link></td>
+            <td><strong>{compact(kingdom.power)}</strong><small className="table-sub">{kingdom.recordCount ? `Top ${kingdom.recordCount}` : "chưa quét"}</small></td>
+            <td>{kingdom.recordCount || "—"}</td>
+            <td>{kingdom.reviewCount || "—"}</td>
+            <td>{freshness(kingdom.capturedAt)}</td>
+            <td><span className={`coverage ${coverage < 85 ? "coverage-warn" : ""}`}>{coverage}%</span></td>
+            <td><Link className="row-arrow" href={`/kingdoms/${kingdom.number}`}>→</Link></td>
+          </tr>;
+        })}</tbody>
       </table>
       {!rows.length && <div className="empty-data">Không tìm thấy kingdom phù hợp.</div>}
     </div>

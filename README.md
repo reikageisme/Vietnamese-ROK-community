@@ -55,6 +55,8 @@ MINIO_ROOT_USER=mot-tai-khoan-khac
 MINIO_ROOT_PASSWORD=mat-khau-minio-manh
 S3_ACCESS_KEY_ID=mot-tai-khoan-khac
 S3_SECRET_ACCESS_KEY=mat-khau-minio-manh
+COLLECTOR_API_TOKEN=mot-token-ngau-nhien-toi-thieu-32-ky-tu
+DEVICE_AGENT_TOKEN=mot-token-khac-toi-thieu-32-ky-tu
 
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
@@ -89,6 +91,10 @@ ssh -L 3031:127.0.0.1:3031 root@IP_HOST
 Sau đó mở `http://localhost:3031/ops/scans`. Trang `/scans` trên web công khai chỉ
 hiển thị ví credit, yêu cầu nạp và đơn quét của chính người đang đăng nhập. Phiếu nạp
 được quản trị viên đối soát thủ công; chưa có cổng thanh toán tự động.
+
+Quản lý agent, điện thoại, nhân vật, lịch và hàng đợi tự động tại
+`http://localhost:3031/ops/fleet`. Hướng dẫn đầy đủ nằm trong
+[`docs/FLEET_AUTOMATION.md`](docs/FLEET_AUTOMATION.md).
 
 Sau đó cấu hình reverse proxy hiện có chuyển domain/subdomain của RokViet Hub tới
 `http://127.0.0.1:3030`. Không thêm `--profile production`, vì profile đó bật Caddy

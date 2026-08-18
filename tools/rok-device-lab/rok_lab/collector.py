@@ -38,7 +38,7 @@ def upload_scan(
         headers={
             "Authorization": f"Bearer {secret}",
             "Content-Type": "application/json",
-            "User-Agent": "RokViet-Device-Lab/0.2",
+            "User-Agent": "RokViet-Device-Lab/0.4",
         },
     )
     try:

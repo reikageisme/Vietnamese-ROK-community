@@ -1,0 +1,9 @@
+{
+  "agentId": "windows-box-01",
+  "name": "Box phone Windows test",
+  "pollSeconds": 5,
+  "devices": [
+    {"alias": "phone01", "device": "phone01"},
+    {"alias": "phone02", "device": "phone02"}
+  ]
+}

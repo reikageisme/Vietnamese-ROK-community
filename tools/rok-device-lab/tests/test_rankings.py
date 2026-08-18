@@ -4,7 +4,6 @@ from pathlib import Path
 from unittest.mock import Mock
 
 from PIL import Image
-
 from rok_lab.imaging import difference_hash, hamming_distance
 from rok_lab.profiles import DeviceProfile, ScreenFingerprint
 from rok_lab.rankings import open_ranking

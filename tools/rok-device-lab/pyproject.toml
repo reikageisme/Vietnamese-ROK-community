@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rokviet-device-lab"
-version = "0.3.0"
+version = "0.4.0"
 description = "Multi-phone ADB kingdom and ranking scanner for RokViet Hub"
 requires-python = ">=3.11"
 dependencies = [

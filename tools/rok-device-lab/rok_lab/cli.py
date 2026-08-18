@@ -8,7 +8,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from .adb import AdbClient, AdbError, load_aliases, resolve_device
+from .agent import DeviceAgent
 from .collector import upload_scan
+from .control_client import ControlClient, load_agent_config
 from .fleet_ranking_scanner import run_fleet_ranking_job
 from .fleet_scanner import load_fleet_job, run_fleet_job
 from .kingdom_scanner import KingdomScanner, ScanOptions
@@ -179,6 +181,17 @@ def build_parser() -> argparse.ArgumentParser:
     fleet_ranking.add_argument("--tesseract", help="Đường dẫn tesseract.exe.")
     fleet_ranking.add_argument("--tessdata", help="Thư mục chứa *.traineddata.")
     fleet_ranking.add_argument("--confirm", action="store_true")
+
+    agent = subcommands.add_parser(
+        "agent-run",
+        help="Chạy daemon nhận job từ Fleet Control và điều phối nhiều điện thoại.",
+    )
+    agent.add_argument("agent_config", type=Path)
+    agent.add_argument("--url", help="Control URL; mặc định ROK_CONTROL_URL.")
+    agent.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
+    agent.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
+    agent.add_argument("--tesseract", help="Đường dẫn tesseract.exe.")
+    agent.add_argument("--tessdata", help="Thư mục chứa *.traineddata.")
     return parser
 
 
@@ -367,6 +380,18 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(json.dumps(result, ensure_ascii=False, indent=2))
             return 0 if result["ok"] else 2
+        if args.command == "agent-run":
+            DeviceAgent(
+                client,
+                ControlClient(args.url),
+                load_profile(args.profile),
+                args.artifacts,
+                load_agent_config(args.agent_config),
+                _aliases(args.config),
+                tesseract_path=args.tesseract,
+                tessdata_path=args.tessdata,
+            ).run_forever()
+            return 0
 
         serial = _serial(args)
         if args.command == "inspect":

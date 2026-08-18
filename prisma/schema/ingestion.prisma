@@ -100,6 +100,7 @@ model ScanServiceRequest {
   collectorBatchId String?
   requester        User              @relation("ScanRequester", fields: [requesterId], references: [id], onDelete: Restrict)
   collectorBatch   CollectorBatch?   @relation(fields: [collectorBatchId], references: [id], onDelete: SetNull)
+  automationJob    AutomationJob?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   completedAt      DateTime?
