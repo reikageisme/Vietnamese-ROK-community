@@ -4,15 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rokviet-device-lab"
-version = "0.1.0"
-description = "Safe multi-device ADB control lab for RokViet Hub"
+version = "0.2.0"
+description = "Multi-phone ADB kingdom scanner for RokViet Hub"
 requires-python = ">=3.11"
 dependencies = [
+  "openpyxl>=3.1,<4",
   "Pillow>=10.4,<13",
 ]
 
 [project.scripts]
 rok-device = "rok_lab.cli:main"
+
+[project.optional-dependencies]
+dev = ["ruff>=0.16,<1"]
 
 [tool.setuptools.packages.find]
 where = ["."]

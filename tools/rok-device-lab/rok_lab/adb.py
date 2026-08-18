@@ -213,6 +213,24 @@ class AdbClient:
     def tap(self, serial: str, x: int, y: int) -> str:
         return self.shell(serial, "input", "tap", str(x), str(y))
 
+    def swipe(
+        self,
+        serial: str,
+        start: tuple[int, int],
+        end: tuple[int, int],
+        duration_ms: int = 650,
+    ) -> str:
+        return self.shell(
+            serial,
+            "input",
+            "swipe",
+            str(start[0]),
+            str(start[1]),
+            str(end[0]),
+            str(end[1]),
+            str(duration_ms),
+        )
+
     def foreground_activity(self, serial: str) -> str:
         """Return the currently resumed Android activity for a device."""
         output = self.shell(serial, "dumpsys", "activity", "activities", timeout=30)

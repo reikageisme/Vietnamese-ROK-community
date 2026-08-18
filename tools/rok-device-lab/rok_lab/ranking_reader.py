@@ -18,7 +18,7 @@ POWER_PATTERN = re.compile(r"\b\d{1,3}(?:[,.，]\d{3}){2,}\b")
 TAG_PATTERN = re.compile(r"\[([^\]]{1,12})\]")
 
 
-def _parse_row(text: str, rank: int, confidence: float | None) -> dict[str, Any]:
+def parse_ranking_row(text: str, rank: int, confidence: float | None) -> dict[str, Any]:
     lines = [line.strip(" |}»﹜_-") for line in text.splitlines() if line.strip()]
     power_match = POWER_PATTERN.search(text)
     power = int(re.sub(r"\D", "", power_match.group())) if power_match else None
@@ -91,7 +91,9 @@ def read_visible_power_ranking(
                     tessdata=tessdata,
                     languages=languages,
                 )
-                governors.append(_parse_row(recognized.text, index, recognized.confidence))
+                governors.append(
+                    parse_ranking_row(recognized.text, index, recognized.confidence)
+                )
 
         document = {
             "schemaVersion": 1,
@@ -107,12 +109,22 @@ def read_visible_power_ranking(
             "governors": governors,
         }
         json_path = run.artifact("governors.json")
-        json_path.write_text(json.dumps(document, ensure_ascii=False, indent=2), encoding="utf-8")
+        json_path.write_text(
+            json.dumps(document, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
         csv_path = run.artifact("governors.csv")
         with csv_path.open("w", newline="", encoding="utf-8-sig") as output:
             writer = csv.DictWriter(
                 output,
-                fieldnames=("rank", "allianceTag", "name", "allianceName", "power", "ocrConfidence", "needsReview"),
+                fieldnames=(
+                    "rank",
+                    "allianceTag",
+                    "name",
+                    "allianceName",
+                    "power",
+                    "ocrConfidence",
+                    "needsReview",
+                ),
             )
             writer.writeheader()
             for governor in governors:

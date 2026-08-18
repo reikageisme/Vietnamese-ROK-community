@@ -28,7 +28,9 @@ class DeviceProfile:
         try:
             x_ratio, y_ratio = self.taps[name]
         except KeyError as exc:
-            raise AdbError(f"Profile '{self.name}' không có điểm chạm '{name}'.") from exc
+            raise AdbError(
+                f"Profile '{self.name}' không có điểm chạm '{name}'."
+            ) from exc
         width, height = size
         return round(x_ratio * width), round(y_ratio * height)
 

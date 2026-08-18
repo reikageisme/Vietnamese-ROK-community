@@ -1,0 +1,21 @@
+{
+  "jobId": "nightly-kvk-scan",
+  "workers": 2,
+  "defaults": {
+    "amount": 300,
+    "formats": ["xlsx", "csv", "jsonl"],
+    "evidence": "review"
+  },
+  "devices": [
+    {
+      "device": "phone01",
+      "kingdom": 2812,
+      "scanName": "kd2812"
+    },
+    {
+      "device": "phone02",
+      "kingdom": 3104,
+      "scanName": "kd3104"
+    }
+  ]
+}

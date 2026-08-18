@@ -26,11 +26,7 @@ class RankingGuardTest(unittest.TestCase):
             reference_resolution=(1920, 1080),
             taps={"ranking.individual-power": (0.5, 0.5)},
             regions={},
-            screens={
-                "rankings-menu": (
-                    ScreenFingerprint((0, 0, 1, 1), "0" * 16, 0),
-                )
-            },
+            screens={"rankings-menu": (ScreenFingerprint((0, 0, 1, 1), "0" * 16, 0),)},
         )
         client = Mock()
         with (

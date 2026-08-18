@@ -23,7 +23,11 @@ def _project_root() -> Path:
 
 def find_tesseract(explicit: str | None = None) -> Path:
     candidates: list[Path] = []
-    for value in (explicit, os.environ.get("TESSERACT_PATH"), shutil.which("tesseract")):
+    for value in (
+        explicit,
+        os.environ.get("TESSERACT_PATH"),
+        shutil.which("tesseract"),
+    ):
         if value:
             candidates.append(Path(value))
     if os.name == "nt":
@@ -83,7 +87,9 @@ def ocr_tsv(
     command = [str(executable), str(image), "stdout"]
     if tessdata is not None:
         command.extend(["--tessdata-dir", str(tessdata)])
-    command.extend(["-l", "+".join(languages or ["eng"]), "--psm", str(page_segmentation), "tsv"])
+    command.extend(
+        ["-l", "+".join(languages or ["eng"]), "--psm", str(page_segmentation), "tsv"]
+    )
     result = subprocess.run(command, capture_output=True, check=False, timeout=30)
     if result.returncode != 0:
         error = result.stderr.decode("utf-8", errors="replace").strip()
@@ -126,3 +132,43 @@ def ocr_tsv(
         text=result.stdout.decode("utf-8", errors="replace").strip(),
         confidence=None,
     )
+
+
+def ocr_batch(
+    images: list[Path],
+    *,
+    executable: Path,
+    tessdata: Path | None,
+    languages: list[str],
+    list_file: Path,
+    page_segmentation: int = 7,
+) -> list[str]:
+    """OCR multiple single-line crops in one Tesseract process."""
+    if not images:
+        return []
+    list_file.parent.mkdir(parents=True, exist_ok=True)
+    list_file.write_text(
+        "\n".join(str(image.resolve()) for image in images), encoding="utf-8"
+    )
+    command = [str(executable), str(list_file), "stdout"]
+    if tessdata is not None:
+        command.extend(["--tessdata-dir", str(tessdata)])
+    command.extend(
+        [
+            "-l",
+            "+".join(languages or ["eng"]),
+            "--psm",
+            str(page_segmentation),
+        ]
+    )
+    result = subprocess.run(command, capture_output=True, check=False, timeout=90)
+    if result.returncode != 0:
+        error = result.stderr.decode("utf-8", errors="replace").strip()
+        raise AdbError(f"Tesseract batch OCR thất bại: {error}")
+    pages = result.stdout.decode("utf-8", errors="replace").split("\f")
+    cleaned = [page.strip() for page in pages]
+    if cleaned and not cleaned[-1]:
+        cleaned.pop()
+    if len(cleaned) < len(images):
+        cleaned.extend([""] * (len(images) - len(cleaned)))
+    return cleaned[: len(images)]

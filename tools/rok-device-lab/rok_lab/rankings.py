@@ -51,7 +51,9 @@ def open_ranking(
     wait_seconds: float = 2.5,
 ) -> dict[str, Any]:
     if not confirmed:
-        raise AdbError("Thao tác chạm bị chặn. Thêm --confirm sau khi đã kiểm tra đúng máy.")
+        raise AdbError(
+            "Thao tác chạm bị chặn. Thêm --confirm sau khi đã kiểm tra đúng máy."
+        )
     tap_name = f"ranking.{ranking}"
     with DeviceRun(artifacts_root, serial, "rankings-open") as run:
         foreground = client.foreground_activity(serial)

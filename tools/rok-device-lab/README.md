@@ -1,31 +1,32 @@
-# RokViet Device Lab
+# RokViet Multi-Phone Scanner
 
-USB-first scanner dành cho điện thoại Android vật lý. Mọi lệnh đều định danh bằng
-ADB serial, mỗi máy có lock riêng và mỗi lần chạy có thư mục ảnh/JSON/CSV riêng.
-Thiết kế này thay lớp ADB một-port và thư mục ảnh dùng chung của RokTracker cũ.
+Bản viết lại workflow Kingdom Scanner của RokTracker cho điện thoại Android vật
+lý. Scanner dùng ADB serial thay vì một cổng giả lập, vì vậy nhiều điện thoại có
+thể quét đồng thời mà không gửi nhầm thao tác hoặc ghi đè ảnh của nhau.
 
-Mốc hiện tại đã được thử thật với 2 Samsung SM-A516B:
+Đã kiểm thử thật trên 2 Samsung SM-A516B:
 
-- phát hiện song song nhiều thiết bị;
-- xác minh đúng app ROK và đúng màn Rankings trước khi chạm;
-- mở `Individual Power` bằng đúng một thao tác có `--confirm`;
-- OCR 6 hàng đang nhìn thấy thành JSON và CSV, giữ ảnh gốc/ảnh crop/chuỗi OCR;
-- khóa một worker trên một serial để các job không giẫm dữ liệu nhau.
+- tự mở `Individual Power Rankings` từ menu Rankings;
+- mở từng governor, đọc ID, tên, liên minh, power, Kill Points và acclaim;
+- đọc T1–T5 kills/KP, ranged, dead, gathered, assistance và helps;
+- kiểm tra Kill Points bằng cả công thức tier kills và tổng tier KP;
+- tự khôi phục total KP khi OCR total sai nhưng hai phép kiểm độc lập cùng khớp;
+- tự cuộn, bỏ profile không mở được, chống governor trùng và lưu state sau từng người;
+- resume sau khi dừng, xuất XLSX/CSV/JSONL và `scan.json` đúng Collector API;
+- fleet worker nhiều serial; bài test 2 điện thoại/2 worker đã hoàn thành.
 
-Đây là scanner thống kê cộng đồng, không phải bot farm tài nguyên và không có cơ
-chế né phát hiện. Bản hiện tại chưa tự cuộn/quét toàn bộ kingdom; cần hiệu chỉnh
-thêm profile governor trước khi bật vòng lặp dài.
+Đây là scanner dữ liệu thống kê, không phải bot farm và không có cơ chế né phát
+hiện. Guard dừng thao tác nếu app/màn hình không đúng profile đã hiệu chỉnh.
 
 ## 1. Cài trên Windows 11
 
-Yêu cầu Python 3.11+, ADB và Tesseract OCR. Nếu đang dùng box XiaoWei, có thể trỏ
-thẳng đến ADB đi kèm phần mềm. Tesseract có thể cài bằng:
+Yêu cầu Python 3.11+, ADB và Tesseract OCR:
 
 ```powershell
 winget install --id UB-Mannheim.TesseractOCR --exact
 ```
 
-Tại thư mục repository:
+Tại repository:
 
 ```powershell
 cd "D:\ROK Forum"
@@ -33,10 +34,8 @@ py -3.11 -m venv tools\rok-device-lab\.venv
 tools\rok-device-lab\.venv\Scripts\python.exe -m pip install -e tools\rok-device-lab
 ```
 
-Nếu `py -3.11` không thấy Python nhưng máy có Python riêng, thay phần đầu bằng
-đường dẫn tới `python.exe` đó.
-
-Đặt đường dẫn một lần cho cửa sổ PowerShell hiện tại:
+Nếu `py -3.11` không tìm thấy Python, thay bằng đường dẫn đầy đủ tới
+`python.exe`. Đặt biến môi trường cho cửa sổ PowerShell hiện tại:
 
 ```powershell
 $env:ADB_PATH = "D:\Program Files (x86)\xiaowei_android\tools\adb.exe"
@@ -45,97 +44,149 @@ $env:TESSDATA_DIR = "D:\ROK Forum\RoK Tracker\deps\tessdata"
 $rok = "tools\rok-device-lab\.venv\Scripts\python.exe"
 ```
 
-`TESSDATA_DIR` nên chứa `eng.traineddata`; thêm `vie.traineddata` và
-`kor.traineddata` để đọc tốt tên Việt/Hàn. Khi không đặt biến này, công cụ tìm
-tessdata bên cạnh Tesseract và chỉ dùng các ngôn ngữ thực sự có mặt.
+`TESSDATA_DIR` cần `eng.traineddata`; nên thêm `vie.traineddata` và
+`kor.traineddata` để đọc tên Việt/Hàn.
 
-## 2. Kiểm tra 2 máy mà không chạm game
+## 2. Kiểm tra thiết bị
+
+Bật USB debugging, chấp nhận RSA trên từng máy, rồi chạy:
 
 ```powershell
 & $rok -m rok_lab.cli doctor
 & $rok -m rok_lab.cli devices
 & $rok -m rok_lab.cli snapshot
+```
+
+Để các điện thoại ở menu `RANKINGS` và chạy probe read-only:
+
+```powershell
 & $rok -m rok_lab.cli fleet-probe
 ```
 
-`fleet-probe` chạy song song tối đa 4 worker nhưng chỉ chụp màn hình. Kết quả hợp
-lệ phải có `gamePackageMatched: true`, `screenMatched: true` và đúng độ phân giải.
+Kết quả hợp lệ có `gamePackageMatched: true`, `screenMatched: true` và độ phân
+giải 1920×1080. Profile hiện tại nằm trong
+`profiles/rok-a51-1920x1080.json` và dùng tọa độ chuẩn hóa, không phụ thuộc pixel
+cố định của một cửa sổ emulator.
 
-Muốn dùng alias, sao chép file mẫu rồi điền serial thật:
+## 3. Quét đầy đủ một điện thoại
+
+Điện thoại có thể ở menu `RANKINGS` hoặc trang `INDIVIDUAL POWER RANKINGS`:
+
+```powershell
+& $rok -m rok_lab.cli kingdom-scan 520007cc4bef354d `
+  --kingdom 2812 `
+  --amount 300 `
+  --name nightly-2812 `
+  --formats xlsx,csv,jsonl `
+  --evidence review `
+  --confirm
+```
+
+Các chế độ ảnh:
+
+- `--evidence all`: giữ ba ảnh và crop OCR của mọi governor;
+- `--evidence review`: chỉ giữ ảnh bản ghi cần xem lại, phù hợp vận hành dài;
+- `--evidence none`: không giữ ảnh governor sau khi OCR, tiết kiệm ổ đĩa.
+
+Scanner in tiến độ ra terminal. Nhấn `Ctrl+C` để dừng; state đã hoàn thành gần
+nhất nằm trong thư mục scan. Resume bằng chính thư mục đó:
+
+```powershell
+& $rok -m rok_lab.cli kingdom-scan 520007cc4bef354d `
+  --kingdom 2812 `
+  --amount 300 `
+  --resume "D:\...\artifacts\scans\520007...\nightly-2812-kd2812-..." `
+  --confirm
+```
+
+Mỗi scan tạo:
+
+```text
+artifacts/scans/<serial>/<scan-name>-kd<kingdom>-<timestamp>/
+  state.json
+  scan.json
+  governors.xlsx
+  governors.csv
+  governors.jsonl
+  ranking-pages/
+  evidence/                 # tùy --evidence
+```
+
+`state.json` giữ toàn bộ OCR raw, trạng thái validation và `needsReview`.
+`scan.json` dùng BigInt dạng chuỗi và có thể gửi thẳng lên Collector API.
+
+## 4. Quét nhiều điện thoại
+
+Sao chép hai file mẫu:
 
 ```powershell
 Copy-Item tools\rok-device-lab\config\devices.example.json `
   tools\rok-device-lab\config\devices.local.json
+Copy-Item tools\rok-device-lab\config\fleet.example.json `
+  tools\rok-device-lab\config\fleet.local.json
 ```
 
-File `.local` và toàn bộ `artifacts/` không được commit lên Git.
+Điền alias/serial và kingdom thật. Ví dụ fleet job:
 
-## 3. Smoke test một máy
+```json
+{
+  "jobId": "nightly-kvk",
+  "workers": 2,
+  "defaults": {
+    "amount": 300,
+    "formats": ["xlsx", "csv", "jsonl"],
+    "evidence": "review"
+  },
+  "devices": [
+    {"device": "phone01", "kingdom": 2812},
+    {"device": "phone02", "kingdom": 3104}
+  ]
+}
+```
 
-Để điện thoại ở menu `RANKINGS`, rồi chạy probe read-only:
+Chạy:
 
 ```powershell
-& $rok -m rok_lab.cli rankings-probe 520007cc4bef354d
+& $rok -m rok_lab.cli fleet-scan `
+  tools\rok-device-lab\config\fleet.local.json `
+  --workers 2 `
+  --confirm
 ```
 
-Sau khi nhìn đúng serial, cho phép đúng một chạm mở bảng Individual Power:
+Không đặt 18 worker ngay lập tức. Với Windows test dùng 2 worker; VM/LXC vận hành
+bắt đầu 2–4 worker rồi tăng theo CPU/RAM/USB stability. Mỗi serial có lock riêng,
+nên một máy không thể nhận hai job cùng lúc.
 
-```powershell
-& $rok -m rok_lab.cli rankings-open 520007cc4bef354d `
-  individual-power --confirm
-```
-
-Đọc 6 hàng đang hiển thị, không chạm hoặc cuộn:
-
-```powershell
-& $rok -m rok_lab.cli rankings-read 520007cc4bef354d
-```
-
-Mỗi lệnh tạo một run tại:
-
-```text
-artifacts/runs/<serial>/<timestamp>-<operation>/
-```
-
-Run OCR gồm `manifest.json`, `screen.png`, ảnh crop từng hàng,
-`governors.json` và `governors.csv`. Trường `needsReview` đánh dấu hàng OCR chưa
-đọc được tên hoặc power; `ocrRaw` giữ nguyên chuỗi để đối chiếu.
-
-## 4. Đưa dữ liệu lên RokViet Hub
-
-Khi batch đã đúng schema collector:
+## 5. Gửi lên RokViet Hub
 
 ```powershell
 $env:ROK_COLLECTOR_URL = "https://rokforum.example.vn"
 $env:ROK_COLLECTOR_TOKEN = "token-rieng-khong-commit"
-& $rok -m rok_lab.cli upload-scan C:\duong-dan\scan.json
+& $rok -m rok_lab.cli upload-scan "D:\...\scan.json"
 ```
 
-Server chống gửi trùng bằng `externalId` và giữ batch ở trạng thái chờ duyệt.
+Collector chống trùng bằng `externalId` và đưa dữ liệu vào `PENDING_REVIEW` trước
+khi public.
 
-## 5. Mở rộng 18 điện thoại
+## 6. Đưa lên Proxmox cho 18 điện thoại
 
-Không tạo 18 VM. Một Linux collector VM/LXC quản lý USB passthrough và chạy pool
-worker giới hạn (khởi đầu 2–4 worker). Hàng đợi phân job theo serial; lock trong
-Device Lab bảo đảm một điện thoại chỉ có một job. Ảnh được ghi tạm theo run, upload
-lên object storage rồi mới xóa theo retention. PostgreSQL chỉ lưu dữ liệu chuẩn
-hóa và provenance, không nhét ảnh trực tiếp vào DB.
+Một collector VM/LXC nhận USB passthrough cho cả hub và chạy pool worker chung;
+không cần 18 VM:
 
 ```text
-18 điện thoại -> ADB inventory -> queue theo serial -> 2-4 scanner worker
--> OCR -> review/validation -> Collector API -> PostgreSQL + MinIO -> website
+18 điện thoại -> ADB inventory -> queue theo serial -> 2–4 scanner worker
+-> validation/review -> Collector API -> PostgreSQL + MinIO -> website
 ```
 
-Trên Ubuntu/Proxmox, cài `adb`, `tesseract-ocr`, `tesseract-ocr-eng`,
-`tesseract-ocr-vie`, `tesseract-ocr-kor`; đặt `ADB_PATH=/usr/bin/adb`. Source và
-profile vẫn dùng nguyên vì tọa độ được chuẩn hóa theo kích thước ảnh.
+Trên Ubuntu cài `adb`, `tesseract-ocr`, `tesseract-ocr-eng`,
+`tesseract-ocr-vie`, `tesseract-ocr-kor`; đặt `ADB_PATH=/usr/bin/adb`. PostgreSQL
+chỉ lưu dữ liệu chuẩn hóa; ảnh bằng chứng đưa lên MinIO theo retention.
 
-## 6. Kiểm tra source
+## 7. Kiểm tra source
 
 ```powershell
 & $rok -m unittest discover -s tools\rok-device-lab\tests -v
 ```
 
-Nguyên tắc vận hành: không gửi lệnh khi máy `unauthorized/offline`, không dùng tọa
-độ nếu guard màn hình thất bại, không lưu Wi-Fi/proxy/token vào repo, và luôn giữ
-ảnh bằng chứng cùng serial/thời gian quét.
+Không commit `devices.local.json`, `fleet.local.json`, token, Wi-Fi/proxy hoặc thư
+mục `artifacts/`.

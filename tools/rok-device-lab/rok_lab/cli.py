@@ -9,6 +9,8 @@ from pathlib import Path
 
 from .adb import AdbClient, AdbError, load_aliases, resolve_device
 from .collector import upload_scan
+from .fleet_scanner import load_fleet_job, run_fleet_job
+from .kingdom_scanner import KingdomScanner, ScanOptions
 from .profiles import load_profile
 from .ranking_reader import read_visible_power_ranking
 from .rankings import open_ranking, probe_rankings_menu
@@ -114,6 +116,37 @@ def build_parser() -> argparse.ArgumentParser:
     rankings_read.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
     rankings_read.add_argument("--tesseract", help="Đường dẫn tesseract.exe.")
     rankings_read.add_argument("--tessdata", help="Thư mục chứa *.traineddata.")
+
+    kingdom_scan = subcommands.add_parser(
+        "kingdom-scan",
+        help="Quét nhiều governor, tự cuộn, resume và xuất XLSX/CSV/JSONL.",
+    )
+    kingdom_scan.add_argument("device", help="Alias hoặc ADB serial.")
+    kingdom_scan.add_argument("--kingdom", type=int, required=True)
+    kingdom_scan.add_argument("--amount", type=int, default=300)
+    kingdom_scan.add_argument("--name", default="kingdom")
+    kingdom_scan.add_argument("--formats", default="xlsx,csv,jsonl")
+    kingdom_scan.add_argument(
+        "--evidence", choices=("all", "review", "none"), default="review"
+    )
+    kingdom_scan.add_argument("--resume", type=Path)
+    kingdom_scan.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
+    kingdom_scan.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
+    kingdom_scan.add_argument("--tesseract", help="Đường dẫn tesseract.exe.")
+    kingdom_scan.add_argument("--tessdata", help="Thư mục chứa *.traineddata.")
+    kingdom_scan.add_argument("--confirm", action="store_true")
+
+    fleet_scan = subcommands.add_parser(
+        "fleet-scan",
+        help="Chạy nhiều kingdom scan đồng thời từ file JSON.",
+    )
+    fleet_scan.add_argument("job", type=Path)
+    fleet_scan.add_argument("--workers", type=int)
+    fleet_scan.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
+    fleet_scan.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
+    fleet_scan.add_argument("--tesseract", help="Đường dẫn tesseract.exe.")
+    fleet_scan.add_argument("--tessdata", help="Thư mục chứa *.traineddata.")
+    fleet_scan.add_argument("--confirm", action="store_true")
     return parser
 
 
@@ -123,6 +156,26 @@ def _aliases(path: Path) -> dict[str, str]:
 
 def _serial(args: argparse.Namespace) -> str:
     return resolve_device(args.device, _aliases(args.config))
+
+
+def _print_scan_progress(event: dict[str, object]) -> None:
+    serial = event.get("serial", "?")
+    if event.get("event") == "governor":
+        review = " REVIEW" if event.get("needsReview") else ""
+        print(
+            f"[{serial}] {event.get('records')}/{event.get('target')} "
+            f"rank={event.get('rank')} {event.get('name') or '(không đọc được tên)'}"
+            f"{review}",
+            file=sys.stderr,
+            flush=True,
+        )
+    elif event.get("event") == "scroll":
+        print(
+            f"[{serial}] cuộn sau page {event.get('page')} "
+            f"({event.get('records')}/{event.get('target')})",
+            file=sys.stderr,
+            flush=True,
+        )
 
 
 def _print_devices(client: AdbClient) -> int:
@@ -171,7 +224,9 @@ def _snapshot(client: AdbClient, config: Path, output: Path | None) -> int:
 
     results: dict[str, object] = {}
     workers = min(4, len(targets))
-    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="rok-device") as pool:
+    with ThreadPoolExecutor(
+        max_workers=workers, thread_name_prefix="rok-device"
+    ) as pool:
         futures = {
             pool.submit(client.inspect, serial): (alias, serial)
             for alias, serial in targets.items()
@@ -196,16 +251,16 @@ def _snapshot(client: AdbClient, config: Path, output: Path | None) -> int:
     return 0 if all(item.get("ok") for item in results.values()) else 2
 
 
-def _fleet_probe(
-    client: AdbClient, profile_path: Path, artifacts: Path
-) -> int:
+def _fleet_probe(client: AdbClient, profile_path: Path, artifacts: Path) -> int:
     profile = load_profile(profile_path)
     devices = [device for device in client.devices() if device.ready]
     if not devices:
         raise AdbError("Chưa có thiết bị ADB sẵn sàng để probe.")
     results: list[dict[str, object]] = []
     workers = min(4, len(devices))
-    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="rok-probe") as pool:
+    with ThreadPoolExecutor(
+        max_workers=workers, thread_name_prefix="rok-probe"
+    ) as pool:
         futures = {
             pool.submit(
                 probe_rankings_menu, client, device.serial, profile, artifacts
@@ -240,13 +295,31 @@ def main(argv: list[str] | None = None) -> int:
             return _snapshot(client, args.config, args.output)
         if args.command == "fleet-probe":
             return _fleet_probe(client, args.profile, args.artifacts)
+        if args.command == "fleet-scan":
+            result = run_fleet_job(
+                client,
+                load_profile(args.profile),
+                args.artifacts,
+                _aliases(args.config),
+                load_fleet_job(args.job),
+                confirmed=args.confirm,
+                workers=args.workers,
+                tesseract_path=args.tesseract,
+                tessdata_path=args.tessdata,
+                progress=_print_scan_progress,
+            )
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["ok"] else 2
 
         serial = _serial(args)
         if args.command == "inspect":
             print(json.dumps(client.inspect(serial), ensure_ascii=False, indent=2))
         elif args.command == "screenshot":
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-            output = args.output or DEFAULT_ARTIFACTS / "screenshots" / f"{args.device}-{timestamp}.png"
+            output = (
+                args.output
+                or DEFAULT_ARTIFACTS / "screenshots" / f"{args.device}-{timestamp}.png"
+            )
             print(client.screenshot(serial, output).resolve())
         elif args.command == "wifi-open":
             print(client.open_wifi_settings(serial))
@@ -291,6 +364,30 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(json.dumps(result, ensure_ascii=False, indent=2))
             return 0 if result["ok"] else 2
+        elif args.command == "kingdom-scan":
+            formats = {item.strip() for item in args.formats.split(",") if item.strip()}
+            if not formats or not formats <= {"xlsx", "csv", "jsonl"}:
+                raise AdbError("--formats chỉ hỗ trợ xlsx,csv,jsonl.")
+            result = KingdomScanner(
+                client,
+                serial,
+                load_profile(args.profile),
+                args.artifacts,
+                ScanOptions(
+                    kingdom=args.kingdom,
+                    amount=args.amount,
+                    scan_name=args.name,
+                    formats=formats,
+                    evidence=args.evidence,
+                    resume_directory=args.resume,
+                ),
+                confirmed=args.confirm,
+                tesseract_path=args.tesseract,
+                tessdata_path=args.tessdata,
+                progress=_print_scan_progress,
+            ).scan()
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["ok"] else 2
         elif args.command == "live":
             client.require_ready(serial)
             pid = launch_scrcpy(
@@ -305,6 +402,12 @@ def main(argv: list[str] | None = None) -> int:
     except AdbError as exc:
         print(f"LỖI: {exc}", file=sys.stderr)
         return 1
+    except KeyboardInterrupt:
+        print(
+            "Đã dừng theo yêu cầu. State gần nhất đã được giữ để --resume.",
+            file=sys.stderr,
+        )
+        return 130
 
 
 if __name__ == "__main__":
