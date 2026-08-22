@@ -16,8 +16,13 @@ CMD ["npm", "run", "dev", "--", "--hostname", "0.0.0.0"]
 FROM deps AS migration
 ENV NODE_ENV=production
 COPY prisma ./prisma
+# Dữ liệu kho trang bị và trình nhập đi cùng migration: cả ba bước dưới đều
+# idempotent, nên mỗi lần deploy là một lần đồng bộ lại dữ liệu game, không phải
+# một việc tay ai đó phải nhớ làm.
+COPY content ./content
+COPY scripts ./scripts
 RUN npx prisma generate --schema prisma/schema
-CMD ["sh", "-c", "npx prisma migrate deploy --schema prisma/schema && node prisma/seed.mjs"]
+CMD ["sh", "-c", "npx prisma migrate deploy --schema prisma/schema && node prisma/seed.mjs && node scripts/import-armory.mjs"]
 
 FROM deps AS builder
 ENV NODE_ENV=production
