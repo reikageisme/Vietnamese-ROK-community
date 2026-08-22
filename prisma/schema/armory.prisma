@@ -1,0 +1,226 @@
+// Kho trang bị và bàn thử build.
+//
+// Mở rộng miền codex đã có (Patch, Equipment, I18nMessage, CodexStatus) thay vì
+// dựng một miền song song. Ba nguyên tắc chi phối toàn bộ file này:
+//
+//  1. Số liệu là DỮ LIỆU, không phải code. Số bậc, cách gộp chỉ số, tên chỉ số —
+//     tất cả nằm trong bảng. Game vá thì nhập lại, không deploy lại.
+//  2. Mỗi dòng số gắn với một Patch. Build lưu tháng trước phải mở lại được đúng
+//     như lúc lưu; ghi đè là làm mọi build cũ lặng lẽ sai.
+//  3. Số chưa kiểm chứng phải tự khai là chưa kiểm chứng, tới tận giao diện.
+
+enum EquipmentSlot {
+  HELMET
+  CHEST
+  WEAPON
+  GLOVES
+  LEGS
+  BOOTS
+  ACCESSORY
+}
+
+/// Cộng thẳng một số, hay cộng thêm phần trăm.
+enum StatKind {
+  FLAT
+  PERCENT
+}
+
+/// Nhiều nguồn cùng cộng vào một chỉ số thì gộp kiểu gì.
+///
+/// Rise of Kingdoms không công bố quy tắc này; cộng đồng suy ra từ thử nghiệm và
+/// vẫn còn tranh cãi. Vì vậy nó là dữ liệu sửa được, không phải `if` trong code.
+enum StatStackRule {
+  ADDITIVE
+  MULTIPLICATIVE
+  MAX_ONLY
+}
+
+/// Con số này đã được đối chiếu tới đâu.
+enum ArmoryVerification {
+  UNVERIFIED
+  SCREENSHOT
+  CONFIRMED
+}
+
+enum BuildVisibility {
+  PRIVATE
+  UNLISTED
+  PUBLIC
+}
+
+/// Từ điển chỉ số. Mọi khoá trong các trường `stats Json` phải tồn tại ở đây.
+model StatDefinition {
+  key       String        @id @db.VarChar(60)
+  nameKey   String        @unique @db.VarChar(191)
+  name      I18nMessage   @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+  kind      StatKind
+  stackRule StatStackRule @default(ADDITIVE)
+  /// Nhóm hiển thị: infantry, cavalry, archer, siege, general, march...
+  group     String        @db.VarChar(40)
+  sortOrder Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([group, sortOrder])
+}
+
+model EquipmentSet {
+  id      String       @id @default(cuid())
+  slug    String       @unique @db.VarChar(100)
+  nameKey String       @unique @db.VarChar(191)
+  name    I18nMessage  @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+  status  CodexStatus  @default(DRAFT)
+  /// [{ "pieces": 2, "stats": { "inf_atk": 3 } }, ...]
+  bonuses Json
+  items   Equipment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Một bậc của một món trang bị (I, II, III, IV, V...).
+///
+/// Số bậc KHÔNG cứng trong code — nó là dữ liệu, vì các hệ trang bị khác nhau có
+/// số bậc khác nhau và game có thể thêm bậc mới.
+model EquipmentTier {
+  id           String             @id @default(cuid())
+  equipmentId  String
+  tier         Int
+  patchId      String
+  /// { "<StatDefinition.key>": số }
+  stats        Json
+  /// Nguyên liệu nâng lên bậc này, nếu đã biết.
+  materials    Json?
+  /// Sức mạnh cộng thêm, nếu game có hiển thị con số đó.
+  powerValue   Int?
+  verification ArmoryVerification @default(UNVERIFIED)
+  /// Khoá ảnh chụp màn hình trong MinIO — bằng chứng cho con số ở trên.
+  evidenceKey  String?            @db.VarChar(255)
+  note         String?            @db.Text
+
+  equipment Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  patch     Patch     @relation(fields: [patchId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([equipmentId, tier, patchId])
+  @@index([equipmentId, tier])
+  @@index([verification])
+}
+
+/// Talent riêng của trang bị, mở ra ở một bậc nhất định.
+model EquipmentTalentDef {
+  id             String             @id @default(cuid())
+  equipmentId    String
+  unlockTier     Int
+  nameKey        String             @unique @db.VarChar(191)
+  descriptionKey String?            @unique @db.VarChar(191)
+  /// Hiệu ứng có cấu trúc để bộ tính đọc được:
+  /// { "stats": { "inf_atk": 5 }, "trigger": null }
+  effect         Json
+  /// Có điều kiện kích hoạt (chỉ khi tấn công, chỉ khi rally...) hay luôn bật.
+  /// Talent có điều kiện KHÔNG được cộng thẳng vào chỉ số nền.
+  conditional    Boolean            @default(false)
+  verification   ArmoryVerification @default(UNVERIFIED)
+  evidenceKey    String?            @db.VarChar(255)
+
+  equipment   Equipment    @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  name        I18nMessage  @relation("EquipmentTalentName", fields: [nameKey], references: [key], onDelete: Restrict)
+  description I18nMessage? @relation("EquipmentTalentDescription", fields: [descriptionKey], references: [key], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([equipmentId, unlockTier])
+}
+
+/// Minh văn — gắn vào một ô trang bị.
+model Inscription {
+  id           String             @id @default(cuid())
+  slug         String             @db.VarChar(100)
+  nameKey      String             @unique @db.VarChar(191)
+  name         I18nMessage        @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+  level        Int
+  /// Ô nào gắn được. Rỗng nghĩa là gắn được mọi ô.
+  slots        EquipmentSlot[]
+  stats        Json
+  patchId      String
+  patch        Patch              @relation(fields: [patchId], references: [id], onDelete: Restrict)
+  status       CodexStatus        @default(DRAFT)
+  verification ArmoryVerification @default(UNVERIFIED)
+  evidenceKey  String?            @db.VarChar(255)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([slug, level, patchId])
+  @@index([status, level])
+}
+
+/// Vũ trang — hệ độc lập với trang bị.
+model Armament {
+  id         String          @id @default(cuid())
+  slug       String          @unique @db.VarChar(100)
+  nameKey    String          @unique @db.VarChar(191)
+  name       I18nMessage     @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+  status     CodexStatus     @default(DRAFT)
+  sourceKind CodexSourceKind @default(MANUAL_EDITORIAL)
+  tiers      ArmamentTier[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+model ArmamentTier {
+  id           String             @id @default(cuid())
+  armamentId   String
+  tier         Int
+  level        Int                @default(0)
+  patchId      String
+  stats        Json
+  /// Talent của vũ trang, cùng dạng với EquipmentTalentDef.effect.
+  talents      Json?
+  verification ArmoryVerification @default(UNVERIFIED)
+  evidenceKey  String?            @db.VarChar(255)
+
+  armament Armament @relation(fields: [armamentId], references: [id], onDelete: Cascade)
+  patch    Patch    @relation(fields: [patchId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([armamentId, tier, level, patchId])
+  @@index([armamentId, tier])
+}
+
+/// Một cấu hình người dùng lắp trên bàn thử.
+model Build {
+  id      String  @id @default(cuid())
+  slug    String  @unique @db.VarChar(64)
+  ownerId String?
+  title   String  @db.VarChar(120)
+  patchId String
+
+  /// { "HELMET": { "equipmentId": "...", "tier": 5, "inscriptionId": "..." }, ... }
+  loadout      Json
+  /// [{ "armamentId": "...", "tier": 3, "level": 10 }]
+  armaments    Json?
+  /// { "primary": { "commanderId": "...", "level": 60, "stars": 5 }, "secondary": {...} }
+  commanders   Json?
+  /// { "<talentSlug>": số điểm }
+  talentPoints Json?
+
+  visibility BuildVisibility @default(PRIVATE)
+
+  owner User?  @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  patch Patch  @relation(fields: [patchId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId, updatedAt])
+  @@index([visibility, updatedAt])
+}

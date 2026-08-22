@@ -17,6 +17,12 @@ model I18nMessage {
   equipmentNames       Equipment[]
   troopNames           Troop[]
   gameEventNames       GameEvent[]
+  statDefinitionNames  StatDefinition[]
+  equipmentSetNames    EquipmentSet[]
+  equipmentTalentNames EquipmentTalentDef[] @relation("EquipmentTalentName")
+  equipmentTalentDescs EquipmentTalentDef[] @relation("EquipmentTalentDescription")
+  inscriptionNames     Inscription[]
+  armamentNames        Armament[]
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
 }

@@ -56,6 +56,7 @@ model User {
   notificationActions     ForumNotification[]       @relation("NotificationActor")
   forumModerationAudit    ForumModerationAuditLog[] @relation("ForumModeratorAudit")
   codexRevisions          CodexRevision[]
+  builds                  Build[]
   governorProfiles        GovernorProfile[]
   uploads                 UploadAsset[]
   submissions             IngestionSubmission[]
