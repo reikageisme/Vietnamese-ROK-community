@@ -240,6 +240,7 @@
 
   /** Dừng luồng H.264 và trả màn hình về ảnh tĩnh screencap. */
   function useStill(reason) {
+    clearTimeout(S.videoWatchdog);
     if (S.player) { S.player.stop(); S.player = null; }
     S.source = "still";
     $("video").hidden = true;
@@ -281,6 +282,16 @@
     });
     S.player.start();
     renderSource();
+
+    // Chot chan: 6 giay ma khong ra noi mot khung thi thoi, tra ve anh tinh.
+    // Anh tinh cham nhung con nhin duoc; man hinh den thi khong lam gi duoc ca.
+    clearTimeout(S.videoWatchdog);
+    S.videoWatchdog = setTimeout(() => {
+      if (S.source === "h264" && S.player && S.player.frames === 0) {
+        toast("H.264 không ra được khung hình, tạm dùng ảnh tĩnh.", "bad");
+        useStill("H.264 không ra khung");
+      }
+    }, 6000);
   }
 
   function renderSource(note) {
