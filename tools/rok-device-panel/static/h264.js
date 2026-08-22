@@ -62,6 +62,26 @@
       }
       this.tail = data.subarray(cursor);
     }
+
+    /**
+     * Phat not NAL dang ket trong bo dem.
+     *
+     * push() chi dong mot NAL khi gap start code KE TIEP. Man hinh dien thoai
+     * dung yen thi screenrecord ma hoa xong khung khoa roi im — khong co start
+     * code nao nua, nen khung khoa nam mai trong tail va trinh duyet den thui.
+     * Ham nay duoc goi sau mot khoang im lang: luc do NAL trong tail gan nhu
+     * chac chan da tron ven.
+     */
+    flushTail() {
+      const data = this.tail;
+      if (data.length < 5) return false;
+      const threeByte = data[0] === 0 && data[1] === 0 && data[2] === 1;
+      const fourByte = data[0] === 0 && data[1] === 0 && data[2] === 0 && data[3] === 1;
+      if (!threeByte && !fourByte) return false;
+      this.tail = new Uint8Array(0);
+      this.onNal(data);
+      return true;
+    }
   }
 
   function nalType(nal) {
@@ -98,6 +118,7 @@
       this.bytes = 0;
       this.nals = 0;
       this.aus = 0;
+      this.idleTimer = null;
       this.splitter = new Splitter((nal) => this.onNal(nal));
     }
 
@@ -128,6 +149,7 @@
         }
         this.bytes += event.data.byteLength;
         this.splitter.push(new Uint8Array(event.data));
+        this.scheduleIdleFlush();
       };
       this.socket.onerror = () => this.fail("Mất kết nối luồng hình.");
       this.socket.onclose = () => {
@@ -139,9 +161,19 @@
       }, 4000);
     }
 
+    /** Luong im lang 150ms => coi nhu NAL cuoi da tron ven, day no vao giai ma. */
+    scheduleIdleFlush() {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = setTimeout(() => {
+        if (this.stopped) return;
+        if (this.splitter.flushTail()) this.flush();
+      }, 150);
+    }
+
     stop() {
       this.stopped = true;
       clearInterval(this.ping);
+      clearTimeout(this.idleTimer);
       if (this.socket) {
         try { this.socket.close(); } catch { /* đã đóng */ }
         this.socket = null;
@@ -153,6 +185,7 @@
       if (this.stopped) return;
       this.stopped = true;
       clearInterval(this.ping);
+      clearTimeout(this.idleTimer);
       this.onStatus({ state: "error", message });
     }
 

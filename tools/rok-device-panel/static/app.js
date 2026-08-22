@@ -286,7 +286,11 @@
   function renderSource(note) {
     const node = $("ro-source");
     if (S.source === "h264") {
-      node.innerHTML = `<span class="src-pill h264">H.264 phần cứng</span>`;
+      // Truoc day badge bat xanh ngay luc khoi tao, ke ca khi chua khung nao ve.
+      const ready = S.player && S.player.frames > 0;
+      node.innerHTML = ready
+        ? `<span class="src-pill h264">H.264 phần cứng</span>`
+        : `<span class="src-pill still">H.264 · đang chờ khung đầu</span>`;
     } else {
       node.innerHTML = `<span class="src-pill still">ảnh tĩnh${note ? " · " + note : ""}</span>`;
     }
@@ -341,6 +345,7 @@
 
     // Khi chạy H.264, hiện luôn số liệu từng chặng của đường ống. Khung đen mà
     // không có số thì chỉ còn nước đoán; có số thì thấy ngay nó tắc ở đâu.
+    if (S.source === "h264") renderSource();
     const wrap = $("ro-diag-wrap");
     if (S.source === "h264" && S.player) {
       const d = S.player.diag();
