@@ -185,7 +185,13 @@ class VideoSession:
             assert stream is not None
             saw_data = False
             while not self._stop.is_set():
-                chunk = stream.read(READ_CHUNK)
+                # read1 chu KHONG phai read: read(n) cua Python chan cho toi khi
+                # gom du dung n byte. Man hinh dung yen thi screenrecord ma hoa
+                # xong khung khoa roi im, phan du cua khung nam ket trong bo dem
+                # cho mot khoi 32KB khong bao gio toi - trinh duyet nhan duoc mot
+                # khung khoa cut va khong giai ma noi. read1 tra ve ngay nhung gi
+                # dang co.
+                chunk = stream.read1(READ_CHUNK)
                 if not chunk:
                     break
                 saw_data = True
