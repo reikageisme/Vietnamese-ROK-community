@@ -338,6 +338,19 @@
     $("ro-ms").textContent = device.lastCaptureMs ? `${device.lastCaptureMs}ms` : "—";
     const fps = S.source === "h264" && S.player ? S.player.fps : device.fps;
     $("ro-fps").textContent = fps ? `${fps.toFixed(1)}/giây` : "—";
+
+    // Khi chạy H.264, hiện luôn số liệu từng chặng của đường ống. Khung đen mà
+    // không có số thì chỉ còn nước đoán; có số thì thấy ngay nó tắc ở đâu.
+    const wrap = $("ro-diag-wrap");
+    if (S.source === "h264" && S.player) {
+      const d = S.player.diag();
+      wrap.hidden = false;
+      $("ro-diag").textContent =
+        `${(d.bytes / 1024).toFixed(0)}KB · NAL ${d.nals} · AU ${d.aus} · khung ${d.frames}`
+        + ` · ${d.codec || "chưa đọc được SPS"} · ws ${d.socket} · dec ${d.decoder}`;
+    } else {
+      wrap.hidden = true;
+    }
   }
 
   $("btn-refresh").addEventListener("click", async () => {

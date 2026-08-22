@@ -93,7 +93,26 @@
       this.hasVcl = false;
       this.isKey = false;
       this.started = false; // đã gặp khung khoá đầu tiên chưa
+      // Bộ đếm cho từng chặng: byte về -> NAL tách được -> access unit nạp vào
+      // bộ giải mã -> khung vẽ ra. Chặng nào đứng ở 0 thì lỗi nằm ngay trước nó.
+      this.bytes = 0;
+      this.nals = 0;
+      this.aus = 0;
       this.splitter = new Splitter((nal) => this.onNal(nal));
+    }
+
+    /** Số liệu thô để chẩn đoán khi khung hình không hiện. */
+    diag() {
+      return {
+        bytes: this.bytes,
+        nals: this.nals,
+        aus: this.aus,
+        frames: this.frames,
+        codec: this.codec,
+        started: this.started,
+        socket: this.socket ? this.socket.readyState : -1,
+        decoder: this.decoder ? this.decoder.state : "none",
+      };
     }
 
     start() {
@@ -107,6 +126,7 @@
           else if (message.type === "start") this.onStatus({ state: "connecting" });
           return;
         }
+        this.bytes += event.data.byteLength;
         this.splitter.push(new Uint8Array(event.data));
       };
       this.socket.onerror = () => this.fail("Mất kết nối luồng hình.");
@@ -190,6 +210,7 @@
 
     onNal(nal) {
       if (this.stopped || nal.length < 5) return;
+      this.nals += 1;
       const { type, offset } = nalType(nal);
       const isVcl = type >= 1 && type <= 5;
 
@@ -213,6 +234,7 @@
       // bộ giải mã báo lỗi và rơi về chế độ ảnh tĩnh không cần thiết.
       if (!this.started && !key) return;
       if (!this.codec) return;
+      this.aus += 1;
       this.ensureDecoder(this.codec);
       if (!this.decoder || this.decoder.state !== "configured") return;
 
