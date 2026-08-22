@@ -398,6 +398,10 @@
       const dx = (drag.current.x - drag.start.x) * rect.width;
       const dy = (drag.current.y - drag.start.y) * rect.height;
       const node = $("swipe-line");
+      // Chi ve khi da that su la mot cu vuot. Truoc day moi cu cham deu loe len
+      // mot vet ngan roi tat ngay - nhieu mat ma khong noi them dieu gi.
+      const moved = Math.hypot(drag.current.x - drag.start.x, drag.current.y - drag.start.y);
+      if (moved < TAP_THRESHOLD) { node.style.display = "none"; return; }
       node.style.display = "block";
       node.style.left = offsetX + drag.start.x * rect.width + "px";
       node.style.top = offsetY + drag.start.y * rect.height + "px";
