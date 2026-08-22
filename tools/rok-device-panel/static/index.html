@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>RokViet Device Panel</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234b8ddc'/><rect x='10' y='6' width='12' height='20' rx='2' fill='%230d1016'/></svg>">
+</head>
+<body>
+
+<div class="app" id="app" hidden>
+
+  <div class="topbar">
+    <div class="brand"><b>RokViet</b><span>Device Panel</span></div>
+    <div class="counts">
+      <span><i class="dot ok"></i>Sẵn sàng <b id="c-ready">0</b></span>
+      <span><i class="dot warn"></i>Chờ cấp quyền <b id="c-unauth">0</b></span>
+      <span><i class="dot bad"></i>Mất kết nối <b id="c-offline">0</b></span>
+    </div>
+    <div class="spacer"></div>
+    <label class="toggle" title="Dừng chụp để trả băng thông USB lại cho scanner">
+      <input type="checkbox" id="pause-toggle"><span>Tạm dừng chụp</span>
+    </label>
+    <label class="toggle danger" title="Mở khoá phát lệnh đồng thời tới nhiều máy">
+      <input type="checkbox" id="arm-toggle"><span>Chế độ đồng bộ</span>
+    </label>
+    <div class="tabs">
+      <button data-view="grid" class="active">Lưới</button>
+      <button data-view="focus">Máy</button>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- ---------------- LƯỚI ---------------- -->
+    <section class="view" id="view-grid">
+      <div class="stage-bar">
+        <button class="btn small" id="select-all">Chọn tất cả</button>
+        <button class="btn small" id="select-none">Bỏ chọn</button>
+        <span class="meta" id="grid-note"></span>
+      </div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <!-- ---------------- MÁY ---------------- -->
+    <section class="view" id="view-focus" hidden>
+      <div class="focus-wrap">
+
+        <div class="stage">
+          <div class="stage-bar">
+            <select id="device-picker" style="width:220px"></select>
+            <button class="btn small" id="btn-refresh">Chụp lại</button>
+            <a class="btn small" id="btn-download" download>Tải PNG</a>
+            <span class="meta" id="focus-meta"></span>
+          </div>
+
+          <div class="screen-box" id="screen-box">
+            <img class="live" id="live" alt="Màn hình thiết bị">
+            <div class="selection" id="selection"></div>
+            <div class="swipe-line" id="swipe-line"></div>
+          </div>
+          <div class="empty-stage" id="empty-stage">Chọn một máy để bắt đầu.</div>
+
+          <div class="readout">
+            <span>Chuẩn hoá <b id="ro-norm">—</b></span>
+            <span>Pixel <b id="ro-px">—</b></span>
+            <span>Độ phân giải <b id="ro-size">—</b></span>
+            <span>Chụp <b id="ro-ms">—</b></span>
+          </div>
+        </div>
+
+        <aside class="side">
+          <div class="mode-switch">
+            <button data-mode="control" class="active">Điều khiển</button>
+            <button data-mode="calibrate">Hiệu chỉnh</button>
+          </div>
+
+          <!-- ĐIỀU KHIỂN -->
+          <div id="pane-control">
+            <div class="card">
+              <h3>Phím cứng</h3>
+              <div class="keypad">
+                <button class="btn" data-key="back">Back</button>
+                <button class="btn" data-key="home">Home</button>
+                <button class="btn" data-key="recents">Recents</button>
+                <button class="btn" data-key="enter">Enter</button>
+                <button class="btn" data-key="delete">Xoá</button>
+                <button class="btn" data-key="escape">Esc</button>
+                <button class="btn" data-key="volume_down">Vol −</button>
+                <button class="btn" data-key="volume_up">Vol +</button>
+                <button class="btn" data-key="wake">Đánh thức</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Nhập chữ</h3>
+              <div class="row">
+                <input type="text" id="text-input" placeholder="Nội dung gửi vào máy">
+                <button class="btn primary" id="btn-text">Gửi</button>
+              </div>
+              <p class="hint">Gửi qua <code>input text</code>. Tiếng Việt có dấu thường không vào được — dùng cho email, mật khẩu, mã số.</p>
+            </div>
+
+            <div class="card">
+              <h3>Ứng dụng</h3>
+              <div class="row">
+                <input type="text" id="package-input">
+                <button class="btn" id="btn-launch">Mở</button>
+                <button class="btn danger" id="btn-stop">Tắt</button>
+              </div>
+              <p class="hint">Dùng để đưa game về màn hình đầu trước khi hiệu chỉnh route.</p>
+            </div>
+
+            <div class="card">
+              <h3>Thao tác trên ảnh</h3>
+              <p class="hint">
+                Bấm một điểm để <b>chạm</b>. Kéo từ điểm này sang điểm khác để <b>vuốt</b>.
+                Mọi toạ độ gửi đi đều đã chuẩn hoá 0–1 nên dùng lại được trên máy khác độ phân giải.
+              </p>
+              <label class="field" style="margin-top:10px">
+                <span>Thời gian vuốt (ms)</span>
+                <input type="number" id="swipe-duration" value="400" min="50" max="5000" step="50">
+              </label>
+            </div>
+          </div>
+
+          <!-- HIỆU CHỈNH -->
+          <div id="pane-calibrate" hidden>
+            <div class="card">
+              <h3>Chế độ chuột</h3>
+              <div class="mode-switch" style="margin-bottom:0">
+                <button data-pointer="tap" class="active">Chạm / vuốt</button>
+                <button data-pointer="select">Chọn vùng</button>
+              </div>
+              <p class="hint">Ở chế độ <b>Chọn vùng</b>, kéo một khung trên ảnh để lấy vùng và dấu vân.</p>
+            </div>
+
+            <div class="card">
+              <h3>Điểm chạm</h3>
+              <label class="field">
+                <span>Tên điểm — ví dụ <code>city.rankings</code></span>
+                <input type="text" id="point-name" placeholder="kvk.map.zoom-out">
+              </label>
+              <div class="row">
+                <span class="mono" id="point-coords" style="flex:1;color:var(--muted)">Bấm lên ảnh để lấy toạ độ</span>
+                <button class="btn primary" id="btn-save-point" disabled>Lưu điểm</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Vùng đã chọn</h3>
+              <div class="row">
+                <span class="mono" id="region-coords" style="flex:1;color:var(--muted)">Chưa chọn vùng</span>
+              </div>
+              <div class="preview" id="region-preview" hidden><img id="region-img" alt="Xem trước vùng chọn"></div>
+              <div class="dhash-out" id="region-dhash"></div>
+
+              <label class="field" style="margin-top:12px">
+                <span>Lưu thành vùng OCR — ví dụ <code>ranking.row1</code></span>
+                <input type="text" id="region-name" placeholder="kvk.map.header">
+              </label>
+              <button class="btn" id="btn-save-region" disabled style="width:100%">Lưu vùng</button>
+
+              <label class="field" style="margin-top:14px">
+                <span>Hoặc lưu thành dấu vân màn hình</span>
+                <input type="text" id="screen-name" placeholder="kvk-map">
+              </label>
+              <div class="row">
+                <input type="number" id="max-distance" value="8" min="0" max="32" style="width:70px" title="Khoảng cách Hamming tối đa">
+                <label class="toggle" style="flex:1"><input type="checkbox" id="replace-fp"><span>Thay toàn bộ</span></label>
+              </div>
+              <button class="btn primary" id="btn-save-fp" disabled style="width:100%;margin-top:9px">Lưu dấu vân</button>
+              <p class="hint">
+                dhash tính bằng đúng hàm <code>rok_lab.imaging.difference_hash</code> mà agent dùng lúc chạy thật,
+                nên giá trị ở đây khớp tuyệt đối với thứ <code>CharacterSwitcher</code> sẽ so.
+              </p>
+            </div>
+
+            <div class="card">
+              <h3>Màn hình khớp lúc này</h3>
+              <div class="match-list" id="match-list"><p class="hint">Đang chờ khung hình…</p></div>
+              <button class="btn small" id="btn-match" style="margin-top:10px;width:100%">Đối chiếu lại</button>
+            </div>
+
+            <div class="card">
+              <h3>Bản làm việc</h3>
+              <div class="row">
+                <span class="hint" style="flex:1;margin:0" id="profile-counts">—</span>
+              </div>
+              <div class="row">
+                <a class="btn small" id="btn-export" href="#">Tải JSON</a>
+                <button class="btn small" id="btn-apply">Ghi đè profile gốc</button>
+                <button class="btn small danger" id="btn-reset">Khôi phục</button>
+              </div>
+              <p class="hint">Sửa đổi chỉ nằm trong bản làm việc. Profile gốc của bạn không đổi cho tới khi bấm ghi đè, và bản cũ được lưu thành <code>.bak</code>.</p>
+              <div class="entry-list" id="entry-list" style="margin-top:11px"></div>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+  </div>
+
+  <!-- ---------------- THANH ĐỒNG BỘ ---------------- -->
+  <div class="broadcast-bar" id="broadcast-bar" hidden>
+    <span class="warn-text">
+      <b>Đang bật đồng bộ.</b> Lệnh sẽ phát tới <span class="count" id="bc-count">0</span> máy cùng lúc.
+      Chỉ nên dùng cho cài đặt và hiệu chỉnh, không dùng trong lúc đang có sự kiện.
+    </span>
+    <span class="countdown" id="bc-countdown"></span>
+    <button class="btn small" data-bc-key="back">Back</button>
+    <button class="btn small" data-bc-key="home">Home</button>
+    <button class="btn small" data-bc-key="wake">Đánh thức</button>
+    <button class="btn small" id="bc-launch">Mở game</button>
+    <button class="btn small" id="bc-tap">Chạm điểm cuối</button>
+    <button class="btn small" id="bc-text">Gửi chữ</button>
+  </div>
+
+</div>
+
+<!-- ---------------- CỔNG TOKEN ---------------- -->
+<div class="gate" id="gate" hidden>
+  <h1>Cần token truy cập</h1>
+  <p>Panel này điều khiển được mọi tài khoản game đang đăng nhập. Nhập token trong <code>.env</code>.</p>
+  <div class="row">
+    <input type="text" id="gate-token" placeholder="PANEL_TOKEN">
+    <button class="btn primary" id="gate-submit">Vào</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+name: rok-device-panel
+
+services:
+  panel:
+    build:
+      # Context là `tools/` để cài được gói rok-device-lab vào image.
+      context: ..
+      dockerfile: rok-device-panel/Dockerfile
+    image: rok-device-panel:latest
+    env_file:
+      - .env
+    environment:
+      PANEL_DATA_DIR: /data
+      PROFILE_PATH: /profiles/rok-a51-1920x1080.json
+      ALIASES_PATH: /config/devices.local.json
+      ADB_LISTEN_ALL: "true"
+
+    # Chỉ bind localhost. Vào từ máy quản trị bằng SSH tunnel:
+    #   ssh -N -L 5100:127.0.0.1:5100 -L 5037:127.0.0.1:5037 rokops@IP_SERVER
+    ports:
+      - "127.0.0.1:${PANEL_PORT:-5100}:${PANEL_PORT:-5100}"
+      # adb server dùng chung, để agent quét nối vào cùng một server.
+      - "127.0.0.1:5037:5037"
+
+    volumes:
+      # Bind cả thư mục (không dùng `devices:`) để điện thoại cắm/rút lúc đang
+      # chạy vẫn xuất hiện trong container.
+      - /dev/bus/usb:/dev/bus/usb
+      # Khoá RSA của adb. Mất volume này là 16 máy hiện lại hộp thoại
+      # "Allow USB debugging?" và toàn bộ dàn dừng cho tới khi có người bấm tay.
+      - adb_keys:/root/.android
+      - panel_data:/data
+      # Profile ghi được để nút "Ghi đè profile gốc" hoạt động.
+      - ../rok-device-lab/profiles:/profiles
+      - ../rok-device-lab/config:/config:ro
+
+    # Cho phép truy cập node USB mới sinh ra khi cắm thêm máy (major 189).
+    device_cgroup_rules:
+      - 'c 189:* rmw'
+
+    restart: unless-stopped
+    stop_grace_period: 10s
+
+volumes:
+  adb_keys:
+  panel_data:
