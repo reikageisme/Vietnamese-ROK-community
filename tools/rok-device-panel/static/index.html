@@ -34,6 +34,17 @@
 
   <div class="body">
 
+    <!-- Hien khi trang khong chay trong secure context: WebCodecs bi trinh duyet
+         chan, nen H.264 khong the chay va panel tut ve anh tinh ~1 khung/giay. -->
+    <div class="insecure-banner" id="insecure-banner" hidden>
+      <b>Đang chạy ở chế độ ảnh tĩnh (~1 khung/giây).</b>
+      Trình duyệt chỉ cho phép giải mã H.264 khi trang được mở qua kết nối bảo mật.
+      Địa chỉ hiện tại là <code id="insecure-origin"></code>.
+      <br>
+      Mở panel qua <code>https://</code> của Tailscale, hoặc chạy
+      <code>tools\panel.ps1</code> trên Windows để vào bằng <code>localhost</code>.
+    </div>
+
     <!-- ---------------- LƯỚI ---------------- -->
     <section class="view" id="view-grid">
       <div class="stage-bar">

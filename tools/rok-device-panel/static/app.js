@@ -664,6 +664,13 @@
 
   /* ---------------- khởi động ---------------- */
 
+  // Khong phai loi trinh duyet cu: WebCodecs bi chan o moi ngu canh khong bao mat.
+  // Bao thang ra dau trang, thay vi de nguoi dung tu doan qua badge "Nguon hinh".
+  if (!window.isSecureContext) {
+    $("insecure-origin").textContent = location.origin;
+    $("insecure-banner").hidden = false;
+  }
+
   bootToken();
   if (!S.token) openGate(); else $("app").hidden = false;
   tick();
