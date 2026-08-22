@@ -119,6 +119,7 @@
       this.nals = 0;
       this.aus = 0;
       this.idleTimer = null;
+      this.draining = false;
       this.splitter = new Splitter((nal) => this.onNal(nal));
     }
 
@@ -167,7 +168,33 @@
       this.idleTimer = setTimeout(() => {
         if (this.stopped) return;
         if (this.splitter.flushTail()) this.flush();
+        this.drainDecoder();
       }, 150);
+    }
+
+    /**
+     * Ep bo giai ma nha het khung dang giu trong duong ong.
+     *
+     * VideoDecoder duoc phep om vai khung truoc khi xuat, ke ca voi
+     * optimizeForLatency. Video dang chay thi khung sau day khung truoc ra nen
+     * khong ai thay. Man hinh dien thoai dung yen thi khong co khung sau: mot
+     * khung khoa duy nhat nam mai trong do va trinh duyet den thui - do duoc
+     * tren may that: AU 1, dec configured, khung 0, khong loi nao.
+     *
+     * Chi goi khi luong da im lang, nen khong anh huong toi do tre luc dang chay.
+     */
+    async drainDecoder() {
+      const decoder = this.decoder;
+      if (this.draining || !decoder || decoder.state !== "configured") return;
+      if (!this.aus) return;
+      this.draining = true;
+      try {
+        await decoder.flush();
+      } catch {
+        // flush() nem loi khi bo giai ma bi dong giua chung - khong phai loi that.
+      } finally {
+        this.draining = false;
+      }
     }
 
     stop() {
