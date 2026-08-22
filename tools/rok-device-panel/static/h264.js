@@ -188,9 +188,20 @@
       const decoder = this.decoder;
       if (this.draining || !decoder || decoder.state !== "configured") return;
       if (!this.aus) return;
+      // Chi can ep nha cho KHUNG DAU TIEN. Da ve duoc mot khung roi thi luong
+      // dang chay binh thuong, khung sau tu day khung truoc ra - goi flush() luc
+      // do chi lam hong trang thai tham chieu ma khong duoc gi.
+      if (this.frames > 0) return;
       this.draining = true;
       try {
         await decoder.flush();
+        // Hop dong cua WebCodecs: sau flush(), khung nap vao tiep theo BAT BUOC
+        // phai la khung khoa. Quen dieu nay thi decode() nem
+        // "A key frame is required after configure() or flush()".
+        this.started = false;
+        this.pending = [];
+        this.hasVcl = false;
+        this.isKey = false;
       } catch {
         // flush() nem loi khi bo giai ma bi dong giua chung - khong phai loi that.
       } finally {
@@ -339,7 +350,14 @@
         }));
         this.started = true;
       } catch (error) {
-        this.fail(String(error && error.message ? error.message : error));
+        const message = String(error && error.message ? error.message : error);
+        if (/key frame/i.test(message)) {
+          // Bo giai ma dang cho khung khoa. Bo khung nay, cho khung khoa ke tiep
+          // thay vi giet ca luong va roi ve anh tinh.
+          this.started = false;
+          return;
+        }
+        this.fail(message);
       }
     }
   }
