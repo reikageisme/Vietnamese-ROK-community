@@ -1,0 +1,36 @@
+{
+  "_huong_dan": "Chép file này, đổi tên thành <slug>.json. Xoá mọi khoá bắt đầu bằng _ trước khi nhập số thật. File nào còn dấu _ ở tên sẽ bị trình nhập bỏ qua.",
+
+  "slug": "vi-du-mu-thanh-chien",
+  "nameVi": "Mũ Thánh Chiến",
+  "nameEn": "Crusader Helm",
+  "slot": "HELMET",
+  "rarity": "LEGENDARY",
+  "setSlug": null,
+  "patch": "2026.08",
+
+  "tiers": [
+    {
+      "tier": 1,
+      "stats": { "inf_atk": 0, "inf_def": 0 },
+      "materials": null,
+      "powerValue": null,
+      "verification": "SCREENSHOT",
+      "evidence": "armory-shots/vi-du-mu-thanh-chien__t1.png",
+      "note": null
+    }
+  ],
+
+  "talents": [
+    {
+      "unlockTier": 1,
+      "nameVi": "Tên talent",
+      "nameEn": null,
+      "descriptionVi": "Mô tả đúng như trong game.",
+      "conditional": false,
+      "effect": { "stats": { "inf_atk": 0 }, "trigger": null },
+      "verification": "SCREENSHOT",
+      "evidence": "armory-shots/vi-du-mu-thanh-chien__t1-talent.png"
+    }
+  ]
+}

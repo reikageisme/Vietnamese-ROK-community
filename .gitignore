@@ -40,3 +40,9 @@ tools/rok-device-lab/config/fleet-ranking.local.json
 # multi-device source in tools/rok-device-lab instead of committing its runtime,
 # third-party OCR data and generated scans.
 RoK Tracker/
+
+tools/panel-commit-msg*.txt
+
+# Ảnh chụp làm bằng chứng cho dữ liệu trang bị — không đưa vào git
+armory-shots/*
+!armory-shots/.gitkeep

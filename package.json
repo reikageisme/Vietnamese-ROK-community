@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "db:migrate:deploy": "prisma migrate deploy --schema prisma/schema"
+    "db:migrate:deploy": "prisma migrate deploy --schema prisma/schema",
+    "armory:import": "node scripts/import-armory.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

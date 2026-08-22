@@ -1,0 +1,42 @@
+{
+  "note": "Từ điển chỉ số. Mọi khoá dùng trong file trang bị phải có ở đây. Đây là bản khởi đầu — sửa lại cho khớp đúng tên trong game tiếng Việt trước khi nhập số thật.",
+  "stats": [
+    { "key": "atk",            "group": "all_troops", "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 1, "vi": "Tấn công",                  "en": "Attack" },
+    { "key": "def",            "group": "all_troops", "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 2, "vi": "Phòng thủ",                 "en": "Defense" },
+    { "key": "hp",             "group": "all_troops", "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 3, "vi": "Máu",                       "en": "Health" },
+
+    { "key": "inf_atk",        "group": "infantry",   "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 1, "vi": "Tấn công Bộ binh",          "en": "Infantry Attack" },
+    { "key": "inf_def",        "group": "infantry",   "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 2, "vi": "Phòng thủ Bộ binh",         "en": "Infantry Defense" },
+    { "key": "inf_hp",         "group": "infantry",   "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 3, "vi": "Máu Bộ binh",               "en": "Infantry Health" },
+
+    { "key": "cav_atk",        "group": "cavalry",    "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 1, "vi": "Tấn công Kỵ binh",          "en": "Cavalry Attack" },
+    { "key": "cav_def",        "group": "cavalry",    "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 2, "vi": "Phòng thủ Kỵ binh",         "en": "Cavalry Defense" },
+    { "key": "cav_hp",         "group": "cavalry",    "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 3, "vi": "Máu Kỵ binh",               "en": "Cavalry Health" },
+
+    { "key": "arc_atk",        "group": "archer",     "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 1, "vi": "Tấn công Cung thủ",         "en": "Archer Attack" },
+    { "key": "arc_def",        "group": "archer",     "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 2, "vi": "Phòng thủ Cung thủ",        "en": "Archer Defense" },
+    { "key": "arc_hp",         "group": "archer",     "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 3, "vi": "Máu Cung thủ",              "en": "Archer Health" },
+
+    { "key": "sie_atk",        "group": "siege",      "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 1, "vi": "Tấn công Công thành",       "en": "Siege Attack" },
+    { "key": "sie_def",        "group": "siege",      "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 2, "vi": "Phòng thủ Công thành",      "en": "Siege Defense" },
+    { "key": "sie_hp",         "group": "siege",      "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 3, "vi": "Máu Công thành",            "en": "Siege Health" },
+
+    { "key": "march_speed",    "group": "march",      "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 1, "vi": "Tốc độ hành quân",          "en": "March Speed" },
+    { "key": "troop_load",     "group": "march",      "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 2, "vi": "Sức chứa quân",             "en": "Troop Load" },
+    { "key": "rally_capacity", "group": "march",      "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 3, "vi": "Sức chứa tập kết",          "en": "Rally Capacity" },
+    { "key": "march_capacity", "group": "march",      "kind": "FLAT",    "stackRule": "ADDITIVE", "sortOrder": 4, "vi": "Quân số mỗi đội",           "en": "March Capacity" },
+
+    { "key": "skill_damage",   "group": "combat",     "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 1, "vi": "Sát thương kỹ năng",        "en": "Skill Damage" },
+    { "key": "normal_damage",  "group": "combat",     "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 2, "vi": "Sát thương đòn thường",     "en": "Normal Attack Damage" },
+    { "key": "counter_damage", "group": "combat",     "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 3, "vi": "Sát thương phản đòn",       "en": "Counterattack Damage" },
+    { "key": "damage_reduce",  "group": "combat",     "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 4, "vi": "Giảm sát thương nhận vào",  "en": "Damage Reduction" },
+    { "key": "rage_regen",     "group": "combat",     "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 5, "vi": "Hồi nộ",                    "en": "Rage Restoration" },
+    { "key": "healing_speed",  "group": "combat",     "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 6, "vi": "Tốc độ hồi quân",           "en": "Healing Speed" },
+
+    { "key": "gather_speed",   "group": "economy",    "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 1, "vi": "Tốc độ thu thập",           "en": "Gathering Speed" },
+    { "key": "build_speed",    "group": "economy",    "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 2, "vi": "Tốc độ xây dựng",           "en": "Building Speed" },
+    { "key": "research_speed", "group": "economy",    "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 3, "vi": "Tốc độ nghiên cứu",         "en": "Research Speed" },
+    { "key": "training_speed", "group": "economy",    "kind": "PERCENT", "stackRule": "ADDITIVE", "sortOrder": 4, "vi": "Tốc độ huấn luyện",         "en": "Training Speed" },
+    { "key": "ap_recovery",    "group": "economy",    "kind": "FLAT",    "stackRule": "ADDITIVE", "sortOrder": 5, "vi": "Hồi thể lực",               "en": "AP Recovery" }
+  ]
+}
