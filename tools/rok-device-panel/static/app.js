@@ -20,6 +20,9 @@
     broadcast: { armed: false, supported: true, secondsLeft: 0 },
     gamePackage: "com.rok.gp.vn",
     streaming: null,
+    h264: false,        // server có bật luồng H.264 không
+    player: null,       // bộ giải mã đang chạy
+    source: "still",    // "h264" | "still"
   };
 
   /* ---------------- nền tảng ---------------- */
@@ -101,6 +104,7 @@
     S.focus = state.focus;
     S.broadcast = state.broadcast;
     S.gamePackage = state.gamePackage;
+    S.h264 = Boolean(state.h264);
 
     $("c-ready").textContent = state.devices.filter((d) => d.ready).length;
     $("c-unauth").textContent = state.devices.filter((d) => d.state === "unauthorized").length;
@@ -108,8 +112,9 @@
     $("pause-toggle").checked = state.paused;
     $("arm-toggle").checked = state.broadcast.armed;
     $("arm-toggle").disabled = !state.broadcast.supported;
-    $("grid-note").textContent =
-      `Mỗi ô làm mới ~${state.gridInterval}s · máy đang xem ~${state.focusInterval}s`;
+    $("grid-note").textContent = state.mode === "focus"
+      ? "Lưới đang tạm dừng — băng thông đang dồn cho máy bạn đang xem"
+      : `Mỗi ô làm mới ~${state.gridInterval}s · chỉ chụp khi bạn ở tab Lưới`;
 
     renderGrid();
     renderPicker();
@@ -196,6 +201,10 @@
 
   function switchView(view) {
     S.view = view;
+    if (view === "grid" && S.player) { S.player.stop(); S.player = null; S.source = "still"; }
+    // Server dùng thông tin này để ngừng chụp 15 máy còn lại khi đang xem một máy.
+    const mode = view === "focus" && S.source === "h264" ? "video" : view;
+    post("/api/focus", { serial: S.streaming, mode }).catch(() => {});
     $("view-grid").hidden = view !== "grid";
     $("view-focus").hidden = view !== "focus";
     document.querySelectorAll(".tabs button").forEach((button) => {
@@ -223,21 +232,76 @@
       document.querySelectorAll("[data-pointer]").forEach((other) =>
         other.classList.toggle("active", other === button));
       $("screen-box").classList.toggle("selecting", S.pointer === "select");
+      if (S.streaming) { if (S.pointer === "select") useStill("đang chọn vùng"); else useVideo(); }
     });
   });
 
   /* ---------------- máy đang xem ---------------- */
 
+  /** Dừng luồng H.264 và trả màn hình về ảnh tĩnh screencap. */
+  function useStill(reason) {
+    if (S.player) { S.player.stop(); S.player = null; }
+    S.source = "still";
+    $("video").hidden = true;
+    $("live").hidden = false;
+    if (S.streaming) {
+      $("live").src = withToken(`/api/devices/${encodeURIComponent(S.streaming)}/stream.mjpg`);
+      post("/api/focus", { serial: S.streaming, mode: "focus" }).catch(() => {});
+    }
+    renderSource(reason);
+  }
+
+  /** Bật luồng H.264 lấy từ bộ mã hoá phần cứng của máy. */
+  function useVideo() {
+    if (!S.streaming || !S.h264 || !window.RokH264 || !RokH264.supported()) {
+      return useStill(RokH264 && !RokH264.supported() ? "trình duyệt không hỗ trợ WebCodecs" : "");
+    }
+    if (S.player) { S.player.stop(); S.player = null; }
+    $("live").hidden = true;
+    $("live").src = "";           // ngắt luồng MJPEG để khỏi tốn băng thông USB
+    $("video").hidden = false;
+    S.source = "h264";
+    // screencap nghỉ hẳn; hiệu chỉnh vẫn có ảnh vì các endpoint đó tự chụp.
+    post("/api/focus", { serial: S.streaming, mode: "video" }).catch(() => {});
+
+    const scheme = location.protocol === "https:" ? "wss" : "ws";
+    const url = `${scheme}://${location.host}/api/devices/${encodeURIComponent(S.streaming)}/video`
+      + `?token=${encodeURIComponent(S.token)}`;
+    S.player = RokH264.create({
+      canvas: $("video"),
+      url,
+      onStatus: (status) => {
+        if (status.state === "error") {
+          toast(`Luồng H.264 lỗi: ${status.message}. Chuyển về ảnh tĩnh.`, "bad");
+          useStill("H.264 lỗi");
+        } else {
+          renderSource();
+        }
+      },
+    });
+    S.player.start();
+    renderSource();
+  }
+
+  function renderSource(note) {
+    const node = $("ro-source");
+    if (S.source === "h264") {
+      node.innerHTML = `<span class="src-pill h264">H.264 phần cứng</span>`;
+    } else {
+      node.innerHTML = `<span class="src-pill still">ảnh tĩnh${note ? " · " + note : ""}</span>`;
+    }
+  }
+
   function selectDevice(serial) {
     if (S.streaming === serial) return;
     S.streaming = serial;
-    post("/api/focus", { serial }).catch(() => {});
-    const live = $("live");
-    live.src = withToken(`/api/devices/${encodeURIComponent(serial)}/stream.mjpg`);
     $("btn-download").href = withToken(`/api/devices/${encodeURIComponent(serial)}/screenshot.png`);
     $("empty-stage").hidden = true;
     $("screen-box").style.display = "";
     $("device-picker").value = serial;
+    // Chế độ chọn vùng luôn dùng ảnh tĩnh: dhash phải băm đúng ảnh PNG mà agent
+    // chụp lúc chạy thật, không phải khung H.264 đã nén mất dữ liệu.
+    if (S.pointer === "select") useStill("đang chọn vùng"); else useVideo();
     S.lastPoint = null; S.lastRegion = null;
     $("point-coords").textContent = "Bấm lên ảnh để lấy toạ độ";
     $("region-coords").textContent = "Chưa chọn vùng";
@@ -272,6 +336,8 @@
     $("focus-meta").textContent = `${device.serial}${device.model ? " · " + device.model : ""}`;
     $("ro-size").textContent = device.width ? `${device.width}×${device.height}` : "—";
     $("ro-ms").textContent = device.lastCaptureMs ? `${device.lastCaptureMs}ms` : "—";
+    const fps = S.source === "h264" && S.player ? S.player.fps : device.fps;
+    $("ro-fps").textContent = fps ? `${fps.toFixed(1)}/giây` : "—";
   }
 
   $("btn-refresh").addEventListener("click", async () => {
@@ -282,11 +348,14 @@
 
   /* ---------------- tương tác trên ảnh ---------------- */
 
-  const live = $("live");
+  const stage = $("screen-box");
   let drag = null;
 
+  /** Bề mặt đang hiển thị: canvas H.264 hoặc ảnh tĩnh. */
+  function surface() { return $("video").hidden ? $("live") : $("video"); }
+
   function normalized(event) {
-    const rect = live.getBoundingClientRect();
+    const rect = surface().getBoundingClientRect();
     return {
       x: Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)),
       y: Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height)),
@@ -301,20 +370,20 @@
       : "—";
   }
 
-  live.addEventListener("pointermove", (event) => { if (!drag) showReadout(normalized(event)); });
+  stage.addEventListener("pointermove", (event) => { if (!drag) showReadout(normalized(event)); });
 
-  live.addEventListener("pointerdown", (event) => {
+  stage.addEventListener("pointerdown", (event) => {
     if (!S.streaming) return;
     event.preventDefault();
-    live.setPointerCapture(event.pointerId);
+    stage.setPointerCapture(event.pointerId);
     drag = { start: normalized(event), current: normalized(event) };
   });
 
-  live.addEventListener("pointermove", (event) => {
+  stage.addEventListener("pointermove", (event) => {
     if (!drag) return;
     drag.current = normalized(event);
     showReadout(drag.current);
-    const rect = live.getBoundingClientRect();
+    const rect = surface().getBoundingClientRect();
     const box = $("screen-box").getBoundingClientRect();
     const offsetX = rect.left - box.left;
     const offsetY = rect.top - box.top;
@@ -337,7 +406,7 @@
     }
   });
 
-  live.addEventListener("pointerup", async (event) => {
+  stage.addEventListener("pointerup", async (event) => {
     if (!drag) return;
     const { start } = drag;
     const end = normalized(event);
@@ -370,6 +439,7 @@
     }
 
     if (distance < TAP_THRESHOLD) {
+      showRipple(start);
       S.lastPoint = start;
       $("point-coords").textContent = `[${start.x.toFixed(4)}, ${start.y.toFixed(4)}]`;
       $("btn-save-point").disabled = false;
@@ -380,11 +450,24 @@
     }
   });
 
-  live.addEventListener("pointercancel", () => {
+  stage.addEventListener("pointercancel", () => {
     drag = null;
     $("selection").style.display = "none";
     $("swipe-line").style.display = "none";
   });
+
+  /** Phản hồi thị giác tức thì. Máy vẫn mất ~300ms để đáp, nhưng cảm giác nhanh
+   *  hơn hẳn khi biết ngay cú chạm đã được ghi nhận. */
+  function showRipple(point) {
+    const rect = surface().getBoundingClientRect();
+    const box = stage.getBoundingClientRect();
+    const node = $("ripple");
+    node.style.left = (rect.left - box.left + point.x * rect.width) + "px";
+    node.style.top = (rect.top - box.top + point.y * rect.height) + "px";
+    node.classList.remove("on");
+    void node.offsetWidth;   // ép trình duyệt chạy lại animation
+    node.classList.add("on");
+  }
 
   async function send(action) {
     if (!S.streaming) return;

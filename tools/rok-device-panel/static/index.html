@@ -58,8 +58,10 @@
 
           <div class="screen-box" id="screen-box">
             <img class="live" id="live" alt="Màn hình thiết bị">
+            <canvas class="live" id="video" hidden></canvas>
             <div class="selection" id="selection"></div>
             <div class="swipe-line" id="swipe-line"></div>
+            <div class="ripple" id="ripple"></div>
           </div>
           <div class="empty-stage" id="empty-stage">Chọn một máy để bắt đầu.</div>
 
@@ -68,6 +70,8 @@
             <span>Pixel <b id="ro-px">—</b></span>
             <span>Độ phân giải <b id="ro-size">—</b></span>
             <span>Chụp <b id="ro-ms">—</b></span>
+            <span>Nhịp <b id="ro-fps">—</b></span>
+            <span>Nguồn hình <b id="ro-source">—</b></span>
           </div>
         </div>
 
@@ -134,7 +138,9 @@
                 <button data-pointer="tap" class="active">Chạm / vuốt</button>
                 <button data-pointer="select">Chọn vùng</button>
               </div>
-              <p class="hint">Ở chế độ <b>Chọn vùng</b>, kéo một khung trên ảnh để lấy vùng và dấu vân.</p>
+              <p class="hint">Ở chế độ <b>Chọn vùng</b>, kéo một khung trên ảnh để lấy vùng và dấu vân.
+              Panel sẽ tự chuyển sang <b>ảnh tĩnh</b> khi bạn vào chế độ này — dhash phải băm đúng
+              ảnh PNG mà agent chụp lúc chạy thật, không phải khung video đã nén mất dữ liệu.</p>
             </div>
 
             <div class="card">
@@ -232,6 +238,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<script src="/static/h264.js"></script>
 <script src="/static/app.js"></script>
 </body>
 </html>

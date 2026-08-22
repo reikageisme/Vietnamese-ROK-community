@@ -6,12 +6,13 @@ trang này là chạm được vào mọi tài khoản game đang đăng nhập 
 
 from __future__ import annotations
 
+import asyncio
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Iterator
 
-from fastapi import Body, FastAPI, HTTPException, Query, Request
+from fastapi import Body, FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import (
     FileResponse,
     JSONResponse,
@@ -32,6 +33,7 @@ from .calibrate import (
 )
 from .capture import CaptureService
 from .config import Settings, load_settings
+from .videostream import QUEUE_LIMIT, Subscriber, VideoService, probe_screenrecord
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 BROADCAST_ARM_SECONDS = 600  # tự tắt sau 10 phút để không quên bật
@@ -55,6 +57,7 @@ settings: Settings = load_settings()
 bridge = AdbBridge(settings.adb_path)
 capture = CaptureService(bridge, settings)
 profiles = ProfileStore(settings.profile_source, settings.profile_working)
+video = VideoService(bridge, settings)
 broadcast_pool = ThreadPoolExecutor(max_workers=16, thread_name_prefix="broadcast")
 
 _broadcast_armed_until: float = 0.0
@@ -99,6 +102,7 @@ def _startup() -> None:
 
 @app.on_event("shutdown")
 def _shutdown() -> None:
+    video.stop_all()
     capture.stop()
     broadcast_pool.shutdown(wait=False, cancel_futures=True)
 
@@ -128,6 +132,8 @@ def state() -> dict[str, Any]:
     for device in bridge.devices():
         payload = device.as_json()
         frame = capture.frame(device.serial)
+        payload["fps"] = capture.stats(device.serial)["fps"]
+        payload["video"] = video.stats(device.serial)
         payload["frameAge"] = round(frame.age, 1) if frame else None
         payload["frameAt"] = frame.captured_at if frame else None
         payload["hasFrame"] = frame is not None
@@ -135,6 +141,7 @@ def state() -> dict[str, Any]:
     return {
         "devices": devices,
         "focus": capture.focus,
+        "mode": capture.mode,
         "paused": capture.paused,
         "broadcast": {
             "supported": settings.broadcast_enabled,
@@ -144,6 +151,7 @@ def state() -> dict[str, Any]:
         },
         "adb": bridge.version(),
         "gamePackage": settings.game_package,
+        "h264": settings.h264_enabled,
         "gridInterval": settings.grid_interval,
         "focusInterval": settings.focus_interval,
         "profileSource": str(settings.profile_source),
@@ -153,9 +161,13 @@ def state() -> dict[str, Any]:
 
 @app.post("/api/focus")
 def set_focus(payload: dict = Body(default={})) -> dict[str, Any]:
-    serial = payload.get("serial")
-    capture.set_focus(serial or None)
-    return {"focus": capture.focus}
+    """Giao diện báo nó đang xem gì.
+
+    Quan trọng cho hiệu năng: ở chế độ "focus", panel ngừng chụp 15 máy còn lại
+    và dồn toàn bộ băng thông USB cho máy đang điều khiển.
+    """
+    capture.set_view(payload.get("serial") or None, payload.get("mode"))
+    return {"focus": capture.focus, "mode": capture.mode}
 
 
 @app.post("/api/pause")
@@ -193,8 +205,7 @@ def frame(serial: str, kind: str = Query(default="grid")) -> Response:
     item = capture.frame(serial)
     if item is None:
         raise HTTPException(status_code=404, detail="Chưa có khung hình.")
-    payload = item.focus_jpeg if kind == "focus" else item.grid_jpeg
-    return Response(content=payload, media_type="image/jpeg", headers=_NO_STORE)
+    return Response(content=item.payload(kind), media_type="image/jpeg", headers=_NO_STORE)
 
 
 @app.get("/api/devices/{serial}/screenshot.png")
@@ -214,6 +225,20 @@ def screenshot(serial: str) -> Response:
             "Content-Disposition": f'attachment; filename="{alias}-{int(item.captured_at)}.png"',
         },
     )
+
+
+def fresh_frame(serial: str, max_age: float = 1.5):
+    """Lấy khung hình còn mới, chụp lại nếu cần.
+
+    Ở chế độ video, vòng screencap không chạy để nhường băng thông USB cho luồng
+    H.264. Nhưng hiệu chỉnh thì bắt buộc phải có ảnh PNG *đúng thời điểm* — dhash
+    của một khung H.264 đã nén mất dữ liệu sẽ khác dhash của ảnh screencap mà agent
+    chụp lúc chạy thật, và fingerprint sinh ra sẽ vô dụng.
+    """
+    item = capture.frame(serial)
+    if item is None or item.age > max_age:
+        item = capture.capture_now(serial)
+    return item
 
 
 @app.post("/api/devices/{serial}/refresh")
@@ -240,7 +265,7 @@ def stream(serial: str) -> StreamingResponse:
             if item.captured_at <= last:
                 continue  # hết thời gian chờ mà không có khung mới
             last = item.captured_at
-            payload = item.focus_jpeg
+            payload = item.payload("focus")
             yield (
                 f"--{boundary}\r\nContent-Type: image/jpeg\r\n"
                 f"Content-Length: {len(payload)}\r\n\r\n"
@@ -449,9 +474,10 @@ def add_fingerprint(payload: dict = Body(...)) -> dict[str, Any]:
     serial = str(payload.get("serial") or "")
     if not screen:
         raise HTTPException(status_code=400, detail="Thiếu tên màn hình.")
-    item = capture.frame(serial)
-    if item is None:
-        raise HTTPException(status_code=404, detail="Chưa có khung hình để lấy dấu vân.")
+    try:
+        item = fresh_frame(serial)
+    except AdbError as exc:
+        raise _fail(exc) from exc
     region = normalize_region(
         float(payload["x"]), float(payload["y"]), float(payload["w"]), float(payload["h"])
     )
@@ -495,9 +521,10 @@ def reset_profile() -> dict[str, Any]:
 
 @app.get("/api/profile/match")
 def match_profile(serial: str = Query(...)) -> dict[str, Any]:
-    item = capture.frame(serial)
-    if item is None:
-        raise HTTPException(status_code=404, detail="Chưa có khung hình.")
+    try:
+        item = fresh_frame(serial)
+    except AdbError as exc:
+        raise _fail(exc) from exc
     return {"capturedAt": item.captured_at, "screens": profiles.match(item.png)}
 
 
@@ -509,9 +536,10 @@ def preview_region(
     w: float = Query(...),
     h: float = Query(...),
 ) -> Response:
-    item = capture.frame(serial)
-    if item is None:
-        raise HTTPException(status_code=404, detail="Chưa có khung hình.")
+    try:
+        item = fresh_frame(serial)
+    except AdbError as exc:
+        raise _fail(exc) from exc
     region = normalize_region(x, y, w, h)
     if region[2] <= 0 or region[3] <= 0:
         raise HTTPException(status_code=400, detail="Vùng chọn quá nhỏ.")
@@ -526,13 +554,86 @@ def region_dhash(
     w: float = Query(...),
     h: float = Query(...),
 ) -> dict[str, Any]:
-    item = capture.frame(serial)
-    if item is None:
-        raise HTTPException(status_code=404, detail="Chưa có khung hình.")
+    try:
+        item = fresh_frame(serial)
+    except AdbError as exc:
+        raise _fail(exc) from exc
     region = normalize_region(x, y, w, h)
     if region[2] <= 0 or region[3] <= 0:
         raise HTTPException(status_code=400, detail="Vùng chọn quá nhỏ.")
     return {"region": list(region), "dhash": fingerprint_png(item.png, region)}
+
+
+# --------------------------------------------------------------------------
+# Luồng H.264 (hình mượt)
+# --------------------------------------------------------------------------
+
+
+@app.get("/api/devices/{serial}/video/probe")
+def video_probe(serial: str) -> dict[str, Any]:
+    """Hỏi máy có chạy được screenrecord không, trước khi giao diện hứa hẹn gì."""
+    if not settings.h264_enabled:
+        return {"supported": False, "reason": "H264_ENABLED=false"}
+    ok, reason = probe_screenrecord(bridge, serial)
+    return {"supported": ok, "reason": reason, "bitrate": settings.h264_bitrate}
+
+
+@app.websocket("/api/devices/{serial}/video")
+async def video_socket(websocket: WebSocket, serial: str) -> None:
+    """Đẩy luồng H.264 thô về trình duyệt.
+
+    Middleware xác thực chỉ chạy cho HTTP, nên WebSocket phải tự kiểm tra token.
+    Khung nhị phân là dữ liệu H.264; khung văn bản là tín hiệu điều khiển.
+    """
+    if settings.auth_required and websocket.query_params.get("token") != settings.token:
+        await websocket.close(code=4401)
+        return
+    if not settings.h264_enabled:
+        await websocket.close(code=4403)
+        return
+
+    await websocket.accept()
+    queue: asyncio.Queue = asyncio.Queue(maxsize=QUEUE_LIMIT)
+    subscriber = Subscriber(queue=queue, loop=asyncio.get_running_loop())
+    try:
+        video.subscribe(serial, subscriber)
+    except AdbError as exc:
+        await websocket.send_json({"type": "error", "message": str(exc)})
+        await websocket.close()
+        return
+
+    async def watch_client() -> None:
+        """Phát hiện trình duyệt đóng kết nối kể cả khi luồng đang đứng im."""
+        try:
+            while True:
+                await websocket.receive_text()
+        except Exception:  # noqa: BLE001
+            pass
+
+    watcher = asyncio.create_task(watch_client())
+    try:
+        await websocket.send_json({"type": "start", "bitrate": settings.h264_bitrate})
+        while not watcher.done():
+            try:
+                kind, payload = await asyncio.wait_for(queue.get(), timeout=5.0)
+            except asyncio.TimeoutError:
+                continue
+            if kind == "data" and payload:
+                await websocket.send_bytes(payload)
+            elif kind == "reset":
+                # Đoạn screenrecord mới bắt đầu bằng SPS/PPS/IDR mới; trình duyệt
+                # phải dựng lại bộ giải mã chứ không ghép vào tham chiếu cũ.
+                await websocket.send_json({"type": "reset"})
+            elif kind == "error":
+                await websocket.send_json(
+                    {"type": "error", "message": (payload or b"").decode("utf-8", "replace")}
+                )
+                break
+    except (WebSocketDisconnect, RuntimeError):
+        pass
+    finally:
+        watcher.cancel()
+        video.unsubscribe(serial, subscriber)
 
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

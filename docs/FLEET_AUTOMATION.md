@@ -60,7 +60,7 @@ Copy-Item tools\rok-device-lab\config\agent.example.json `
 
 $env:ROK_CONTROL_URL = "http://127.0.0.1:3031"
 $env:ROK_DEVICE_AGENT_TOKEN = "<token-agent>"
-$env:ROK_COLLECTOR_URL = "http://127.0.0.1:3030"
+$env:ROK_COLLECTOR_URL = "http://127.0.0.1:3031"
 $env:ROK_COLLECTOR_TOKEN = "<token-collector>"
 $env:ADB_PATH = "D:\Program Files (x86)\xiaowei_android\tools\adb.exe"
 $env:TESSERACT_PATH = "C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -70,8 +70,8 @@ $rok = "tools\rok-device-lab\.venv\Scripts\python.exe"
   tools\rok-device-lab\config\agent.local.json
 ```
 
-Nếu agent ở máy khác server, dùng Tailscale IP hoặc tạo SSH tunnel cho cả 3030
-và 3031. Không mở trực tiếp 3031 ra Internet.
+Nếu agent ở máy khác server, dùng Tailscale IP hoặc tạo SSH tunnel cho 3031.
+Không mở trực tiếp cổng vận hành này ra Internet.
 
 ## Đổi character
 

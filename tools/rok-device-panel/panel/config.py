@@ -52,6 +52,12 @@ class Settings:
     grid_width: int
     focus_width: int
     jpeg_quality: int
+    focus_quality: int
+
+    # Luồng H.264 lấy từ bộ mã hoá phần cứng của máy.
+    h264_enabled: bool
+    h264_bitrate: int
+    h264_size: str | None
 
     device_poll_interval: float
     meta_poll_interval: float
@@ -79,13 +85,24 @@ def load_settings() -> Settings:
         aliases_path=Path(os.environ.get("ALIASES_PATH", "/config/devices.local.json")),
         data_dir=data_dir,
         grid_interval=_float("GRID_INTERVAL_SECONDS", 5.0),
-        focus_interval=_float("FOCUS_INTERVAL_SECONDS", 0.8),
+        # 0 = chụp liên tục hết tốc độ máy cho phép. screencap trên A51 mất
+        # khoảng 300-500ms nên đây đã là trần thực tế, thêm khoảng nghỉ chỉ
+        # làm chậm hơn chứ không tiết kiệm được gì khi chỉ chụp một máy.
+        focus_interval=_float("FOCUS_INTERVAL_SECONDS", 0.0),
         capture_workers=_int("CAPTURE_WORKERS", 3),
         capture_timeout=_float("CAPTURE_TIMEOUT_SECONDS", 25.0),
         slow_capture_threshold=_float("SLOW_CAPTURE_SECONDS", 3.0),
-        grid_width=_int("GRID_WIDTH", 420),
-        focus_width=_int("FOCUS_WIDTH", 1280),
-        jpeg_quality=_int("JPEG_QUALITY", 72),
+        grid_width=_int("GRID_WIDTH", 400),
+        focus_width=_int("FOCUS_WIDTH", 960),
+        jpeg_quality=_int("JPEG_QUALITY", 70),
+        focus_quality=_int("FOCUS_QUALITY", 62),
+        h264_enabled=_bool("H264_ENABLED", True),
+        # 6 Mbps ~ 0,75 MB/s, vẫn rẻ hơn nhiều so với ~4-5 MB/s của screencap
+        # mà cho 30-60 khung/giây thay vì 2-3.
+        h264_bitrate=_int("H264_BITRATE", 6_000_000),
+        # Để trống là giữ nguyên độ phân giải và hướng màn hình thật. Chỉ đặt khi
+        # bạn đã biết chắc tỉ lệ, vì đoán sai sẽ làm ảnh méo hoặc có viền đen.
+        h264_size=os.environ.get("H264_SIZE") or None,
         device_poll_interval=_float("DEVICE_POLL_SECONDS", 4.0),
         meta_poll_interval=_float("META_POLL_SECONDS", 30.0),
         broadcast_enabled=_bool("BROADCAST_ENABLED", True),
