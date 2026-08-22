@@ -120,6 +120,7 @@
       this.aus = 0;
       this.idleTimer = null;
       this.draining = false;
+      this.spsKey = null;   // dau van cua SPS dang dung, de biet khi nao may xoay
       this.splitter = new Splitter((nal) => this.onNal(nal));
     }
 
@@ -234,6 +235,22 @@
       this.codec = null;
     }
 
+    /**
+     * Dung lai bo giai ma khi gap SPS khac (thuong la may vua xoay man hinh).
+     *
+     * Khac resetDecoder(): KHONG dung toi splitter, vi ham nay duoc goi tu giua
+     * vong lap tach NAL - xoa bo dem cua splitter luc do se lam mat phan duoi
+     * cua chinh chunk dang xu ly.
+     */
+    resetForNewSps() {
+      this.closeDecoder();
+      this.pending = [];
+      this.hasVcl = false;
+      this.isKey = false;
+      this.started = false;
+      this.codec = null;
+    }
+
     ensureDecoder(codec) {
       if (this.decoder) return;
       this.decoder = new VideoDecoder({
@@ -274,7 +291,16 @@
       const { type, offset } = nalType(nal);
       const isVcl = type >= 1 && type <= 5;
 
-      if (type === 7 && !this.codec) this.codec = codecFromSps(nal, offset);
+      if (type === 7) {
+        // May xoay ngang/doc => screenrecord phat SPS moi voi do phan giai khac.
+        // Bo giai ma dang cau hinh cho kich thuoc cu se nuot du lieu ma khong nha
+        // khung nao ra - do duoc tren may that: 1920x1080, AU 4, khung 0, khong
+        // loi. Phai dung han bo giai ma cu va dung lai theo SPS moi.
+        const key = String(nal);
+        if (this.spsKey && this.spsKey !== key) this.resetForNewSps();
+        this.spsKey = key;
+        if (!this.codec) this.codec = codecFromSps(nal, offset);
+      }
       // Một access unit kết thúc khi gặp NAL ảnh tiếp theo, hoặc khi SPS mới bắt đầu.
       if ((isVcl && this.hasVcl) || (type === 7 && this.pending.length)) this.flush();
       if (type === 5 || type === 7 || type === 8) this.isKey = true;
