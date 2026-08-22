@@ -195,13 +195,14 @@ nên một máy không thể nhận hai job cùng lúc.
 ## 6. Gửi lên RokViet Hub
 
 ```powershell
-$env:ROK_COLLECTOR_URL = "https://rokforum.example.vn"
+$env:ROK_COLLECTOR_URL = "http://127.0.0.1:3031"
 $env:ROK_COLLECTOR_TOKEN = "token-rieng-khong-commit"
 & $rok -m rok_lab.cli upload-scan "D:\...\scan.json"
 ```
 
-Collector chống trùng bằng `externalId` và đưa dữ liệu vào `PENDING_REVIEW` trước
-khi public.
+Collector chỉ phục vụ trên Ops surface, chống trùng bằng `externalId` và đưa dữ
+liệu vào `PENDING_REVIEW` trước khi public. Máy agent ở xa phải đi qua
+Tailscale/SSH tunnel; không trỏ vào domain diễn đàn công khai.
 
 ## 7. Đưa lên Proxmox cho 18 điện thoại
 
