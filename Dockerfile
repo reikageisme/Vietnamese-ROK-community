@@ -22,7 +22,10 @@ COPY prisma ./prisma
 COPY content ./content
 COPY scripts ./scripts
 RUN npx prisma generate --schema prisma/schema
-CMD ["sh", "-c", "npx prisma migrate deploy --schema prisma/schema && node prisma/seed.mjs && node scripts/import-armory.mjs"]
+# Migration và seed là bắt buộc — hỏng thì phải dừng, vì web chạy trên lược đồ
+# sai còn tệ hơn web không chạy. Nhập dữ liệu game thì KHÔNG: một file JSON sai
+# không đáng để cả diễn đàn ngừng hoạt động. Nó kêu lên rồi để web đi tiếp.
+CMD ["sh", "-c", "npx prisma migrate deploy --schema prisma/schema && node prisma/seed.mjs && { node scripts/import-armory.mjs || echo '!! Nhập kho trang bị thất bại — web vẫn chạy, xem log phía trên.'; }"]
 
 FROM deps AS builder
 ENV NODE_ENV=production

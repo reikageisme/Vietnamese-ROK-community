@@ -146,5 +146,18 @@ async function main() {
 }
 
 main()
-  .catch((error) => { console.error("\nDỪNG:", error.message); process.exitCode = 1; })
+  .catch((error) => {
+    // P2021 = bảng chưa tồn tại. Nghĩa là lược đồ armory chưa được áp lên cơ sở
+    // dữ liệu này. Đó là việc chưa làm, không phải hỏng hóc — và nhập dữ liệu
+    // game KHÔNG được phép chặn web khởi động vì lý do đó.
+    if (error?.code === "P2021") {
+      console.warn(
+        "\nBỎ QUA nhập kho trang bị: bảng chưa tồn tại." +
+          "\nÁp lược đồ trước (prisma migrate deploy hoặc prisma db push), rồi chạy lại.",
+      );
+      return;
+    }
+    console.error("\nDỪNG:", error.message);
+    process.exitCode = 1;
+  })
   .finally(() => prisma.$disconnect());
