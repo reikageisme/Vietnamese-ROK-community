@@ -14,10 +14,12 @@ describe("scan service catalog", () => {
   });
 
   it("accepts only configured top-up packages", () => {
-    expect(creditsForTopUp(100_000)).toBe(110);
+    expect(creditsForTopUp(129_000)).toBe(150);
+    expect(creditsForTopUp(259_000)).toBe(330);
     expect(creditsForTopUp(99_000)).toBeNull();
     expect(createTopUpSchema.safeParse({ amountVnd: 99_000, transferReference: "FT1234" }).success).toBe(false);
-    expect(topUpCatalog).toHaveLength(3);
+    expect(createTopUpSchema.safeParse({ amountVnd: 129_000, transferReference: "FT1234" }).success).toBe(true);
+    expect(topUpCatalog).toHaveLength(2);
   });
 
   it("validates kingdom and product without accepting a client price", () => {
