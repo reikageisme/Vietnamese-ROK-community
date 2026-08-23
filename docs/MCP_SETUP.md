@@ -1,4 +1,4 @@
-# RokViet MCP server — cho Claude làm việc thẳng với server
+# ROK FAQ MCP server — cho Claude làm việc thẳng với server
 
 Sau khi cài xong, Claude gọi được server và dàn 16 điện thoại trực tiếp: chạy lệnh,
 xem trạng thái máy, **nhìn được ảnh màn hình game**, chẩn đoán hiệu chỉnh, deploy.
@@ -52,7 +52,7 @@ Mở `%APPDATA%\Claude\claude_desktop_config.json` (chưa có thì tạo mới):
 ```json
 {
   "mcpServers": {
-    "rokviet": {
+    "rokfaq": {
       "command": "py",
       "args": ["-3", "D:\\ROK Forum\\tools\\rok_mcp.py"],
       "env": {

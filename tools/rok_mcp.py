@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""RokViet MCP server — cho Claude làm việc thẳng với server và dàn điện thoại.
+"""ROK FAQ MCP server — cho Claude làm việc thẳng với server và dàn điện thoại.
 
 Chạy trên máy Windows của bạn (nơi có Tailscale), không phải trên server. Claude
 Desktop khởi động file này và nói chuyện với nó qua stdin/stdout.
@@ -33,7 +33,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-SERVER_NAME = "rokviet"
+SERVER_NAME = "rokfaq"
 SERVER_VERSION = "1.0.0"
 DEFAULT_PROTOCOL = "2024-11-05"
 
@@ -286,7 +286,7 @@ TOOLS = [
     {
         "name": "rok_run",
         "description": (
-            "Chạy một lệnh shell trên server RokViet qua SSH và trả về đầu ra. "
+            "Chạy một lệnh shell trên server ROK FAQ qua SSH và trả về đầu ra. "
             "Dùng cho mọi việc vận hành: git, docker, adb, xem file, kiểm tra tài nguyên."
         ),
         "inputSchema": {

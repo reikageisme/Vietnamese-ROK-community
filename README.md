@@ -1,8 +1,8 @@
-# RokViet Hub
+# ROK FAQ
 
 Nền tảng knowledge + tools + community dành cho cộng đồng Rise of Kingdoms Việt Nam.
 
-> RokViet Hub là dự án cộng đồng độc lập, không đại diện hoặc được tài trợ bởi Lilith Games.
+> ROK FAQ là dự án cộng đồng độc lập, không đại diện hoặc được tài trợ bởi Lilith Games.
 
 ## Chạy local
 
@@ -49,7 +49,7 @@ WEB_BIND_ADDRESS=127.0.0.1
 WEB_PORT=3030
 
 POSTGRES_PASSWORD=mat-khau-postgres-manh
-DATABASE_URL=postgresql://rokviet:mat-khau-postgres-manh@postgres:5432/rokviet?schema=public
+DATABASE_URL=postgresql://rokfaq:mat-khau-postgres-manh@postgres:5432/rokfaq?schema=public
 
 MINIO_ROOT_USER=mot-tai-khoan-khac
 MINIO_ROOT_PASSWORD=mat-khau-minio-manh
@@ -64,7 +64,7 @@ SMTP_HOST=...
 SMTP_PORT=587
 SMTP_USER=...
 SMTP_PASSWORD=...
-EMAIL_FROM=RokViet Hub <no-reply@example.vn>
+EMAIL_FROM=ROK FAQ <no-reply@example.vn>
 ```
 
 Nếu mật khẩu PostgreSQL có ký tự đặc biệt như `@`, `:`, `/`, hãy URL-encode phần
@@ -74,7 +74,7 @@ Với Google OAuth, thêm URI chuyển hướng:
 `https://forum.example.vn/api/auth/callback/google`.
 
 2. Nếu host đã có Nginx, Caddy hoặc web khác giữ cổng `80/443`, khởi động
-RokViet Hub ở `127.0.0.1:3030`:
+ROK FAQ ở `127.0.0.1:3030`:
 
 ```powershell
 docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml up -d --build --wait
@@ -96,7 +96,7 @@ Quản lý agent, điện thoại, nhân vật, lịch và hàng đợi tự đ�
 `http://localhost:3031/ops/fleet`. Hướng dẫn đầy đủ nằm trong
 [`docs/FLEET_AUTOMATION.md`](docs/FLEET_AUTOMATION.md).
 
-Sau đó cấu hình reverse proxy hiện có chuyển domain/subdomain của RokViet Hub tới
+Sau đó cấu hình reverse proxy hiện có chuyển domain/subdomain của ROK FAQ tới
 `http://127.0.0.1:3030`. Không thêm `--profile production`, vì profile đó bật Caddy
 bundled trên cổng `80/443`. Nếu host chưa có web hoặc reverse proxy nào khác, bạn có
 thể thêm `--profile production` để dùng Caddy bundled và HTTPS tự động.

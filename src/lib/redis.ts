@@ -1,14 +1,14 @@
 import Redis from "ioredis";
 
-const globalRedis = globalThis as unknown as { rokvietRedis?: Redis };
+const globalRedis = globalThis as unknown as { rokfaqRedis?: Redis };
 
-export const redis = globalRedis.rokvietRedis ?? new Redis(process.env.REDIS_URL ?? "redis://localhost:6379/0", {
+export const redis = globalRedis.rokfaqRedis ?? new Redis(process.env.REDIS_URL ?? "redis://localhost:6379/0", {
   lazyConnect: true,
   maxRetriesPerRequest: 1,
   enableOfflineQueue: false,
 });
 
-if (process.env.NODE_ENV !== "production") globalRedis.rokvietRedis = redis;
+if (process.env.NODE_ENV !== "production") globalRedis.rokfaqRedis = redis;
 
 export async function ensureRedis() {
   if (redis.status === "wait") await redis.connect();

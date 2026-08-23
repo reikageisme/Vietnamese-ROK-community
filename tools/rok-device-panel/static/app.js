@@ -1,4 +1,4 @@
-/* RokViet Device Panel — giao diện thuần, không cần bước build. */
+/* ROK FAQ Device Panel — giao diện thuần, không cần bước build. */
 (() => {
   "use strict";
 

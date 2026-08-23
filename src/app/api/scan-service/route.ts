@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-guards";
 import { scanServiceError } from "@/modules/scan-service/http";
+import { isPublicDataRequestsEnabled } from "@/modules/scan-service/catalog";
 
 export async function GET() {
+  if (!isPublicDataRequestsEnabled()) return new Response(null, { status: 404 });
   try {
     const session = await requireAuth();
     const [wallet, requests, topUps, transactions] = await Promise.all([

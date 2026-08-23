@@ -5,10 +5,10 @@ import { newGoogleUserData } from "@/modules/identity/google-profile";
 import { addLoginMethod } from "@/modules/identity/login-methods";
 
 /**
- * Keep Auth.js' standard user shape while preserving RokViet Hub's domain fields.
+ * Keep Auth.js' standard user shape while preserving ROK FAQ's domain fields.
  * The OAuth profile id is Google's verified `sub`; it is never exposed in session data.
  */
-export function RokVietPrismaAdapter(): Adapter {
+export function ROK FAQPrismaAdapter(): Adapter {
   const base = PrismaAdapter(prisma);
 
   return {

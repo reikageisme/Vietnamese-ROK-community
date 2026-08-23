@@ -5,7 +5,7 @@ import { SiteFooter, SiteHeader } from "@/components/site-shell";
 import { auth } from "@/auth";
 
 export const metadata: Metadata = {
-  title: { default: "RokViet Hub", template: "%s · RokViet Hub" },
+  title: { default: "ROK FAQ", template: "%s · ROK FAQ" },
   description: "Nền tảng kiến thức, công cụ và cộng đồng độc lập dành cho người chơi Rise of Kingdoms Việt Nam.",
   icons: { icon: "/icon.svg", shortcut: "/icon.svg" },
 };

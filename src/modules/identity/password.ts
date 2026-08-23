@@ -25,6 +25,6 @@ export async function verifyPassword(passwordHash: string, password: string) {
 
 /** Spend approximately the same Argon2 work for an unknown email. */
 export async function verifyDummyPassword(password: string) {
-  dummyHash ??= hashPassword("rokviet-dummy-credential-2026");
+  dummyHash ??= hashPassword("rokfaq-dummy-credential-2026");
   return verifyPassword(await dummyHash, password);
 }

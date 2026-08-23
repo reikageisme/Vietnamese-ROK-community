@@ -53,7 +53,7 @@
   "signinTitle": "Welcome back",
   "signinBody": "Sign in to publish posts, save results, and build your contributor profile.",
   "continueGoogle": "Continue with Google",
-  "signinNotice": "Google verifies only your sign-in account. RokViet Hub does not claim to verify ownership of an in-game account.",
+  "signinNotice": "Google verifies only your sign-in account. ROK FAQ does not claim to verify ownership of an in-game account.",
   "termsPrefix": "By continuing, you agree to our",
   "terms": "Community terms",
   "privacy": "Privacy policy",
@@ -61,7 +61,7 @@
   "footerAbout": "About the project",
   "footerGuidelines": "Community guidelines",
   "footerContact": "Contact",
-  "disclaimer": "RokViet Hub is an independent community project and is neither represented nor sponsored by Lilith Games.",
+  "disclaimer": "ROK FAQ is an independent community project and is neither represented nor sponsored by Lilith Games.",
   "dataNotice": "Sample data only; not official publisher data.",
   "language": "Language"
 }

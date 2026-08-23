@@ -1,4 +1,4 @@
-# Open the RokViet device panel over an SSH tunnel, so the browser sees it on
+# Open the ROK FAQ device panel over an SSH tunnel, so the browser sees it on
 # localhost and treats it as a secure context.
 #
 #   cd "D:\ROK Forum"

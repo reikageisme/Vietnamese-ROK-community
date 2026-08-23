@@ -1,6 +1,6 @@
 # Google OAuth setup
 
-RokViet Hub uses Auth.js v5, Google OpenID Connect, the Prisma adapter, and revocable JWT sessions. Every session read reloads role, verification state, and login methods from PostgreSQL. `User.sessionVersion` invalidates every JWT after a password reset.
+ROK FAQ uses Auth.js v5, Google OpenID Connect, the Prisma adapter, and revocable JWT sessions. Every session read reloads role, verification state, and login methods from PostgreSQL. `User.sessionVersion` invalidates every JWT after a password reset.
 
 1. In Google Cloud Console, create an OAuth client ID of type **Web application**.
 2. Add `http://localhost:3000/api/auth/callback/google` as the development authorized redirect URI.
@@ -11,4 +11,4 @@ RokViet Hub uses Auth.js v5, Google OpenID Connect, the Prisma adapter, and revo
 
 Google's verified `profile.sub` is stored as the app's stable `googleSub`. It is not returned in the browser session. Access tokens, refresh tokens, and ID tokens remain in the server-side `accounts` table and are never added to session JSON.
 
-Google is never silently merged by email. Linking is only performed while an existing RokViet session is authenticated and the user explicitly starts the flow from `/profile/security`.
+Google is never silently merged by email. Linking is only performed while an existing ROK FAQ session is authenticated and the user explicitly starts the flow from `/profile/security`.

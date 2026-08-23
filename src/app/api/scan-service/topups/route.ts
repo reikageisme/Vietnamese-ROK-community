@@ -2,8 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-guards";
 import { scanServiceError } from "@/modules/scan-service/http";
 import { createTopUpSchema, creditsForTopUp } from "@/modules/scan-service/schemas";
+import { isPublicDataRequestsEnabled } from "@/modules/scan-service/catalog";
 
 export async function POST(request: Request) {
+  if (!isPublicDataRequestsEnabled()) return new Response(null, { status: 404 });
   try {
     const session = await requireAuth();
     const input = createTopUpSchema.parse(await request.json());

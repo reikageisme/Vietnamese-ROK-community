@@ -18,7 +18,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<Locale>("vi");
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("rokviet-locale");
+    const saved = window.localStorage.getItem("rokfaq-locale");
     if (saved !== "vi" && saved !== "en") return;
     const frame = window.requestAnimationFrame(() => setLocale(saved));
     return () => window.cancelAnimationFrame(frame);
@@ -26,7 +26,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    window.localStorage.setItem("rokviet-locale", locale);
+    window.localStorage.setItem("rokfaq-locale", locale);
   }, [locale]);
 
   const value = useMemo(() => ({ locale, setLocale, t: dictionaries[locale] }), [locale]);

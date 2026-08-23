@@ -1,4 +1,4 @@
-"""RokViet Device Panel — bảng điều khiển nội bộ cho dàn điện thoại quét dữ liệu.
+"""ROK FAQ Device Panel — bảng điều khiển nội bộ cho dàn điện thoại quét dữ liệu.
 
 Chạy sau SSH tunnel hoặc trong mạng nội bộ. Không bao giờ mở ra Internet: ai vào được
 trang này là chạm được vào mọi tài khoản game đang đăng nhập trên 16 máy.
@@ -62,7 +62,7 @@ broadcast_pool = ThreadPoolExecutor(max_workers=16, thread_name_prefix="broadcas
 
 _broadcast_armed_until: float = 0.0
 
-app = FastAPI(title="RokViet Device Panel", docs_url=None, redoc_url=None)
+app = FastAPI(title="ROK FAQ Device Panel", docs_url=None, redoc_url=None)
 
 
 # --------------------------------------------------------------------------

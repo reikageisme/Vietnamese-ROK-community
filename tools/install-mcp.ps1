@@ -1,4 +1,4 @@
-# Register the RokViet MCP server with Claude Desktop.
+# Register the ROK FAQ MCP server with Claude Desktop.
 #
 #   cd "D:\ROK Forum"
 #   .\tools\install-mcp.ps1
@@ -93,10 +93,10 @@ $servers = @{}
 if ($config.ContainsKey("mcpServers") -and $config["mcpServers"]) {
     foreach ($p in $config["mcpServers"].PSObject.Properties) { $servers[$p.Name] = $p.Value }
 }
-$kept = @($servers.Keys | Where-Object { $_ -ne "rokviet" })
+$kept = @($servers.Keys | Where-Object { $_ -ne "rokfaq" })
 if ($kept.Count -gt 0) { Say "   keeping existing servers: $($kept -join ', ')" }
 
-$servers["rokviet"] = @{
+$servers["rokfaq"] = @{
     command = $python.Command
     args    = @($python.Args + @($ScriptPath))
     env     = @{
@@ -123,8 +123,8 @@ Say "   wrote $configPath"
 Say ""
 Say "== Verifying ==" Cyan
 $check = Get-Content $configPath -Raw -Encoding UTF8 | ConvertFrom-Json
-$entry = $check.mcpServers.rokviet
-if (-not $entry) { throw "rokviet entry missing after write." }
+$entry = $check.mcpServers.rokfaq
+if (-not $entry) { throw "rokfaq entry missing after write." }
 Say "   json       : valid"
 Say "   command    : $($entry.command) $($entry.args -join ' ')"
 Say "   panel url  : $($entry.env.ROK_PANEL_URL)"

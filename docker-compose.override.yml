@@ -15,8 +15,8 @@ services:
       - -c
       - >-
         lock_hash=$$(sha256sum package-lock.json | cut -d ' ' -f1);
-        if [ "$$(cat node_modules/.rokviet-lock-hash 2>/dev/null)" != "$$lock_hash" ]; then
-          npm ci && echo "$$lock_hash" > node_modules/.rokviet-lock-hash;
+        if [ "$$(cat node_modules/.rokfaq-lock-hash 2>/dev/null)" != "$$lock_hash" ]; then
+          npm ci && echo "$$lock_hash" > node_modules/.rokfaq-lock-hash;
         fi;
         npx prisma generate --schema prisma/schema &&
         npm run dev -- --hostname 0.0.0.0

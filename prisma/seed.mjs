@@ -10,7 +10,7 @@ const categories = [
   ["alliance", "Quản lý liên minh", "Alliance Management", "Công cụ và kinh nghiệm dành cho R4/R5."],
   ["migration", "Di cư & Tuyển quân", "Migration & Recruitment", "Tìm kingdom phù hợp và chuẩn bị hộ chiếu."],
   ["events", "Sự kiện", "Events", "Lịch sự kiện và cách chuẩn bị."],
-  ["feedback", "Góp ý & Báo lỗi", "Feedback & Bugs", "Cùng cải thiện RokViet Hub."],
+  ["feedback", "Góp ý & Báo lỗi", "Feedback & Bugs", "Cùng cải thiện ROK FAQ."],
 ];
 
 for (const [index, [slug, vi, en, description]] of categories.entries()) {
@@ -44,19 +44,19 @@ for (const [number, name, campCode, seed] of demoKingdoms) {
 
 if (process.env.SEED_DEMO_ACCOUNTS === "true") {
   const passwordOptions = { algorithm: 2, memoryCost: 19_456, timeCost: 2, parallelism: 1, outputLen: 32 };
-  const memberPassword = process.env.DEMO_MEMBER_PASSWORD ?? "RokVietDemo!2026";
-  const moderatorPassword = process.env.DEMO_MODERATOR_PASSWORD ?? "RokVietMod!2026";
+  const memberPassword = process.env.DEMO_MEMBER_PASSWORD ?? "ROK FAQDemo!2026";
+  const moderatorPassword = process.env.DEMO_MODERATOR_PASSWORD ?? "ROK FAQMod!2026";
   const memberHash = await hash(memberPassword, passwordOptions);
   const moderatorHash = await hash(moderatorPassword, passwordOptions);
   const member = await prisma.user.upsert({
-    where: { email: "demo.member@rokviet.local" },
+    where: { email: "demo.member@rokfaq.local" },
     update: { name: "Thành viên Demo", displayName: "Thành viên Demo", passwordHash: memberHash, emailVerified: new Date(), isActive: true, loginMethods: ["credentials"] },
-    create: { email: "demo.member@rokviet.local", name: "Thành viên Demo", displayName: "Thành viên Demo", passwordHash: memberHash, emailVerified: new Date(), isActive: true, loginMethods: ["credentials"] },
+    create: { email: "demo.member@rokfaq.local", name: "Thành viên Demo", displayName: "Thành viên Demo", passwordHash: memberHash, emailVerified: new Date(), isActive: true, loginMethods: ["credentials"] },
   });
   const moderator = await prisma.user.upsert({
-    where: { email: "demo.mod@rokviet.local" },
+    where: { email: "demo.mod@rokfaq.local" },
     update: { name: "Điều hành Demo", displayName: "Điều hành Demo", passwordHash: moderatorHash, emailVerified: new Date(), isActive: true, loginMethods: ["credentials"] },
-    create: { email: "demo.mod@rokviet.local", name: "Điều hành Demo", displayName: "Điều hành Demo", passwordHash: moderatorHash, emailVerified: new Date(), isActive: true, loginMethods: ["credentials"] },
+    create: { email: "demo.mod@rokfaq.local", name: "Điều hành Demo", displayName: "Điều hành Demo", passwordHash: moderatorHash, emailVerified: new Date(), isActive: true, loginMethods: ["credentials"] },
   });
   for (const [userId, roles] of [[member.id, ["MEMBER"]], [moderator.id, ["MEMBER", "MODERATOR"]]]) {
     for (const role of roles) await prisma.userRole.upsert({ where: { userId_role: { userId, role } }, update: {}, create: { userId, role } });
@@ -80,8 +80,8 @@ if (process.env.SEED_DEMO_ACCOUNTS === "true") {
   });
   await prisma.category.update({ where: { id: beginnerCategory.id }, data: { topicCount: 1, lastActivityAt: new Date() } });
 
-  console.log("Demo member: demo.member@rokviet.local /", memberPassword);
-  console.log("Demo moderator: demo.mod@rokviet.local /", moderatorPassword);
+  console.log("Demo member: demo.member@rokfaq.local /", memberPassword);
+  console.log("Demo moderator: demo.mod@rokfaq.local /", moderatorPassword);
 }
 
 await prisma.$disconnect();

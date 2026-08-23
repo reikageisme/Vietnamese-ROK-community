@@ -37,17 +37,17 @@ enum CodexSourceKind {
 }
 
 model Patch {
-  id         String          @id @default(cuid())
-  version    String          @unique @db.VarChar(50)
-  releasedAt DateTime?
-  titleKey   String?         @unique @db.VarChar(191)
-  title      I18nMessage?    @relation(fields: [titleKey], references: [key], onDelete: Restrict)
-  revisions  CodexRevision[]
+  id             String          @id @default(cuid())
+  version        String          @unique @db.VarChar(50)
+  releasedAt     DateTime?
+  titleKey       String?         @unique @db.VarChar(191)
+  title          I18nMessage?    @relation(fields: [titleKey], references: [key], onDelete: Restrict)
+  revisions      CodexRevision[]
   equipmentTiers EquipmentTier[]
   inscriptions   Inscription[]
   armamentTiers  ArmamentTier[]
   builds         Build[]
-  createdAt  DateTime        @default(now())
+  createdAt      DateTime        @default(now())
 }
 
 model Civilization {
@@ -114,26 +114,26 @@ model CommanderTalent {
 }
 
 model Equipment {
-  id         String          @id @default(cuid())
-  slug       String          @unique @db.VarChar(100)
-  nameKey    String          @unique @db.VarChar(191)
-  rarity     EquipmentRarity
+  id            String               @id @default(cuid())
+  slug          String               @unique @db.VarChar(100)
+  nameKey       String               @unique @db.VarChar(191)
+  rarity        EquipmentRarity
   /// Giữ lại cho dữ liệu cũ. Trang bị mới dùng `equipmentSlot` — enum, không gõ nhầm được.
-  slot       String          @db.VarChar(50)
+  slot          String               @db.VarChar(50)
   equipmentSlot EquipmentSlot?
   /// Giữ lại cho dữ liệu cũ. Chỉ số theo bậc nằm ở `tiers`.
-  stats      Json
-  recipe     Json?
-  status     CodexStatus     @default(DRAFT)
-  sourceKind CodexSourceKind @default(MANUAL_EDITORIAL)
-  setId      String?
-  iconKey    String?         @db.VarChar(255)
-  name       I18nMessage     @relation(fields: [nameKey], references: [key], onDelete: Restrict)
-  set        EquipmentSet?   @relation(fields: [setId], references: [id], onDelete: SetNull)
-  tiers      EquipmentTier[]
-  talentDefs EquipmentTalentDef[]
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  stats         Json
+  recipe        Json?
+  status        CodexStatus          @default(DRAFT)
+  sourceKind    CodexSourceKind      @default(MANUAL_EDITORIAL)
+  setId         String?
+  iconKey       String?              @db.VarChar(255)
+  name          I18nMessage          @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+  set           EquipmentSet?        @relation(fields: [setId], references: [id], onDelete: SetNull)
+  tiers         EquipmentTier[]
+  talentDefs    EquipmentTalentDef[]
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
 
   @@index([status, slot])
   @@index([status, equipmentSlot])

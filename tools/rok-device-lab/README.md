@@ -1,4 +1,4 @@
-# RokViet Multi-Phone Scanner
+# ROK FAQ Multi-Phone Scanner
 
 Bản viết lại các workflow Kingdom, Alliance, Honor và Seed của RokTracker cho
 điện thoại Android vật lý. Scanner dùng ADB serial thay vì một cổng giả lập, vì vậy nhiều điện thoại có
@@ -192,7 +192,7 @@ Không đặt 18 worker ngay lập tức. Với Windows test dùng 2 worker; VM/
 bắt đầu 2–4 worker rồi tăng theo CPU/RAM/USB stability. Mỗi serial có lock riêng,
 nên một máy không thể nhận hai job cùng lúc.
 
-## 6. Gửi lên RokViet Hub
+## 6. Gửi lên ROK FAQ
 
 ```powershell
 $env:ROK_COLLECTOR_URL = "http://127.0.0.1:3031"

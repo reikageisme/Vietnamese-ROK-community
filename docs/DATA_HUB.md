@@ -1,4 +1,4 @@
-# RokViet Data Hub
+# ROK FAQ Data Hub
 
 ## Phạm vi hiện tại
 
@@ -7,7 +7,7 @@ Giao diện `/kingdoms`, `/kingdoms/[number]`, `/kvk` và `/scans` dùng dữ li
 được lưu ở trạng thái `PENDING_REVIEW` và không mặc nhiên được xem là chính xác.
 
 Logo/hình nền Rise of Kingdoms trên giao diện được tải từ CDN của website chính
-thức `rok.lilith.com`. RokViet Hub vẫn giữ disclaimer dự án cộng đồng độc lập và
+thức `rok.lilith.com`. ROK FAQ vẫn giữ disclaimer dự án cộng đồng độc lập và
 không dùng asset đó để ngụ ý có quan hệ tài trợ với Lilith Games.
 
 ## Luồng collector
@@ -61,13 +61,13 @@ Tài khoản demo là opt-in và chỉ bật trên host thử nghiệm:
 ```dotenv
 SEED_DEMO_ACCOUNTS=true
 NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS=true
-DEMO_MEMBER_PASSWORD=RokVietDemo!2026
-DEMO_MODERATOR_PASSWORD=RokVietMod!2026
+DEMO_MEMBER_PASSWORD=ROK FAQDemo!2026
+DEMO_MODERATOR_PASSWORD=ROK FAQMod!2026
 ```
 
-- `demo.member@rokviet.local`: thành viên thường, dùng thử tạo chủ đề, reply,
+- `demo.member@rokfaq.local`: thành viên thường, dùng thử tạo chủ đề, reply,
   vote, bookmark và report.
-- `demo.mod@rokviet.local`: có thêm quyền moderator, dùng thử trang báo cáo.
+- `demo.mod@rokfaq.local`: có thêm quyền moderator, dùng thử trang báo cáo.
 
 Không bật mật khẩu mặc định trên host public. Đặt `SEED_DEMO_ACCOUNTS=false`, build
 lại web và vô hiệu hóa/xóa hai user demo trước khi mở website chính thức.

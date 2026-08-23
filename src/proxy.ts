@@ -6,7 +6,6 @@ export const config = {
     "/tools/:path*",
     "/forum/:path*",
     "/codex/:path*",
-    "/scans/:path*",
     "/ops/:path*",
   ],
 };

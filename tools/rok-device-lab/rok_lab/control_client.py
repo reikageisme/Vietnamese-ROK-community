@@ -31,7 +31,7 @@ class ControlClient:
             headers={
                 "Authorization": f"Bearer {self.token}",
                 "Content-Type": "application/json",
-                "User-Agent": "RokViet-Device-Agent/0.4",
+                "User-Agent": "ROK FAQ-Device-Agent/0.4",
             },
         )
         try:

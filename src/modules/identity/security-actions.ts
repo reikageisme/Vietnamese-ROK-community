@@ -3,7 +3,7 @@ import type { SecurityActionPurpose } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createOpaqueToken, hashOpaqueToken } from "@/modules/identity/tokens";
 
-export const SECURITY_ACTION_COOKIE = "rokviet.security-action";
+export const SECURITY_ACTION_COOKIE = "rokfaq.security-action";
 
 export async function createSecurityAction(userId: string, purpose: SecurityActionPurpose) {
   const opaque = createOpaqueToken();

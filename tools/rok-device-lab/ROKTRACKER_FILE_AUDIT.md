@@ -14,14 +14,14 @@ RokTracker gốc có hai engine, không phải bốn engine riêng:
 - `RankingScanner`: dùng lại một vòng lặp OCR + cuộn cho Alliance, Honor và
   Seed; khác nhau ở số dòng, vùng OCR, ngưỡng ảnh và cử chỉ cuộn.
 
-Bản RokViet viết lại giữ hai engine đó nhưng thay kết nối emulator bằng ADB
+Bản ROK FAQ viết lại giữ hai engine đó nhưng thay kết nối emulator bằng ADB
 `-s <serial>`, khóa từng serial, tọa độ chuẩn hóa và worker pool. CLI được chọn
 thay cho phần GUI vì mục tiêu là 2 rồi 18 điện thoại; web vận hành sẽ là lớp UI
 sau khi collector ổn định.
 
 ## Ma trận tính năng
 
-| RokTracker gốc | File nguồn đã đọc | RokViet Device Lab |
+| RokTracker gốc | File nguồn đã đọc | ROK FAQ Device Lab |
 |---|---|---|
 | Kingdom General | `kingdom/scanner.py`, `config/internal/kingdom.json` | `kingdom_scanner.py`: ID, tên, alliance, power, KP, acclaim |
 | Kill Statistics | cùng file trên, `governor_data.py` | T1–T5 kills, T1–T5 KP, ranged; kiểm tra và tái dựng |

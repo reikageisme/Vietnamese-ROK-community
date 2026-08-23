@@ -1,5 +1,5 @@
 #!/bin/sh
-# Cập nhật web RokViet Hub trên server — một lệnh.
+# Cập nhật web ROK FAQ trên server — một lệnh.
 #
 #   cd ~/Vietnamese-ROK-community && sh update-web.sh
 #

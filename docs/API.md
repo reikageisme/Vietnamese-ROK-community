@@ -1,9 +1,9 @@
-# RokViet Hub MVP REST API
+# ROK FAQ MVP REST API
 
 Base URL: `/api`  
 Contract version: `v1` (the MVP paths below are unprefixed; breaking changes will introduce `/api/v2`)
 
-> RokViet Hub là dự án cộng đồng độc lập, không đại diện hoặc được tài trợ bởi Lilith Games. These APIs expose RokViet Hub community data only; they do not proxy or emulate a Rise of Kingdoms game API.
+> ROK FAQ là dự án cộng đồng độc lập, không đại diện hoặc được tài trợ bởi Lilith Games. These APIs expose ROK FAQ community data only; they do not proxy or emulate a Rise of Kingdoms game API.
 
 ## Conventions
 

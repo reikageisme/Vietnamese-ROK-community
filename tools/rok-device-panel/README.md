@@ -1,4 +1,4 @@
-# RokViet Device Panel
+# ROK FAQ Device Panel
 
 Bảng điều khiển nội bộ cho dàn 16 điện thoại cắm USB vào server Proxmox. Xem màn hình
 từng máy, chạm/vuốt/gõ chữ qua trình duyệt, phát lệnh đồng loạt khi cần, và — phần quan

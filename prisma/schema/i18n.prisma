@@ -4,10 +4,10 @@ enum Locale {
 }
 
 model I18nMessage {
-  key                  String            @id @db.VarChar(191)
+  key                  String               @id @db.VarChar(191)
   translations         I18nTranslation[]
-  categoryNames        Category[]        @relation("CategoryName")
-  categoryDescriptions Category[]        @relation("CategoryDescription")
+  categoryNames        Category[]           @relation("CategoryName")
+  categoryDescriptions Category[]           @relation("CategoryDescription")
   tagNames             Tag[]
   patchTitles          Patch[]
   civilizationNames    Civilization[]
@@ -23,8 +23,8 @@ model I18nMessage {
   equipmentTalentDescs EquipmentTalentDef[] @relation("EquipmentTalentDescription")
   inscriptionNames     Inscription[]
   armamentNames        Armament[]
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
 }
 
 model I18nTranslation {

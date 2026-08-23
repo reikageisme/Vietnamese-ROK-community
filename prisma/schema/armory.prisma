@@ -65,11 +65,11 @@ model StatDefinition {
 }
 
 model EquipmentSet {
-  id      String       @id @default(cuid())
-  slug    String       @unique @db.VarChar(100)
-  nameKey String       @unique @db.VarChar(191)
-  name    I18nMessage  @relation(fields: [nameKey], references: [key], onDelete: Restrict)
-  status  CodexStatus  @default(DRAFT)
+  id      String      @id @default(cuid())
+  slug    String      @unique @db.VarChar(100)
+  nameKey String      @unique @db.VarChar(191)
+  name    I18nMessage @relation(fields: [nameKey], references: [key], onDelete: Restrict)
+  status  CodexStatus @default(DRAFT)
   /// [{ "pieces": 2, "stats": { "inf_atk": 3 } }, ...]
   bonuses Json
   items   Equipment[]
@@ -215,8 +215,8 @@ model Build {
 
   visibility BuildVisibility @default(PRIVATE)
 
-  owner User?  @relation(fields: [ownerId], references: [id], onDelete: SetNull)
-  patch Patch  @relation(fields: [patchId], references: [id], onDelete: Restrict)
+  owner User? @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  patch Patch @relation(fields: [patchId], references: [id], onDelete: Restrict)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

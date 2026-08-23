@@ -38,7 +38,7 @@ def _configure_console() -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="rok-device",
-        description="RokViet Device Lab — điều khiển nhiều Android an toàn theo serial.",
+        description="ROK FAQ Device Lab — điều khiển nhiều Android an toàn theo serial.",
     )
     parser.add_argument("--adb", help="Đường dẫn adb; mặc định tự phát hiện.")
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
@@ -57,7 +57,7 @@ def build_parser() -> argparse.ArgumentParser:
     fleet_probe.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
     fleet_probe.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
     upload = subcommands.add_parser(
-        "upload-scan", help="Gửi scan JSON đã chuẩn hóa lên RokViet Hub."
+        "upload-scan", help="Gửi scan JSON đã chuẩn hóa lên ROK FAQ."
     )
     upload.add_argument("file", type=Path)
     upload.add_argument("--url", help="Base URL; mặc định ROK_COLLECTOR_URL.")

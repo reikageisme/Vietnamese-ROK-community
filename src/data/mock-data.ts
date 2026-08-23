@@ -10,7 +10,7 @@ export const forumCategories = [
   { slug: "alliance", icon: "05", name: { vi: "Quản lý liên minh", en: "Alliance Management" }, description: { vi: "Công cụ và kinh nghiệm dành cho R4/R5.", en: "Practical operations for R4 and R5 leaders." }, topics: 67, activity: "3 giờ" },
   { slug: "migration", icon: "06", name: { vi: "Di cư & Tuyển quân", en: "Migration & Recruitment" }, description: { vi: "Tìm kingdom phù hợp, đăng tuyển minh bạch và chuẩn bị hộ chiếu.", en: "Find the right kingdom, recruit transparently, and plan passports." }, topics: 159, activity: "40 phút" },
   { slug: "events", icon: "07", name: { vi: "Sự kiện", en: "Events" }, description: { vi: "Lịch sự kiện, cách chuẩn bị và chia sẻ kết quả.", en: "Event schedules, preparation, and shared results." }, topics: 72, activity: "5 giờ" },
-  { slug: "feedback", icon: "08", name: { vi: "Góp ý & Báo lỗi", en: "Feedback & Bugs" }, description: { vi: "Cùng cải thiện RokViet Hub qua từng phiên bản.", en: "Help improve RokViet Hub with every release." }, topics: 21, activity: "1 ngày" }
+  { slug: "feedback", icon: "08", name: { vi: "Góp ý & Báo lỗi", en: "Feedback & Bugs" }, description: { vi: "Cùng cải thiện ROK FAQ qua từng phiên bản.", en: "Help improve ROK FAQ with every release." }, topics: 21, activity: "1 ngày" }
 ];
 
 export const featuredPosts = [

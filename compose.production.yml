@@ -1,6 +1,6 @@
 services:
   migrate:
-    image: ${WEB_MIGRATION_IMAGE:-rokviet-hub-migration:latest}
+    image: ${WEB_MIGRATION_IMAGE:-rokfaq-migration:latest}
     build:
       context: .
       dockerfile: Dockerfile
@@ -8,8 +8,8 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set for production}
       SEED_DEMO_ACCOUNTS: ${SEED_DEMO_ACCOUNTS:-false}
-      DEMO_MEMBER_PASSWORD: ${DEMO_MEMBER_PASSWORD:-RokVietDemo!2026}
-      DEMO_MODERATOR_PASSWORD: ${DEMO_MODERATOR_PASSWORD:-RokVietMod!2026}
+      DEMO_MEMBER_PASSWORD: ${DEMO_MEMBER_PASSWORD:-ROK FAQDemo!2026}
+      DEMO_MODERATOR_PASSWORD: ${DEMO_MODERATOR_PASSWORD:-ROK FAQMod!2026}
     depends_on:
       postgres:
         condition: service_healthy
@@ -18,7 +18,7 @@ services:
     restart: "no"
 
   web:
-    image: ${WEB_IMAGE:-rokviet-hub-web:latest}
+    image: ${WEB_IMAGE:-rokfaq-web:latest}
     build:
       target: runner
     environment:
@@ -38,7 +38,7 @@ services:
       migrate:
         condition: service_completed_successfully
     # Bind to localhost by default so an existing host reverse proxy can route
-    # a domain/subdomain to RokViet Hub without exposing the app server directly.
+    # a domain/subdomain to ROK FAQ without exposing the app server directly.
     ports: !override
       - "${WEB_BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-3030}:3000"
     deploy:
@@ -49,7 +49,7 @@ services:
     restart: always
 
   ops-web:
-    image: ${WEB_IMAGE:-rokviet-hub-web:latest}
+    image: ${WEB_IMAGE:-rokfaq-web:latest}
     environment:
       APP_SURFACE: ops
       NODE_ENV: production

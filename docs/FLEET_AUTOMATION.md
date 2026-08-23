@@ -1,4 +1,4 @@
-# RokViet Fleet Control — tự động hóa box phone
+# ROK FAQ Fleet Control — tự động hóa box phone
 
 ## Kiến trúc
 

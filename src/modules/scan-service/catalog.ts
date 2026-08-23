@@ -15,3 +15,7 @@ export const topUpCatalog = [
 export function isOpsSurface() {
   return process.env.APP_SURFACE === "ops";
 }
+
+export function isPublicDataRequestsEnabled() {
+  return process.env.PUBLIC_DATA_REQUESTS === "true";
+}

@@ -18,7 +18,7 @@ logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO"),
     format="%(asctime)s %(levelname)s %(message)s",
 )
-LOGGER = logging.getLogger("rokviet.ocr")
+LOGGER = logging.getLogger("rokfaq.ocr")
 NUMBER = r"([0-9][0-9,\.\s]*)"
 FIELD_PATTERNS = {
     "governor_id": [rf"(?:governor\s*id|id)\s*[:#]?\s*{NUMBER}"],
@@ -31,13 +31,13 @@ FIELD_PATTERNS = {
 @dataclass(frozen=True)
 class Settings:
     redis_url: str = os.environ.get("REDIS_URL", "redis://redis:6379/0")
-    queue_key: str = os.environ.get("OCR_QUEUE_KEY", "rokviet:ocr:jobs")
+    queue_key: str = os.environ.get("OCR_QUEUE_KEY", "rokfaq:ocr:jobs")
     result_ttl: int = int(os.environ.get("OCR_RESULT_TTL_SECONDS", "604800"))
     max_image_bytes: int = int(os.environ.get("OCR_MAX_IMAGE_BYTES", "15728640"))
     max_image_pixels: int = int(os.environ.get("OCR_MAX_IMAGE_PIXELS", "25000000"))
     endpoint: str = os.environ.get("S3_ENDPOINT", "http://minio:9000")
     region: str = os.environ.get("S3_REGION", "us-east-1")
-    access_key: str = os.environ.get("S3_ACCESS_KEY_ID", "rokviet")
+    access_key: str = os.environ.get("S3_ACCESS_KEY_ID", "rokfaq")
     secret_key: str = os.environ.get("S3_SECRET_ACCESS_KEY", "")
     default_bucket: str = os.environ.get("S3_BUCKET", "rokviet-uploads")
     languages: str = os.environ.get("TESSERACT_LANGUAGES", "eng+vie")
@@ -93,7 +93,7 @@ class OcrWorker:
         job_id = str(job["jobId"])
         bucket = str(job.get("bucket") or self.settings.default_bucket)
         object_key = str(job["objectKey"])
-        result_key = f"rokviet:ocr:result:{job_id}"
+        result_key = f"rokfaq:ocr:result:{job_id}"
 
         try:
             response = self.s3.get_object(Bucket=bucket, Key=object_key)
@@ -118,13 +118,13 @@ class OcrWorker:
         encoded = json.dumps(result, ensure_ascii=False)
         pipeline = self.redis.pipeline()
         pipeline.setex(result_key, self.settings.result_ttl, encoded)
-        pipeline.publish("rokviet:ocr:results", encoded)
+        pipeline.publish("rokfaq:ocr:results", encoded)
         pipeline.execute()
 
     def run(self) -> None:
         LOGGER.info("Listening for OCR jobs on %s", self.settings.queue_key)
         while self.running:
-            self.redis.setex("rokviet:ocr:heartbeat", 60, str(time.time()))
+            self.redis.setex("rokfaq:ocr:heartbeat", 60, str(time.time()))
             item = self.redis.blpop(self.settings.queue_key, timeout=5)
             if item:
                 self.process(item[1])

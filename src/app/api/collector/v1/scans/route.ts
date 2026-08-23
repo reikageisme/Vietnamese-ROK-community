@@ -10,6 +10,7 @@ export const runtime = "nodejs";
 function add(total: bigint, value: bigint) { return total + value; }
 
 export async function POST(request: Request) {
+  if (process.env.NODE_ENV === "production" && process.env.APP_SURFACE !== "ops") return new Response(null, { status: 404 });
   const authorization = authorizeCollector(request);
   if (!authorization.ok) return NextResponse.json({ error: authorization.error }, { status: authorization.status });
 
@@ -25,10 +26,13 @@ export async function POST(request: Request) {
   const payloadHash = createHash("sha256").update(JSON.stringify(raw)).digest("hex");
   try {
     const result = await prisma.$transaction(async (tx) => {
+      // GIU NGUYEN email "scanner@system.rokviet". Do la KHOA dinh danh, khong
+      // phai thuong hieu: moi CollectorBatch va GovernorProfile da luu deu tro
+      // ve user nay. Doi email = tao them mot user thu hai, du lieu cu mo coi.
       const systemUser = await tx.user.upsert({
         where: { email: "scanner@system.rokviet" },
         update: { isActive: false },
-        create: { email: "scanner@system.rokviet", name: "RokViet Collector", displayName: "RokViet Collector", emailVerified: new Date(), isActive: false, loginMethods: [] },
+        create: { email: "scanner@system.rokviet", name: "ROK FAQ Collector", displayName: "ROK FAQ Collector", emailVerified: new Date(), isActive: false, loginMethods: [] },
       });
       const kingdom = await tx.kingdom.upsert({ where: { number: input.kingdom.number }, update: { name: input.kingdom.name }, create: { number: input.kingdom.number, name: input.kingdom.name } });
       const batch = await tx.collectorBatch.create({ data: { externalId: input.externalId, deviceId: input.deviceId, kingdomId: kingdom.id, recordCount: input.records.length, evidenceObjectKeys: input.evidenceObjectKeys, payloadHash, capturedAt: new Date(input.capturedAt), status: IngestionStatus.PENDING_REVIEW } });

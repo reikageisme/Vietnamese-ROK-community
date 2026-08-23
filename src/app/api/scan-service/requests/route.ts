@@ -3,8 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-guards";
 import { InsufficientCreditsError, scanServiceError } from "@/modules/scan-service/http";
 import { createScanRequestSchema, creditsForProduct } from "@/modules/scan-service/schemas";
+import { isPublicDataRequestsEnabled } from "@/modules/scan-service/catalog";
 
 export async function POST(request: Request) {
+  if (!isPublicDataRequestsEnabled()) return new Response(null, { status: 404 });
   try {
     const session = await requireAuth();
     const input = createScanRequestSchema.parse(await request.json());

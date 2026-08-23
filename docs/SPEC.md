@@ -1,13 +1,13 @@
-# RokViet Hub — System Specification
+# ROK FAQ — System Specification
 
 Version: 0.1.0 (architecture baseline)  
 Status: Draft for MVP implementation
 
-> RokViet Hub là dự án cộng đồng độc lập, không đại diện hoặc được tài trợ bởi Lilith Games.
+> ROK FAQ là dự án cộng đồng độc lập, không đại diện hoặc được tài trợ bởi Lilith Games.
 
 ## 1. Product scope
 
-RokViet Hub is a mobile-first Vietnamese community platform for Rise of Kingdoms, combining:
+ROK FAQ is a mobile-first Vietnamese community platform for Rise of Kingdoms, combining:
 
 - a searchable forum and Q&A archive;
 - a community-authored Codex;

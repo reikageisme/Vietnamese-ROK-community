@@ -1,6 +1,6 @@
 # Prisma schema
 
-RokViet Hub uses Prisma's multi-file schema layout. Each bounded context owns one file under `schema/`; cross-context relations are explicit and reviewed as API contracts.
+ROK FAQ uses Prisma's multi-file schema layout. Each bounded context owns one file under `schema/`; cross-context relations are explicit and reviewed as API contracts.
 
 ```bash
 npx prisma format --schema prisma/schema
