@@ -39,10 +39,21 @@ else
 fi
 
 echo
-echo "== Dựng lại và khởi động =="
+echo "== Dựng image =="
+# Dựng TRƯỚC rồi mới khởi động, không gộp bằng `up --build`.
+#
+# Lý do: ops-web khai `image:` nhưng không có `build:` — nó dùng lại image do
+# web dựng ra. Gộp hai bước thì compose cố kéo image đó từ Docker Hub song song
+# với lúc web còn đang build, và thất bại với "pull access denied" vì image chỉ
+# tồn tại ở máy này. Trên máy đã build lần nào rồi thì không thấy lỗi, nên nó
+# chỉ lộ ra khi dựng máy mới.
+$COMPOSE build
+
+echo
+echo "== Khởi động =="
 # --wait chờ healthcheck, nên lệnh này thất bại khi container lên nhưng hỏng.
 # Đó là điều mong muốn: thà biết ngay còn hơn tưởng đã xong.
-$COMPOSE up -d --build --wait
+$COMPOSE up -d --wait
 
 echo
 echo "== Kết quả migration và nhập dữ liệu =="
