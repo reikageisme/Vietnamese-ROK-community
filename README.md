@@ -106,9 +106,14 @@ Giá trị `DOMAIN` quyết định Caddy làm gì:
 | `:80` | HTTP thuần trên cổng 80, không xin chứng chỉ. Dùng khi chưa có tên miền, hoặc khi đứng sau Cloudflare Tunnel — Cloudflare đã lo TLS. |
 | `rokfaq.com` | Caddy tự lấy chứng chỉ Let's Encrypt. Chỉ được khi cổng 80 và 443 thông từ Internet tới máy này. |
 
-Nếu host đã có sẵn một reverse proxy khác (Nginx Proxy Manager chẳng hạn), **bỏ**
-`--profile production` và trỏ proxy đó tới `http://127.0.0.1:3030` — đừng để hai lớp
-proxy cùng giành cổng 80.
+Nếu host đã có sẵn một reverse proxy khác (Nginx Proxy Manager chẳng hạn), đặt
+`EXTERNAL_PROXY=true` trong `.env.production`. `update-web.sh` sẽ bỏ `--profile
+production`, Caddy không chạy, và bạn trỏ proxy đó tới `WEB_PORT` của máy này.
+Nhớ đặt `WEB_BIND_ADDRESS=0.0.0.0` nếu proxy nằm ở container khác — mặc định
+`127.0.0.1` chỉ cho chính máy đó truy cập.
+
+Đừng để hai lớp proxy cùng giành cổng 80: cái thứ hai sẽ không khởi động được,
+và mỗi lớp thêm vào là một chỗ nữa để cấu hình sai header và IP thật của khách.
 
 Dù chọn cách nào, `APP_URL` và `NEXTAUTH_URL` phải khớp đúng địa chỉ người dùng gõ
 trên trình duyệt. Lệch một chữ là Google OAuth trả về sai callback và link trong email
