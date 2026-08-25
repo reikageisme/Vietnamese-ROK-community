@@ -96,14 +96,23 @@ Quản lý agent, điện thoại, nhân vật, lịch và hàng đợi tự đ�
 `http://localhost:3031/ops/fleet`. Hướng dẫn đầy đủ nằm trong
 [`docs/FLEET_AUTOMATION.md`](docs/FLEET_AUTOMATION.md).
 
-Sau đó cấu hình reverse proxy hiện có chuyển domain/subdomain của ROK FAQ tới
-`http://127.0.0.1:3030`. Không thêm `--profile production`, vì profile đó bật Caddy
-bundled trên cổng `80/443`. Nếu host chưa có web hoặc reverse proxy nào khác, bạn có
-thể thêm `--profile production` để dùng Caddy bundled và HTTPS tự động.
+`--profile production` bật Caddy, thứ lắng nghe cổng `80` và `443`. Đây là cách
+mặc định: mở `http://IP-HOST/` là vào được, không cần gõ số cổng.
 
-Để mở trực tiếp `http://IP-HOST:3030` khi chạy thử, đặt `WEB_BIND_ADDRESS=0.0.0.0`
-và mở firewall cổng 3030. Cách này không có HTTPS, chỉ nên dùng tạm thời; khi public
-chính thức nên dùng một subdomain riêng qua reverse proxy.
+Giá trị `DOMAIN` quyết định Caddy làm gì:
+
+| `DOMAIN` | Kết quả |
+|---|---|
+| `:80` | HTTP thuần trên cổng 80, không xin chứng chỉ. Dùng khi chưa có tên miền, hoặc khi đứng sau Cloudflare Tunnel — Cloudflare đã lo TLS. |
+| `rokfaq.com` | Caddy tự lấy chứng chỉ Let's Encrypt. Chỉ được khi cổng 80 và 443 thông từ Internet tới máy này. |
+
+Nếu host đã có sẵn một reverse proxy khác (Nginx Proxy Manager chẳng hạn), **bỏ**
+`--profile production` và trỏ proxy đó tới `http://127.0.0.1:3030` — đừng để hai lớp
+proxy cùng giành cổng 80.
+
+Dù chọn cách nào, `APP_URL` và `NEXTAUTH_URL` phải khớp đúng địa chỉ người dùng gõ
+trên trình duyệt. Lệch một chữ là Google OAuth trả về sai callback và link trong email
+dẫn đi đâu mất.
 
 Service `migrate` sẽ tự chạy migration và seed bằng Prisma 6 đã khóa trong dự án.
 Không chạy `docker compose exec web npx prisma ...`, vì image web production không chứa
