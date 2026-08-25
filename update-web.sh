@@ -14,7 +14,9 @@ set -e
 REPO="$(cd "$(dirname "$0")" && pwd)"
 cd "$REPO"
 
-COMPOSE="docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml"
+# --profile production la bat buoc: Caddy nam sau profile do. Thieu no thi
+# Caddy khong khoi dong va web chi vao duoc bang cong 3030.
+COMPOSE="docker compose --env-file .env.production --profile production -f docker-compose.yml -f compose.production.yml"
 
 if [ ! -f .env.production ]; then
   echo "!! Thiếu .env.production. Sao chép từ .env.example rồi điền giá trị thật trước khi chạy lại."
@@ -49,6 +51,10 @@ $COMPOSE logs --tail 25 migrate
 echo
 $COMPOSE ps
 echo
-echo "Web công khai : http://$(grep -E '^WEB_BIND_ADDRESS=' .env.production 2>/dev/null | cut -d= -f2 || echo 127.0.0.1):$(grep -E '^WEB_PORT=' .env.production 2>/dev/null | cut -d= -f2 || echo 3030)"
+DOMAIN_VALUE="$(grep -E '^DOMAIN=' .env.production 2>/dev/null | cut -d= -f2-)"
+case "$DOMAIN_VALUE" in
+  ":80"|"") echo "Web công khai : http://<IP máy này>/  (cổng 80)" ;;
+  *)        echo "Web công khai : https://$DOMAIN_VALUE/" ;;
+esac
 echo "Ops Console   : chỉ bind localhost, vào bằng SSH tunnel:"
 echo "                ssh -L 3031:127.0.0.1:3031 root@100.113.111.64"

@@ -168,9 +168,15 @@ services:
 
   caddy:
     image: caddy:2.10-alpine
+    # Chi chay khi bat --profile production. Day la thu lang nghe cong 80/443
+    # va them cac header bao mat; thieu no thi phai vao web bang cong 3030.
     profiles: ["production"]
     environment:
-      DOMAIN: ${DOMAIN:-localhost}
+      # Chua co ten mien tro toi day thi dat DOMAIN=:80 — Caddy phuc vu HTTP
+      # tren cong 80 cho moi hostname va KHONG di xin chung chi.
+      # Co ten mien roi thi dat DOMAIN=rokfaq.com, Caddy tu lay chung chi
+      # Let's Encrypt — nhung chi duoc khi cong 80 va 443 thong tu Internet.
+      DOMAIN: ${DOMAIN:-:80}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

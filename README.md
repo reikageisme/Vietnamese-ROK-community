@@ -77,7 +77,7 @@ Với Google OAuth, thêm URI chuyển hướng:
 ROK FAQ ở `127.0.0.1:3030`:
 
 ```powershell
-docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml up -d --build --wait
+docker compose --env-file .env.production --profile production -f docker-compose.yml -f compose.production.yml up -d --build --wait
 ```
 
 Web công khai dùng port `3030`. Ops Console chứa batch thiết bị, phiếu nạp và hàng
@@ -112,8 +112,8 @@ Prisma CLI và `npx` có thể tải nhầm Prisma 7. Caddy tự cấp HTTPS khi
 3. Kiểm tra hoặc xem log:
 
 ```powershell
-docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml ps
-docker compose --env-file .env.production -f docker-compose.yml -f compose.production.yml logs -f web ops-web migrate
+docker compose --env-file .env.production --profile production -f docker-compose.yml -f compose.production.yml ps
+docker compose --env-file .env.production --profile production -f docker-compose.yml -f compose.production.yml logs -f web ops-web migrate
 ```
 
 Khi cập nhật mã nguồn, chạy lại lệnh `up -d --build --wait`. Dữ liệu PostgreSQL,
