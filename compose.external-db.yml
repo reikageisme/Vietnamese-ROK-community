@@ -1,0 +1,37 @@
+# Dùng Postgres chạy ở máy khác thay vì container nội bộ.
+#
+#   Bật bằng cách đặt EXTERNAL_DB=true trong .env.production.
+#   update-web.sh tự nạp file này khi thấy biến đó.
+#
+# Ba việc file này làm:
+#   1. Đẩy service `postgres` vào một profile không bao giờ bật, nên nó không
+#      khởi động. KHÔNG xoá hẳn định nghĩa — giữ lại để lúc nào muốn quay về
+#      chạy nội bộ thì chỉ cần bỏ EXTERNAL_DB.
+#   2. Gỡ `depends_on: postgres` khỏi web và migrate. Compose từ chối chạy khi
+#      một service phụ thuộc vào service đang bị tắt bởi profile.
+#   3. Bỏ ánh xạ cổng 5432 nếu có.
+#
+# Volume `postgres_data` vẫn còn nguyên trên máy này và không bị đụng tới.
+services:
+  postgres:
+    profiles: ["local-db-disabled"]
+    ports: !reset []
+
+  migrate:
+    depends_on: !reset {}
+
+  web:
+    depends_on: !reset
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      migrate:
+        condition: service_completed_successfully
+
+  ops-web:
+    depends_on: !reset
+      migrate:
+        condition: service_completed_successfully

@@ -18,6 +18,14 @@ cd "$REPO"
 # Caddy khong khoi dong va web chi vao duoc bang cong 3030.
 COMPOSE="docker compose --env-file .env.production --profile production -f docker-compose.yml -f compose.production.yml"
 
+# Postgres chạy ở máy khác? Nạp thêm lớp phủ tắt container Postgres nội bộ.
+# Không có bước này thì máy này vẫn dựng một Postgres rỗng chẳng ai dùng, và
+# `web` vẫn chờ nó khoẻ trước khi khởi động.
+if grep -qE '^EXTERNAL_DB=true' .env.production 2>/dev/null; then
+  COMPOSE="$COMPOSE -f compose.external-db.yml"
+  echo "== Postgres ngoài: đã nạp compose.external-db.yml =="
+fi
+
 if [ ! -f .env.production ]; then
   echo "!! Thiếu .env.production. Sao chép từ .env.example rồi điền giá trị thật trước khi chạy lại."
   exit 1
