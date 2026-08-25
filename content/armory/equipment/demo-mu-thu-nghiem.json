@@ -5,33 +5,32 @@
   "nameEn": "Test Helm",
   "slot": "HELMET",
   "rarity": "LEGENDARY",
-  "setSlug": null,
+  "equipmentLevel": 50,
+  "seasonLimited": true,
   "patch": "2026.08",
-  "tiers": [
-    { "tier": 1, "stats": { "inf_atk": 2, "inf_def": 2 }, "powerValue": 1000, "verification": "UNVERIFIED" },
-    { "tier": 2, "stats": { "inf_atk": 4, "inf_def": 4 }, "powerValue": 2000, "verification": "UNVERIFIED" },
-    { "tier": 3, "stats": { "inf_atk": 6, "inf_def": 6, "hp": 2 }, "powerValue": 3500, "verification": "UNVERIFIED" },
-    { "tier": 4, "stats": { "inf_atk": 9, "inf_def": 8, "hp": 4 }, "powerValue": 5500, "verification": "UNVERIFIED" },
-    { "tier": 5, "stats": { "inf_atk": 12, "inf_def": 10, "hp": 6 }, "powerValue": 8000, "verification": "UNVERIFIED" }
+  "maxTier": 5,
+  "baseTier": 1,
+  "baseStats": [
+    { "statKey": "cav_atk", "base": 10, "perTier": 3.5 },
+    { "statKey": "march_speed", "base": 4, "perTier": 1 }
   ],
-  "talents": [
+  "iconic": [
+    { "level": 1, "statKey": "cav_atk_flat", "base": 3, "perTier": 1 },
+    { "level": 2, "statKey": "enemy_def_ignore", "base": 1, "perTier": 0.5 },
+    { "level": 3, "statKey": "skill_damage", "base": 2, "perTier": 0.5 },
+    { "level": 4, "statKey": "rage_regen", "base": 3, "perTier": 1 },
     {
-      "unlockTier": 3,
-      "nameVi": "Kiên Cường",
-      "nameEn": "Steadfast",
-      "descriptionVi": "Tăng phòng thủ bộ binh khi đội quân đang phòng thủ thành.",
-      "conditional": true,
-      "effect": { "stats": { "inf_def": 5 }, "trigger": "khi phòng thủ thành" },
-      "verification": "UNVERIFIED"
-    },
-    {
-      "unlockTier": 5,
-      "nameVi": "Áp Đảo",
-      "nameEn": "Overwhelm",
-      "descriptionVi": "Tăng sát thương kỹ năng cho mọi loại quân.",
-      "conditional": false,
-      "effect": { "stats": { "skill_damage": 3 }, "trigger": null },
-      "verification": "UNVERIFIED"
+      "level": 5,
+      "nameVi": "Xung Kích",
+      "nameEn": "Charge",
+      "descriptionVi": "Khi bắt đầu trận đánh, đội quân nhận tăng cường sát thương kỹ năng trong vài giây đầu.",
+      "conditional": true
     }
-  ]
+  ],
+  "specialTalent": {
+    "troopType": "cavalry",
+    "bonusPercent": 30,
+    "descriptionVi": "Khi được trang bị bởi một chỉ huy có tài năng Kỵ binh, thuộc tính trang bị của món này tăng 30%."
+  },
+  "verification": "UNVERIFIED"
 }

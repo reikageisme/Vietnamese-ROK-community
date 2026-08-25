@@ -1,27 +1,36 @@
 {
-  "_ghi_chu": "DỮ LIỆU MẪU — số bịa để dựng giao diện, KHÔNG phải số trong game.",
+  "_ghi_chu": "DỮ LIỆU MẪU — số bịa để dựng giao diện, KHÔNG phải số trong game. Xoá cả ba file demo-*.json khi đã có số thật.",
   "slug": "demo-giap-thu-nghiem",
   "nameVi": "Giáp Thử Nghiệm",
   "nameEn": "Test Cuirass",
   "slot": "CHEST",
-  "rarity": "EPIC",
-  "setSlug": null,
+  "rarity": "LEGENDARY",
+  "equipmentLevel": 45,
+  "seasonLimited": false,
   "patch": "2026.08",
-  "tiers": [
-    { "tier": 1, "stats": { "cav_atk": 3, "hp": 1 }, "powerValue": 900, "verification": "UNVERIFIED" },
-    { "tier": 2, "stats": { "cav_atk": 5, "hp": 2 }, "powerValue": 1800, "verification": "UNVERIFIED" },
-    { "tier": 3, "stats": { "cav_atk": 8, "hp": 3 }, "powerValue": 3200, "verification": "UNVERIFIED" },
-    { "tier": 4, "stats": { "cav_atk": 11, "hp": 5, "march_speed": 2 }, "powerValue": 5000, "verification": "UNVERIFIED" }
+  "maxTier": 5,
+  "baseTier": 1,
+  "baseStats": [
+    { "statKey": "inf_def", "base": 12, "perTier": 4 },
+    { "statKey": "inf_hp", "base": 8, "perTier": 3 }
   ],
-  "talents": [
+  "iconic": [
+    { "level": 1, "statKey": "inf_def_flat", "base": 3, "perTier": 1 },
+    { "level": 2, "statKey": "enemy_atk_ignore", "base": 1, "perTier": 0.5 },
+    { "level": 3, "statKey": "unit_capacity", "base": 500, "perTier": 150 },
+    { "level": 4, "statKey": "damage_vs_rally_garrison", "base": 1, "perTier": 0.5 },
     {
-      "unlockTier": 4,
-      "nameVi": "Xung Phong",
-      "nameEn": "Charge",
-      "descriptionVi": "Tăng tốc độ hành quân khi ra khỏi thành.",
-      "conditional": true,
-      "effect": { "stats": { "march_speed": 4 }, "trigger": "khi hành quân ngoài thành" },
-      "verification": "UNVERIFIED"
+      "level": 5,
+      "nameVi": "Đòn Trả Thù",
+      "nameEn": "Vengeance",
+      "descriptionVi": "Mỗi khi đội quân trúng đòn tấn công cơ bản, có xác suất nhận tăng cường sát thương phản công trong vài giây. Có thể kích hoạt lại sau một khoảng nghỉ.",
+      "conditional": true
     }
-  ]
+  ],
+  "specialTalent": {
+    "troopType": "infantry",
+    "bonusPercent": 30,
+    "descriptionVi": "Khi được trang bị bởi một chỉ huy có tài năng Bộ binh, thuộc tính trang bị của món này tăng 30%."
+  },
+  "verification": "UNVERIFIED"
 }

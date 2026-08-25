@@ -46,3 +46,6 @@ tools/panel-commit-msg*.txt
 # Ảnh chụp làm bằng chứng cho dữ liệu trang bị — không đưa vào git
 armory-shots/*
 !armory-shots/.gitkeep
+
+# Bản sao asset lôi từ game ra để thử — không thuộc mã nguồn.
+game-assets/

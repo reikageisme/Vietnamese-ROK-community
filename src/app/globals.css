@@ -231,3 +231,39 @@ body:before { content:""; position:fixed; inset:0; z-index:-2; pointer-events:no
 .rarity-bg-legendary { background:linear-gradient(160deg,#f0a63c,#c06a12); box-shadow:inset 0 0 0 1px rgba(255,255,255,.28), inset 0 1px 0 rgba(255,255,255,.45); }
 
 .game-icon-badge { position:absolute; right:2px; bottom:2px; min-width:16px; padding:0 4px; border-radius:5px; background:rgba(8,14,22,.86); color:#fff; font-size:10px; font-weight:700; line-height:16px; text-align:center; }
+
+/* Panel trang bị — dựng theo bố cục người chơi đã quen trong game. */
+.gear-panel { display:flex; flex-direction:column; gap:18px; }
+.gear-demo-flag { margin:0; padding:11px 14px; border:1px solid #7a5a1c; border-radius:9px; background:#2a2011; color:#e2c07a; font-size:13px; }
+.gear-tier-picker { display:flex; gap:6px; padding:5px; border:1px solid #213148; border-radius:11px; background:#0c1522; align-self:flex-start; }
+.gear-tier-picker button { min-width:52px; min-height:38px; border:1px solid transparent; border-radius:7px; background:transparent; color:#8fa2b8; font-weight:800; letter-spacing:.04em; }
+.gear-tier-picker button:hover { color:#d6e2ef; }
+.gear-tier-picker button.active { border-color:#3a6ea5; background:#16273d; color:#e8f1fa; }
+.gear-block { padding:18px 20px; border:1px solid #213047; border-radius:13px; background:linear-gradient(145deg,#101b2b,#0b1421); }
+.gear-block h3 { margin:0 0 4px; color:#cfe0f1; font-size:14px; font-weight:850; letter-spacing:.06em; text-transform:uppercase; }
+.gear-block-note { margin:0 0 14px; color:#7f91a7; font-size:12px; }
+.gear-empty { margin:10px 0 0; color:#7f91a7; font-size:13px; }
+.gear-lines { display:flex; flex-direction:column; gap:2px; margin:12px 0 0; padding:0; list-style:none; }
+.gear-lines li { display:flex; align-items:baseline; justify-content:space-between; gap:16px; padding:9px 0; border-bottom:1px solid #1a2739; }
+.gear-lines li:last-child { border-bottom:0; }
+.gear-line-name { color:#c3d3e4; font-size:14px; }
+.gear-line-value { color:#e8f1fa; font-size:15px; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.gear-line-value.muted { color:#5b6c80; font-weight:600; }
+.gear-growth { margin-left:8px; color:#4cc98a; font-size:12px; font-style:normal; font-weight:700; }
+.gear-iconic { display:flex; flex-direction:column; gap:2px; margin:12px 0 0; padding:0; list-style:none; counter-reset:none; }
+.gear-iconic li { display:grid; grid-template-columns:38px 1fr auto; gap:14px; align-items:start; padding:11px 0; border-bottom:1px solid #1a2739; }
+.gear-iconic li:last-child { border-bottom:0; }
+.gear-iconic li.locked { opacity:.42; }
+.gear-roman { display:grid; place-items:center; width:32px; height:32px; border-radius:8px; background:#16273d; color:#dbe8f5; font-size:12px; font-weight:900; }
+.gear-iconic-body p { margin:5px 0 0; color:#8598ac; font-size:12.5px; line-height:1.5; }
+.gear-locked-note { color:#6d7f94 !important; font-style:italic; }
+.gear-cond { margin-left:9px; padding:1px 7px; border-radius:20px; background:#3a2a12; color:#d9a44c; font-size:10px; font-style:normal; font-weight:800; letter-spacing:.05em; }
+.gear-special p { margin:10px 0 0; color:#95a8bd; font-size:13px; line-height:1.55; }
+.gear-toggle { display:flex; align-items:center; gap:10px; margin-top:14px; color:#c3d3e4; font-size:13px; cursor:pointer; }
+.gear-toggle input { width:17px; height:17px; accent-color:#3a6ea5; }
+.tier-table tr.is-current { background:#12203200; box-shadow:inset 3px 0 0 #3a6ea5; }
+.gear-warnings { display:flex; flex-direction:column; gap:7px; margin:0; padding:14px 16px 14px 34px; border:1px solid #4a3a18; border-radius:11px; background:#1d1810; color:#d3b072; font-size:12.5px; }
+@media (max-width:640px) {
+  .gear-iconic li { grid-template-columns:32px 1fr; }
+  .gear-iconic li > .gear-line-value { grid-column:2; }
+}

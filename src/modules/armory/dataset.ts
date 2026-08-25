@@ -14,6 +14,7 @@ export const EQUIPMENT_SLOTS = [
 export const EQUIPMENT_RARITIES = [
   "NORMAL", "ADVANCED", "ELITE", "EPIC", "LEGENDARY",
 ] as const;
+export const TROOP_TYPES = ["infantry", "cavalry", "archer", "siege"] as const;
 export const VERIFICATIONS = ["UNVERIFIED", "SCREENSHOT", "CONFIRMED"] as const;
 
 export type EquipmentSlot = (typeof EQUIPMENT_SLOTS)[number];
@@ -42,6 +43,31 @@ export type TalentEntry = {
   evidence?: string | null;
 };
 
+/** Mot dong "gia tri nen + muc tang moi bac" — dung hai so nhu panel trong game. */
+export type GrowthLineEntry = {
+  statKey: string;
+  base: number;
+  perTier: number;
+};
+
+/** Mot muc trong khoi Thuoc Tinh Bieu Trung. Bac I–IV la so, bac cuoi la hieu ung. */
+export type IconicFileEntry = {
+  level: number;
+  statKey?: string | null;
+  base?: number | null;
+  perTier?: number | null;
+  nameVi?: string | null;
+  nameEn?: string | null;
+  descriptionVi?: string | null;
+  conditional?: boolean;
+};
+
+export type SpecialTalentFile = {
+  troopType: string;
+  bonusPercent: number;
+  descriptionVi?: string | null;
+};
+
 export type EquipmentFile = {
   slug: string;
   nameVi: string;
@@ -50,7 +76,22 @@ export type EquipmentFile = {
   rarity: string;
   setSlug?: string | null;
   patch: string;
-  tiers: TierEntry[];
+  /** "Cap do trang bi 45" o dau panel. Khong phai bac. */
+  equipmentLevel?: number | null;
+  /** "Trang bi gioi han cho Mua Chinh Phat". */
+  seasonLimited?: boolean;
+  maxTier?: number;
+  /** Bac ma cac so `base` duoc doc ra. Mac dinh I. */
+  baseTier?: number;
+  /** Khoi "Thuoc Tinh Trang Bi", dang nen + muc tang. */
+  baseStats?: GrowthLineEntry[];
+  /** Khoi "Thuoc Tinh Bieu Trung", thu tu I–V. */
+  iconic?: IconicFileEntry[];
+  specialTalent?: SpecialTalentFile | null;
+  verification?: Verification;
+  evidence?: string | null;
+  /** Bang bac tuong minh — dang cu, van dung duoc khi mon do khong theo quy luat. */
+  tiers?: TierEntry[];
   talents?: TalentEntry[];
 };
 
@@ -115,8 +156,107 @@ export function validateEquipmentFile(
   }
 
   const tiers = Array.isArray(file.tiers) ? file.tiers : [];
-  if (tiers.length === 0) {
-    out.errors.push(`${label} chưa có bậc nào.`);
+  const growth = Array.isArray(file.baseStats) ? file.baseStats : [];
+  const iconic = Array.isArray(file.iconic) ? file.iconic : [];
+  const maxTier = Number.isInteger(file.maxTier) ? (file.maxTier as number) : 5;
+
+  // File hop le theo MOT trong hai dang: bang bac tuong minh, hoac nen + muc
+  // tang. Khong co dang nao thi khong co so nao de hien.
+  if (tiers.length === 0 && growth.length === 0 && iconic.length === 0) {
+    out.errors.push(`${label} chưa có chỉ số nào — cần \`baseStats\` hoặc \`tiers\`.`);
+  }
+  if (tiers.length > 0 && growth.length > 0) {
+    out.warnings.push(
+      `${label} khai cả \`tiers\` lẫn \`baseStats\`; bảng bậc tường minh sẽ được ưu tiên.`,
+    );
+  }
+  if (file.maxTier != null && (!Number.isInteger(file.maxTier) || (file.maxTier as number) < 1)) {
+    out.errors.push(`${label} maxTier phải là số nguyên từ 1 trở lên.`);
+  }
+  if (file.equipmentLevel != null && !isPlainNumber(file.equipmentLevel)) {
+    out.errors.push(`${label} equipmentLevel phải là số.`);
+  }
+
+  const fileVerification = file.verification ?? "UNVERIFIED";
+  if (!VERIFICATIONS.includes(fileVerification)) {
+    out.errors.push(`${label} verification "${fileVerification}" không hợp lệ.`);
+  } else if (fileVerification !== "UNVERIFIED" && !file.evidence?.trim()) {
+    out.errors.push(`${label} đánh dấu ${fileVerification} thì phải kèm đường dẫn ảnh evidence.`);
+  }
+
+  for (const line of growth) {
+    const where = `${label} thuộc tính trang bị "${line?.statKey ?? "?"}"`;
+    if (typeof line?.statKey !== "string" || !keys.has(line.statKey)) {
+      out.errors.push(`${where}: chỉ số không có trong từ điển.`);
+    }
+    if (!isPlainNumber(line?.base)) out.errors.push(`${where}: base phải là số.`);
+    if (!isPlainNumber(line?.perTier)) out.errors.push(`${where}: perTier phải là số.`);
+  }
+  {
+    const seen = new Set<string>();
+    for (const line of growth) {
+      const statKey = String(line?.statKey ?? "");
+      if (seen.has(statKey)) {
+        out.errors.push(`${label} chỉ số "${statKey}" bị khai hai lần trong thuộc tính trang bị.`);
+      }
+      seen.add(statKey);
+    }
+  }
+
+  const seenLevels = new Set<number>();
+  for (const entry of iconic) {
+    const where = `${label} biểu trưng ${entry?.level}`;
+    if (!Number.isInteger(entry?.level) || entry.level < 1) {
+      out.errors.push(`${label} có mục biểu trưng với level không hợp lệ: ${JSON.stringify(entry?.level)}.`);
+      continue;
+    }
+    if (entry.level > maxTier) {
+      out.errors.push(`${where}: vượt bậc cao nhất (${maxTier}) — mục này sẽ không bao giờ mở được.`);
+    }
+    if (seenLevels.has(entry.level)) {
+      out.errors.push(`${where}: bị khai hai lần.`);
+      continue;
+    }
+    seenLevels.add(entry.level);
+
+    const hasStat = typeof entry.statKey === "string" && entry.statKey.length > 0;
+    if (hasStat) {
+      if (!keys.has(entry.statKey as string)) {
+        out.errors.push(`${where}: chỉ số "${entry.statKey}" không có trong từ điển.`);
+      }
+      if (!isPlainNumber(entry.base)) out.errors.push(`${where}: base phải là số.`);
+      if (entry.perTier != null && !isPlainNumber(entry.perTier)) {
+        out.errors.push(`${where}: perTier phải là số.`);
+      }
+    } else if (!entry.nameVi?.trim()) {
+      // Muc khong phai dong so thi bat buoc phai co ten — nguoc lai giao dien
+      // se hien mot o trong ma khong ai biet la thieu du lieu hay von the.
+      out.errors.push(`${where}: không có chỉ số thì phải có nameVi.`);
+    } else if (!entry.descriptionVi?.trim()) {
+      out.warnings.push(`${where}: hiệu ứng "${entry.nameVi}" chưa có lời mô tả.`);
+    }
+  }
+  if (iconic.length > 0) {
+    const sortedLevels = [...seenLevels].sort((a, b) => a - b);
+    for (let index = 1; index < sortedLevels.length; index += 1) {
+      if (sortedLevels[index] !== sortedLevels[index - 1] + 1) {
+        out.warnings.push(
+          `${label} biểu trưng nhảy cóc từ ${sortedLevels[index - 1]} sang ${sortedLevels[index]}.`,
+        );
+      }
+    }
+  }
+
+  const talent = file.specialTalent;
+  if (talent != null) {
+    if (!TROOP_TYPES.includes(talent.troopType as (typeof TROOP_TYPES)[number])) {
+      out.errors.push(
+        `${label} tài năng đặc biệt có troopType "${talent.troopType}" không hợp lệ (${TROOP_TYPES.join(", ")}).`,
+      );
+    }
+    if (!isPlainNumber(talent.bonusPercent)) {
+      out.errors.push(`${label} tài năng đặc biệt: bonusPercent phải là số.`);
+    }
   }
 
   const seenTiers = new Set<number>();

@@ -1,42 +1,57 @@
-# Dữ liệu kho trang bị
+# Kho trang bị — dữ liệu
 
-Số liệu ở đây là **dữ liệu, không phải code**. Game vá thì nhập lại, không deploy lại.
+Thư mục này là **nguồn sự thật** của kho trang bị. Trang `/armory` đọc thẳng từ
+đây, không qua cơ sở dữ liệu, nên `git pull` xong là có dữ liệu ngay.
 
-## Quy trình
+```
+stat-definitions.json   từ điển chỉ số — mọi khoá dùng ở nơi khác phải có ở đây
+patches.json            phiên bản game
+equipment/              mỗi món một file, tên file là slug
+equipment/_TEMPLATE.json  mẫu để chép
+evidence/               ảnh chụp trong game làm bằng chứng
+```
 
-1. **Chụp trong game.** Mỗi bậc một ảnh, chụp rõ bảng chỉ số. Ảnh talent chụp riêng.
-2. **Đặt vào `armory-shots/`** ở gốc repo, đặt tên theo mẫu:
+## Cách chép một panel trang bị
 
-   ```
-   armory-shots/<slug>__t<bậc>.png          ví dụ  mu-thanh-chien__t4.png
-   armory-shots/<slug>__t<bậc>-talent.png   ví dụ  mu-thanh-chien__t4-talent.png
-   ```
+Panel trong game cho **hai** số cho mỗi dòng, không cho bảng năm bậc:
 
-   Đặt đúng tên là đủ để biết ảnh nào thuộc món nào, bậc nào — không phải giải thích thêm.
+```
+Phòng thủ bộ binh        +12%  (+4%)
+                          ↑      ↑
+                        base   perTier
+```
 
-3. **Gõ số vào `content/armory/equipment/<slug>.json`**, theo mẫu `_TEMPLATE.json`.
-4. **Chạy `npm test`.** Bộ kiểm tra đọc mọi file trong thư mục này và chặn nếu sai.
-5. **Chạy `npm run armory:import`** để đổ vào cơ sở dữ liệu. Lệnh này idempotent — chạy lại không nhân đôi dữ liệu.
+Số trắng là giá trị ở bậc đang xem, số xanh là mức tăng mỗi lần nâng bậc. Gõ hai
+số đó, ghi bậc đang xem vào `baseTier`, web tự suy ra cả năm bậc.
 
-`armory-shots/` không vào git (ảnh làm phình repo). Bằng chứng lâu dài sẽ nằm ở MinIO.
+Gõ hai số thay vì năm là bớt 60% chỗ gõ sai. Đây là lý do chính của cách làm này,
+không phải để nhanh tay.
 
-## Luật bắt buộc
+## Hai khối phải để riêng
 
-- **Mọi chỉ số phải có trong `stat-definitions.json`.** Khoá lạ bị từ chối chứ không đoán. Chỉ số mới thì thêm vào từ điển trước.
-- **Mọi file phải khai `patch`.** Không có ngoại lệ. Đây là thứ giữ cho build lưu tháng trước vẫn mở lại đúng như lúc lưu.
-- **Khai `verification` khác `UNVERIFIED` thì bắt buộc kèm `evidence`.** Không có luật này thì "đã kiểm chứng" chỉ là một chữ ai cũng gõ được.
-- **Talent có điều kiện phải ghi rõ điều kiện** trong `effect.trigger`. Talent kiểu "khi tấn công thành" không được cộng thẳng vào chỉ số nền — bộ tính tách nó ra cột riêng.
+Panel có hai khối và người chơi tra theo đúng thứ tự đó:
 
-## Ba mức kiểm chứng
+- `baseStats` — khối **Thuộc Tính Trang Bị**, có từ bậc I.
+- `iconic` — khối **Thuộc Tính Biểu Trưng**, đánh số I–V. Mỗi bậc mở thêm đúng
+  một dòng. Dòng cuối thường là một hiệu ứng **có tên** kèm lời mô tả chứ không
+  phải một con số: khi đó bỏ `statKey`, điền `nameVi` và `descriptionVi`.
 
-| Mức | Nghĩa |
-|---|---|
-| `UNVERIFIED` | Gõ từ trí nhớ hoặc nguồn thứ cấp. Hiện lên giao diện kèm cảnh báo. |
-| `SCREENSHOT` | Có ảnh chụp trong game, đường dẫn ghi ở `evidence`. |
-| `CONFIRMED` | Hai người đối chiếu độc lập, hoặc một người đối chiếu hai lần cách nhau. |
+Gộp hai khối lại là sai cả về hiển thị lẫn về tính toán — dòng biểu trưng chưa mở
+thì chưa được cộng vào đâu cả.
 
-Một dòng chỉ số trên bàn thử chỉ đáng tin bằng **nguồn yếu nhất** góp vào nó. Đó là lý do mức này đi thẳng ra giao diện chứ không nằm im trong bảng.
+## Tài năng đặc biệt
 
-## Không chép từ trang khác
+Dòng "Tài năng đặc biệt (Bộ binh)" ở cuối panel là một hệ số nhân có điều kiện,
+chỉ có hiệu lực khi chỉ huy mang tài năng cùng loại quân. Web **không** cộng nó
+mặc định; có một ô để bật lên xem thử.
 
-Từng con số là dữ kiện của game, không ai độc quyền. Nhưng bê nguyên cơ sở dữ liệu đã biên soạn của trang khác về thì vừa rủi ro vừa hỏng danh tiếng trong một cộng đồng nhỏ. Lấy số từ trong game — chậm hơn, nhưng kiểm chứng được và là của mình.
+Hiện web chỉ nhân nó vào khối Thuộc Tính Trang Bị. Câu trong game không nói rõ có
+nhân cả khối Biểu Trưng hay không, nên chưa đoán — và trang có ghi rõ điều đó.
+Ai xác nhận được thì sửa `resolveEquipment` trong `src/modules/armory/equipment-model.ts`.
+
+## Trước khi commit
+
+```bash
+npm test          # chặn chỉ số lạ, trùng bậc, thiếu bằng chứng
+npm run typecheck
+```

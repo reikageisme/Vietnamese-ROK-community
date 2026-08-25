@@ -1,18 +1,35 @@
 {
-  "_ghi_chu": "DỮ LIỆU MẪU — số bịa để dựng giao diện, KHÔNG phải số trong game.",
+  "_ghi_chu": "DỮ LIỆU MẪU — số bịa để dựng giao diện, KHÔNG phải số trong game. Xoá cả ba file demo-*.json khi đã có số thật.",
   "slug": "demo-vu-khi-thu-nghiem",
   "nameVi": "Vũ Khí Thử Nghiệm",
   "nameEn": "Test Blade",
   "slot": "WEAPON",
   "rarity": "LEGENDARY",
-  "setSlug": null,
+  "equipmentLevel": 45,
+  "seasonLimited": false,
   "patch": "2026.08",
-  "tiers": [
-    { "tier": 1, "stats": { "arc_atk": 4 }, "powerValue": 1100, "verification": "UNVERIFIED" },
-    { "tier": 2, "stats": { "arc_atk": 7 }, "powerValue": 2300, "verification": "UNVERIFIED" },
-    { "tier": 3, "stats": { "arc_atk": 10, "skill_damage": 2 }, "powerValue": 4000, "verification": "UNVERIFIED" },
-    { "tier": 4, "stats": { "arc_atk": 14, "skill_damage": 3 }, "powerValue": 6200, "verification": "UNVERIFIED" },
-    { "tier": 5, "stats": { "arc_atk": 18, "skill_damage": 5 }, "powerValue": 9000, "verification": "UNVERIFIED" }
+  "maxTier": 5,
+  "baseTier": 1,
+  "baseStats": [
+    { "statKey": "arc_atk", "base": 11, "perTier": 4 }
   ],
-  "talents": []
+  "iconic": [
+    { "level": 1, "statKey": "arc_atk_flat", "base": 3, "perTier": 1 },
+    { "level": 2, "statKey": "normal_damage", "base": 2, "perTier": 0.5 },
+    { "level": 3, "statKey": "skill_damage", "base": 2, "perTier": 0.5 },
+    { "level": 4, "statKey": "damage_vs_rally_garrison", "base": 1, "perTier": 0.5 },
+    {
+      "level": 5,
+      "nameVi": "Mưa Tên",
+      "nameEn": "Arrow Rain",
+      "descriptionVi": "Đòn tấn công cơ bản có xác suất gây thêm sát thương diện rộng lên đội quân đối phương.",
+      "conditional": true
+    }
+  ],
+  "specialTalent": {
+    "troopType": "archer",
+    "bonusPercent": 30,
+    "descriptionVi": "Khi được trang bị bởi một chỉ huy có tài năng Cung thủ, thuộc tính trang bị của món này tăng 30%."
+  },
+  "verification": "UNVERIFIED"
 }

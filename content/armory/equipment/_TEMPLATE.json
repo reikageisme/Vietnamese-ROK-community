@@ -1,5 +1,7 @@
 {
   "_huong_dan": "Chép file này, đổi tên thành <slug>.json. Xoá mọi khoá bắt đầu bằng _ trước khi nhập số thật. File nào còn dấu _ ở tên sẽ bị trình nhập bỏ qua.",
+  "_cach_doc_panel": "Trong game mỗi dòng chỉ số có HAI số: số trắng là giá trị ở bậc đang xem, số xanh trong ngoặc là mức tăng mỗi lần nâng bậc. Gõ số trắng vào `base`, số xanh vào `perTier`, rồi ghi bậc đang xem vào `baseTier`. Web tự suy ra cả năm bậc — bạn không phải gõ năm lần.",
+  "_hai_khoi": "Panel có hai khối tách bạch. `baseStats` là khối Thuộc Tính Trang Bị. `iconic` là khối Thuộc Tính Biểu Trưng, đánh số I–V theo đúng thứ tự trong game; mục cuối thường là một hiệu ứng có tên chứ không phải con số, khi đó bỏ `statKey` và điền `nameVi` + `descriptionVi`.",
 
   "slug": "vi-du-mu-thanh-chien",
   "nameVi": "Mũ Thánh Chiến",
@@ -9,28 +11,36 @@
   "setSlug": null,
   "patch": "2026.08",
 
-  "tiers": [
+  "equipmentLevel": 45,
+  "seasonLimited": false,
+  "maxTier": 5,
+  "baseTier": 1,
+
+  "baseStats": [
+    { "statKey": "inf_def", "base": 0, "perTier": 0 }
+  ],
+
+  "iconic": [
+    { "level": 1, "statKey": "inf_def_flat", "base": 0, "perTier": 0 },
+    { "level": 2, "statKey": "enemy_atk_ignore", "base": 0, "perTier": 0 },
+    { "level": 3, "statKey": "unit_capacity", "base": 0, "perTier": 0 },
+    { "level": 4, "statKey": "damage_vs_rally_garrison", "base": 0, "perTier": 0 },
     {
-      "tier": 1,
-      "stats": { "inf_atk": 0, "inf_def": 0 },
-      "materials": null,
-      "powerValue": null,
-      "verification": "SCREENSHOT",
-      "evidence": "armory-shots/vi-du-mu-thanh-chien__t1.png",
-      "note": null
+      "level": 5,
+      "nameVi": "Tên hiệu ứng",
+      "nameEn": null,
+      "descriptionVi": "Chép nguyên văn lời mô tả trong game.",
+      "conditional": true
     }
   ],
 
-  "talents": [
-    {
-      "unlockTier": 1,
-      "nameVi": "Tên talent",
-      "nameEn": null,
-      "descriptionVi": "Mô tả đúng như trong game.",
-      "conditional": false,
-      "effect": { "stats": { "inf_atk": 0 }, "trigger": null },
-      "verification": "SCREENSHOT",
-      "evidence": "armory-shots/vi-du-mu-thanh-chien__t1-talent.png"
-    }
-  ]
+  "specialTalent": {
+    "_ghi_chu": "Dòng 'Tài năng đặc biệt (Bộ binh)' ở cuối panel. Bỏ hẳn khoá này nếu món đồ không có.",
+    "troopType": "infantry",
+    "bonusPercent": 30,
+    "descriptionVi": "Chép nguyên văn lời mô tả trong game."
+  },
+
+  "verification": "SCREENSHOT",
+  "evidence": "evidence/vi-du-mu-thanh-chien.png"
 }

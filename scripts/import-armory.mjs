@@ -90,6 +90,16 @@ async function main() {
       }
     }
 
+    // File dạng "nền + mức tăng mỗi bậc" (baseStats/iconic) chưa được trình nhập
+    // này dựng lại thành bảng bậc. Nói thẳng ra thay vì nhập một món 0 bậc — một
+    // món 0 bậc trong bảng trông y hệt một món chưa ai nhập.
+    if ((file.baseStats?.length ?? 0) > 0 && (file.tiers?.length ?? 0) === 0) {
+      console.warn(
+        `  ! ${file.slug}: dạng nền + mức tăng, trình nhập chưa dựng thành bảng bậc.` +
+          " Trang web đọc thẳng từ content/armory nên vẫn hiển thị đủ.",
+      );
+    }
+
     const nameKey = await message(`codex.equipment.${file.slug}.name`, file.nameVi, file.nameEn);
     const setId = file.setSlug
       ? (await prisma.equipmentSet.findUnique({ where: { slug: file.setSlug } }))?.id ?? null
