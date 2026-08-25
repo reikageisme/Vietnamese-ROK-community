@@ -3,6 +3,8 @@ import "./globals.css";
 import { LocaleProvider } from "@/i18n/provider";
 import { SiteFooter, SiteHeader } from "@/components/site-shell";
 import { auth } from "@/auth";
+import { CookieConsent } from "@/components/cookie-consent";
+import { VerificationBanner } from "@/components/verification-banner";
 
 export const metadata: Metadata = {
   title: { default: "ROK FAQ", template: "%s · ROK FAQ" },
@@ -14,7 +16,16 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const session = await auth();
   return (
     <html lang="vi">
-      <body><LocaleProvider><SiteHeader user={session?.user} />{session?.user && !session.user.isEmailVerified ? <div className="verification-banner">Email chưa xác thực — hãy mở email xác thực để có thể đăng bài và trả lời.</div> : null}<main>{children}</main><SiteFooter /></LocaleProvider></body>
+      <body>
+        <LocaleProvider>
+          <SiteHeader user={session?.user} />
+          {session?.user && !session.user.isEmailVerified ? <VerificationBanner /> : null}
+          <main>{children}</main>
+          <SiteFooter />
+          {/* Phải nằm TRONG LocaleProvider: băng cookie dùng useLocale(). */}
+          <CookieConsent />
+        </LocaleProvider>
+      </body>
     </html>
   );
 }
