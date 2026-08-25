@@ -1,0 +1,27 @@
+{
+  "_ghi_chu": "DỮ LIỆU MẪU — số bịa để dựng giao diện, KHÔNG phải số trong game.",
+  "slug": "demo-giap-thu-nghiem",
+  "nameVi": "Giáp Thử Nghiệm",
+  "nameEn": "Test Cuirass",
+  "slot": "CHEST",
+  "rarity": "EPIC",
+  "setSlug": null,
+  "patch": "2026.08",
+  "tiers": [
+    { "tier": 1, "stats": { "cav_atk": 3, "hp": 1 }, "powerValue": 900, "verification": "UNVERIFIED" },
+    { "tier": 2, "stats": { "cav_atk": 5, "hp": 2 }, "powerValue": 1800, "verification": "UNVERIFIED" },
+    { "tier": 3, "stats": { "cav_atk": 8, "hp": 3 }, "powerValue": 3200, "verification": "UNVERIFIED" },
+    { "tier": 4, "stats": { "cav_atk": 11, "hp": 5, "march_speed": 2 }, "powerValue": 5000, "verification": "UNVERIFIED" }
+  ],
+  "talents": [
+    {
+      "unlockTier": 4,
+      "nameVi": "Xung Phong",
+      "nameEn": "Charge",
+      "descriptionVi": "Tăng tốc độ hành quân khi ra khỏi thành.",
+      "conditional": true,
+      "effect": { "stats": { "march_speed": 4 }, "trigger": "khi hành quân ngoài thành" },
+      "verification": "UNVERIFIED"
+    }
+  ]
+}

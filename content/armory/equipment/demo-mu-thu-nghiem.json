@@ -1,0 +1,37 @@
+{
+  "_ghi_chu": "DỮ LIỆU MẪU — số bịa để dựng giao diện, KHÔNG phải số trong game. Xoá cả ba file demo-*.json khi đã có số thật.",
+  "slug": "demo-mu-thu-nghiem",
+  "nameVi": "Mũ Thử Nghiệm",
+  "nameEn": "Test Helm",
+  "slot": "HELMET",
+  "rarity": "LEGENDARY",
+  "setSlug": null,
+  "patch": "2026.08",
+  "tiers": [
+    { "tier": 1, "stats": { "inf_atk": 2, "inf_def": 2 }, "powerValue": 1000, "verification": "UNVERIFIED" },
+    { "tier": 2, "stats": { "inf_atk": 4, "inf_def": 4 }, "powerValue": 2000, "verification": "UNVERIFIED" },
+    { "tier": 3, "stats": { "inf_atk": 6, "inf_def": 6, "hp": 2 }, "powerValue": 3500, "verification": "UNVERIFIED" },
+    { "tier": 4, "stats": { "inf_atk": 9, "inf_def": 8, "hp": 4 }, "powerValue": 5500, "verification": "UNVERIFIED" },
+    { "tier": 5, "stats": { "inf_atk": 12, "inf_def": 10, "hp": 6 }, "powerValue": 8000, "verification": "UNVERIFIED" }
+  ],
+  "talents": [
+    {
+      "unlockTier": 3,
+      "nameVi": "Kiên Cường",
+      "nameEn": "Steadfast",
+      "descriptionVi": "Tăng phòng thủ bộ binh khi đội quân đang phòng thủ thành.",
+      "conditional": true,
+      "effect": { "stats": { "inf_def": 5 }, "trigger": "khi phòng thủ thành" },
+      "verification": "UNVERIFIED"
+    },
+    {
+      "unlockTier": 5,
+      "nameVi": "Áp Đảo",
+      "nameEn": "Overwhelm",
+      "descriptionVi": "Tăng sát thương kỹ năng cho mọi loại quân.",
+      "conditional": false,
+      "effect": { "stats": { "skill_damage": 3 }, "trigger": null },
+      "verification": "UNVERIFIED"
+    }
+  ]
+}

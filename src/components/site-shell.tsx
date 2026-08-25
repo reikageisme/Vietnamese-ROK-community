@@ -19,6 +19,7 @@ export function SiteHeader({ user }: { user?: HeaderUser }) {
     ["/forum", t.navForum],
     ["/kingdoms", locale === "vi" ? "Vương quốc" : "Kingdoms"],
     ["/kvk", "KvK"],
+    ["/armory", locale === "vi" ? "Trang bị" : "Armory"],
     ["/tools", t.navTools],
   ];
   return (
