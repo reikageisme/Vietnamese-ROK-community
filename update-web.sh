@@ -23,7 +23,16 @@ COMPOSE="docker compose --env-file .env.production -f docker-compose.yml -f comp
 # profile do — hai proxy cung gianh cong 80 thi cai thu hai khong khoi dong duoc,
 # va them mot lop nua chi them mot cho cau hinh sai header va IP that cua khach.
 if grep -qE '^EXTERNAL_PROXY=true' .env.production 2>/dev/null; then
-  echo "== Proxy ngoai: khong bat Caddy =="
+  echo "== Proxy ngoài: không bật Caddy =="
+  # Bỏ profile mới chỉ khiến lần sau KHÔNG khởi động Caddy — container đang chạy
+  # từ trước vẫn giữ nguyên cổng 80 và cướp hết traffic của reverse proxy thật.
+  # Phải dọn hẳn, nếu không thì đổi cấu hình xong mọi thứ vẫn y như cũ.
+  if docker compose --env-file .env.production --profile production \
+       -f docker-compose.yml -f compose.production.yml ps -q caddy 2>/dev/null | grep -q .; then
+    echo "   dọn Caddy cũ đang giữ cổng 80"
+    docker compose --env-file .env.production --profile production \
+      -f docker-compose.yml -f compose.production.yml rm -sf caddy
+  fi
 else
   COMPOSE="$COMPOSE --profile production"
 fi
