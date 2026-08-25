@@ -212,3 +212,22 @@ body:before { content:""; position:fixed; inset:0; z-index:-2; pointer-events:no
 .cookie-copy a { color:var(--navy); text-decoration:underline; }
 .cookie-actions { display:flex; gap:9px; flex:0 0 auto; }
 @media (max-width:520px) { .cookie-actions { width:100%; } .cookie-actions .button { flex:1; } }
+
+/* ---------- khung bieu tuong theo do hiem ---------- */
+.game-icon { position:relative; display:inline-grid; place-items:center; flex:none; border-radius:9px; overflow:hidden; isolation:isolate; }
+.game-icon img { width:100%; height:100%; object-fit:contain; }
+.game-icon-sm { width:34px; height:34px; border-radius:7px; }
+.game-icon-md { width:48px; height:48px; }
+.game-icon-lg { width:72px; height:72px; border-radius:11px; }
+.game-icon-fallback { font-style:normal; font-weight:800; color:rgba(255,255,255,.92); font-size:.9em; }
+
+/* Nen chuyen sac + vien trong, dung mau doc theo bang xep hang do hiem cua game.
+   Vien sang mo o tren tao cam giac anh sang tren cao — thu lam huy hieu game
+   trong nhu duoc dat trong khung chu khong phai dan len. */
+.rarity-bg-normal    { background:linear-gradient(160deg,#8b95a3,#5b6472); box-shadow:inset 0 0 0 1px rgba(255,255,255,.22), inset 0 1px 0 rgba(255,255,255,.35); }
+.rarity-bg-advanced  { background:linear-gradient(160deg,#4fae74,#256b43); box-shadow:inset 0 0 0 1px rgba(255,255,255,.22), inset 0 1px 0 rgba(255,255,255,.35); }
+.rarity-bg-elite     { background:linear-gradient(160deg,#4a8fd8,#1f5299); box-shadow:inset 0 0 0 1px rgba(255,255,255,.22), inset 0 1px 0 rgba(255,255,255,.35); }
+.rarity-bg-epic      { background:linear-gradient(160deg,#9a6cd8,#5d2f9e); box-shadow:inset 0 0 0 1px rgba(255,255,255,.24), inset 0 1px 0 rgba(255,255,255,.38); }
+.rarity-bg-legendary { background:linear-gradient(160deg,#f0a63c,#c06a12); box-shadow:inset 0 0 0 1px rgba(255,255,255,.28), inset 0 1px 0 rgba(255,255,255,.45); }
+
+.game-icon-badge { position:absolute; right:2px; bottom:2px; min-width:16px; padding:0 4px; border-radius:5px; background:rgba(8,14,22,.86); color:#fff; font-size:10px; font-weight:700; line-height:16px; text-align:center; }
