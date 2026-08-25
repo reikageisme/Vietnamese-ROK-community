@@ -31,8 +31,8 @@ services:
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?S3_SECRET_ACCESS_KEY must be set for production}
       SMTP_HOST: ${SMTP_HOST:?SMTP_HOST must be set for production}
       SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER:?SMTP_USER must be set for production}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:?SMTP_PASSWORD must be set for production}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       EMAIL_FROM: ${EMAIL_FROM:?EMAIL_FROM must be set for production}
     depends_on:
       migrate:
@@ -73,8 +73,8 @@ services:
       SMTP_HOST: ${SMTP_HOST:?SMTP_HOST must be set for production}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_SECURE: ${SMTP_SECURE:-false}
-      SMTP_USER: ${SMTP_USER:?SMTP_USER must be set for production}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:?SMTP_PASSWORD must be set for production}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       EMAIL_FROM: ${EMAIL_FROM:?EMAIL_FROM must be set for production}
     depends_on:
       migrate:
