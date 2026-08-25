@@ -33,7 +33,13 @@ export function ScanServicePortal({ signedIn }: { signedIn: boolean }) {
   const [reference, setReference] = useState("");
 
   const refresh = useCallback(async () => {
-    async function payWithVnpay(amountVnd: number) {
+    if (!signedIn) return;
+    const response = await fetch("/api/scan-service", { cache: "no-store" });
+    if (response.ok) setData(await response.json());
+  }, [signedIn]);
+
+  /** Tạo đơn ở máy chủ rồi chuyển thẳng sang cổng VNPay. */
+  async function payWithVnpay(amountVnd: number) {
     setBusy(true);
     try {
       const response = await fetch("/api/scan-service/checkout", {
@@ -42,8 +48,8 @@ export function ScanServicePortal({ signedIn }: { signedIn: boolean }) {
         body: JSON.stringify({ amountVnd }),
       });
       const result = await response.json();
-      // Chuyen thang sang cong VNPay. Khong mo tab moi: trinh duyet di dong
-      // chan popup, va nguoi dung can quay lai duoc bang nut Back.
+      // Chuyển thẳng, không mở tab mới: trình duyệt di động chặn popup, và
+      // người dùng cần quay lại được bằng nút Back.
       if (response.ok && result.paymentUrl) window.location.href = result.paymentUrl;
       else setMessage(result.error ?? "Chưa tạo được liên kết thanh toán.");
     } catch {
@@ -52,11 +58,6 @@ export function ScanServicePortal({ signedIn }: { signedIn: boolean }) {
       setBusy(false);
     }
   }
-
-  if (!signedIn) return;
-    const response = await fetch("/api/scan-service", { cache: "no-store" });
-    if (response.ok) setData(await response.json());
-  }, [signedIn]);
   useEffect(() => {
     if (!signedIn) return;
     let cancelled = false;

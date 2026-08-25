@@ -15,7 +15,8 @@
 param(
     [string]$Message  = "",
     [string]$Repo     = "D:\ROK Forum",
-    [string[]]$Paths  = @("tools/rok-device-panel", "docs")
+    [string[]]$Paths  = @("tools/rok-device-panel", "docs"),
+    [switch]$SkipTypecheck
 )
 
 $ErrorActionPreference = "Stop"
@@ -24,6 +25,23 @@ Set-Location $Repo
 Write-Host "== Clearing stale git locks ==" -ForegroundColor Cyan
 @(".git\HEAD.lock", ".git\index.lock", ".git\objects\maintenance.lock") | ForEach-Object {
     if (Test-Path $_) { Remove-Item $_ -Force; Write-Host "   removed $_" }
+}
+
+# Gate: type-check BEFORE anything is committed or pushed.
+#
+# Why this exists: three TypeScript errors reached the server and each one cost a
+# ~20 minute Docker build to discover. `npm run typecheck` finds the same errors
+# in about 30 seconds, on this machine, before a single byte is pushed.
+# Skip only when you know the tree is mid-refactor: .\tools\deploy.ps1 -SkipTypecheck
+if (-not $SkipTypecheck) {
+    Write-Host "`n== Type check ==" -ForegroundColor Cyan
+    npm run typecheck
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "`nSTOP - type errors above. Fix them before deploying." -ForegroundColor Red
+        Write-Host "The server build would fail on exactly these, 20 minutes from now." -ForegroundColor Yellow
+        exit 1
+    }
+    Write-Host "   no type errors" -ForegroundColor Green
 }
 
 Write-Host "`n== Staging ==" -ForegroundColor Cyan

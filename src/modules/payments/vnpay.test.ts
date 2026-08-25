@@ -18,7 +18,7 @@ const INPUT = {
 };
 
 /** Dựng lại query trả về từ một link thanh toán, như thể VNPay gửi về. */
-function returnQuery(over: Record<string, string> = {}) {
+function returnQuery(over: Record<string, string> = {}): Record<string, string> {
   const params: Record<string, string> = {
     vnp_Amount: "12900000",
     vnp_ResponseCode: "00",
@@ -86,7 +86,7 @@ describe("VNPay", () => {
 
   it("từ chối khi thiếu chữ ký", () => {
     const query = returnQuery();
-    delete (query as Record<string, string>).vnp_SecureHash;
+    delete query.vnp_SecureHash;
     expect(verifyReturn(query, CONFIG.hashSecret)).toMatchObject({ ok: false, reason: "Thiếu chữ ký." });
   });
 
