@@ -8,7 +8,7 @@ import { addLoginMethod } from "@/modules/identity/login-methods";
  * Keep Auth.js' standard user shape while preserving ROK FAQ's domain fields.
  * The OAuth profile id is Google's verified `sub`; it is never exposed in session data.
  */
-export function ROK FAQPrismaAdapter(): Adapter {
+export function RokFaqPrismaAdapter(): Adapter {
   const base = PrismaAdapter(prisma);
 
   return {

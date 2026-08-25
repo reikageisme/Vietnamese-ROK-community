@@ -44,8 +44,8 @@ for (const [number, name, campCode, seed] of demoKingdoms) {
 
 if (process.env.SEED_DEMO_ACCOUNTS === "true") {
   const passwordOptions = { algorithm: 2, memoryCost: 19_456, timeCost: 2, parallelism: 1, outputLen: 32 };
-  const memberPassword = process.env.DEMO_MEMBER_PASSWORD ?? "ROK FAQDemo!2026";
-  const moderatorPassword = process.env.DEMO_MODERATOR_PASSWORD ?? "ROK FAQMod!2026";
+  const memberPassword = process.env.DEMO_MEMBER_PASSWORD ?? "RokFaqDemo!2026";
+  const moderatorPassword = process.env.DEMO_MODERATOR_PASSWORD ?? "RokFaqMod!2026";
   const memberHash = await hash(memberPassword, passwordOptions);
   const moderatorHash = await hash(moderatorPassword, passwordOptions);
   const member = await prisma.user.upsert({

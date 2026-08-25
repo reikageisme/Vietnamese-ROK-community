@@ -8,8 +8,8 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set for production}
       SEED_DEMO_ACCOUNTS: ${SEED_DEMO_ACCOUNTS:-false}
-      DEMO_MEMBER_PASSWORD: ${DEMO_MEMBER_PASSWORD:-ROK FAQDemo!2026}
-      DEMO_MODERATOR_PASSWORD: ${DEMO_MODERATOR_PASSWORD:-ROK FAQMod!2026}
+      DEMO_MEMBER_PASSWORD: ${DEMO_MEMBER_PASSWORD:-RokFaqDemo!2026}
+      DEMO_MODERATOR_PASSWORD: ${DEMO_MODERATOR_PASSWORD:-RokFaqMod!2026}
     depends_on:
       postgres:
         condition: service_healthy

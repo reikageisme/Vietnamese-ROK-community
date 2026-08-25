@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import { ROK FAQPrismaAdapter } from "@/lib/auth-adapter";
+import { RokFaqPrismaAdapter } from "@/lib/auth-adapter";
 import { prisma } from "@/lib/prisma";
 import { googleProviderProfile, syncExistingGoogleUser } from "@/modules/identity/google-profile";
 import { authorizeCredentials } from "@/modules/identity/credentials";
@@ -12,7 +12,7 @@ import type { UserRoleName } from "@prisma/client";
 const rolePriority = ["ADMIN", "MODERATOR", "R5", "R4", "CONTRIBUTOR", "MEMBER"] as const;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: ROK FAQPrismaAdapter(),
+  adapter: RokFaqPrismaAdapter(),
   session: { strategy: "jwt" },
   pages: { signIn: "/auth/signin", error: "/auth/signin" },
   providers: [

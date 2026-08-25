@@ -61,8 +61,8 @@ Tài khoản demo là opt-in và chỉ bật trên host thử nghiệm:
 ```dotenv
 SEED_DEMO_ACCOUNTS=true
 NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS=true
-DEMO_MEMBER_PASSWORD=ROK FAQDemo!2026
-DEMO_MODERATOR_PASSWORD=ROK FAQMod!2026
+DEMO_MEMBER_PASSWORD=RokFaqDemo!2026
+DEMO_MODERATOR_PASSWORD=RokFaqMod!2026
 ```
 
 - `demo.member@rokfaq.local`: thành viên thường, dùng thử tạo chủ đề, reply,
