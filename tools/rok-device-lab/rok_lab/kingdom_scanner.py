@@ -108,6 +108,7 @@ class KingdomScanner:
         # Nhung hang bam vao ma khong mo duoc ho so. Day moi la thuoc do that
         # cua do phu: "30 ban ghi" khong noi gi neu phai bam 45 lan moi duoc 30.
         self.missed_rows: list[dict[str, Any]] = []
+        self.last_miss_reason: dict[str, Any] | None = None
         self.started_at = utc_now()
         self.attempted_rank = 0
         self._load_state()
@@ -159,6 +160,28 @@ class KingdomScanner:
             screenshot, self.profile.screens.get(screen, ())
         )
         return matched
+
+    def _recognise_screen(self, screenshot: Path) -> tuple[str | None, int | None]:
+        """Man hinh nay khop voi man nao trong profile, va lech bao nhieu bit.
+
+        Bao "khong phai man ho so" thi khong du de sua: van con la danh sach,
+        hay la mot bang khac chen ngang, hay la ho so mo nhung nguong qua chat
+        — ba nguyen nhan do sua ba kieu khac han nhau.
+        """
+        best_name: str | None = None
+        best_distance: int | None = None
+        for name, prints in self.profile.screens.items():
+            if not prints:
+                continue
+            matched, comparisons = match_fingerprints(screenshot, prints)
+            distance = min(
+                (c["distance"] for c in comparisons if "distance" in c), default=None
+            )
+            if matched:
+                return name, distance
+            if distance is not None and (best_distance is None or distance < best_distance):
+                best_name, best_distance = name, distance
+        return (f"gan nhat: {best_name}" if best_name else None), best_distance
 
     def _capture(self, destination: Path) -> Path:
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -295,6 +318,24 @@ class KingdomScanner:
         time.sleep(self.options.open_wait)
         profile_image = self._capture(governor_dir / "profile.png")
         if not self._screen_matches(profile_image, "governor-profile"):
+            # Anh nay la bang chung duy nhat noi duoc vi sao cu bam truot. Ghi
+            # lai man hinh nhan ra duoc va giu anh lai bat ke --evidence, vi
+            # doan lai sau khi anh bi don di la khong the.
+            screen, distance = self._recognise_screen(profile_image)
+            self.last_miss_reason = {
+                "screen": screen,
+                "distance": distance,
+                "shot": str(profile_image),
+            }
+            # Neu cu bam co mo ra mot bang nao do, phai dong lai — de nguyen thi
+            # cu bam cua hang KE TIEP roi vao bang do chu khong vao danh sach,
+            # va mot lan truot keo theo ca chuoi truot.
+            #
+            # Chi dong khi NHAN RA la bang. Bam mu vao toa do nut dong trong khi
+            # man hinh dang la danh sach co the trung nut X cua chinh bang xep
+            # hang, va the la mat luon man hinh dang quet.
+            if screen in {"more-info", "governor-profile"}:
+                self._cleanup_panels()
             return None
 
         general_regions = [
@@ -443,7 +484,9 @@ class KingdomScanner:
                                 "row": row,
                                 "attempt": self.attempted_rank,
                                 "hintName": (hints[row - 1] or {}).get("name"),
+                                **(self.last_miss_reason or {}),
                             }
+                            self.last_miss_reason = None
                             self.missed_rows.append(miss)
                             self.progress({"serial": self.serial, "event": "row-miss", **miss})
                             continue

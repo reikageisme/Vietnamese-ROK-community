@@ -232,7 +232,9 @@ def _print_scan_progress(event: dict[str, object]) -> None:
         # chap nhan.
         print(
             f"[{serial}] !! TRUOT hang {event.get('row')} trang {event.get('page')} "
-            f"(luot {event.get('attempt')}) - bam vao khong mo duoc ho so",
+            f"(luot {event.get('attempt')}) - man hinh luc do: "
+            f"{event.get('screen') or 'khong nhan ra'}"
+            f"{'' if event.get('distance') is None else ' (lech ' + str(event.get('distance')) + ' bit)'}",
             file=sys.stderr,
             flush=True,
         )
