@@ -16,6 +16,19 @@ bước duyệt, và mở cổng 5432 cho một máy Windows chạy OCR. Đừng
 
 ---
 
+## 0. Chọn ổ đĩa trước
+
+Máy chính có ổ `D:`, **VM 200 thì không**. Đừng chép nguyên đường dẫn giữa hai
+máy. Chọn một thư mục gốc rồi dùng biến cho mọi lệnh sau:
+
+```powershell
+# VM 200 (chỉ có ổ C:)
+$ROK = "C:\rok\ROK Forum"
+
+# máy chính
+$ROK = "D:\ROK Forum"
+```
+
 ## 1. Cài trên VM 200 (làm một lần)
 
 ```powershell
@@ -27,14 +40,15 @@ winget install --id Git.Git --exact
 Lấy repo về (dùng chính tài khoản GitHub của dự án):
 
 ```powershell
-cd D:\
-git clone https://github.com/reikageisme/Vietnamese-ROK-community.git "ROK Forum"
+New-Item -ItemType Directory -Force (Split-Path $ROK) | Out-Null
+cd (Split-Path $ROK)
+git clone https://github.com/reikageisme/Vietnamese-ROK-community.git (Split-Path $ROK -Leaf)
 ```
 
 Dựng môi trường Python riêng cho tool:
 
 ```powershell
-cd "D:\ROK Forum"
+cd $ROK
 py -3.11 -m venv tools\rok-device-lab\.venv
 tools\rok-device-lab\.venv\Scripts\python.exe -m pip install -e tools\rok-device-lab
 ```
@@ -42,21 +56,48 @@ tools\rok-device-lab\.venv\Scripts\python.exe -m pip install -e tools\rok-device
 ## 2. Biến môi trường (mỗi lần mở PowerShell mới)
 
 ```powershell
-cd "D:\ROK Forum"
-$env:ADB_PATH        = "D:\Program Files (x86)\xiaowei_android\tools\adb.exe"
+cd $ROK
+$env:ADB_PATH        = "<đường dẫn adb.exe của app quản lý điện thoại — xem mục 2b>"
 $env:TESSERACT_PATH  = "C:\Program Files\Tesseract-OCR\tesseract.exe"
-$env:TESSDATA_DIR    = "D:\ROK Forum\RoK Tracker\deps\tessdata"
+$env:TESSDATA_DIR    = "$ROK\RoK Tracker\deps\tessdata"
 $rok = "tools\rok-device-lab\.venv\Scripts\python.exe"
 ```
 
 `ADB_PATH` phải trỏ tới đúng `adb.exe` mà app quản lý điện thoại đang dùng.
 Dùng một bản adb khác sẽ giết adb server của app đó và rớt hết kết nối.
 
+### 2b. Tìm `adb.exe` của app quản lý điện thoại
+
+App quản lý mang theo adb riêng, và **phải dùng đúng bản đó**. Chạy một bản adb
+khác sẽ giết adb server của app và rớt hết kết nối 16 máy.
+
+```powershell
+Get-ChildItem C:\ -Filter adb.exe -Recurse -ErrorAction SilentlyContinue |
+  Select-Object -First 5 FullName
+```
+
 Kiểm tra:
 
 ```powershell
 & $rok -m rok_lab.cli doctor
 ```
+
+### 2c. Khi winget tải hỏng
+
+`0x80072f19` khi tải Git là lỗi tải giữa chừng, không phải sai lệnh. Thử lại
+trước; vẫn hỏng thì tải thẳng:
+
+```powershell
+winget source reset --force
+winget install --id Git.Git --exact
+
+# hoặc tải trực tiếp
+$url = "https://github.com/git-for-windows/git/releases/download/v2.55.0.windows.3/Git-2.55.0.3-64-bit.exe"
+Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\git-setup.exe"
+Start-Process -Wait -FilePath "$env:TEMP\git-setup.exe" -ArgumentList "/VERYSILENT","/NORESTART"
+```
+
+Cài xong **phải mở cửa sổ PowerShell mới** thì `git` mới nằm trong PATH.
 
 ## 3. Tìm đúng serial của điện thoại số 9
 
@@ -128,7 +169,7 @@ từ người cuối cùng đã xong, không quét lại từ đầu.
 Kết quả nằm ở:
 
 ```
-tools\rok-device-lab\artifacts\scans\<serial>\kd2812-lan1-kd2812-<timestamp>\
+$ROK\tools\rok-device-lab\artifacts\scans\<serial>\kd2812-lan1-kd2812-<timestamp>\
   scan.json          ← file để đẩy lên
   governors.xlsx
   state.json         ← OCR thô + cờ needsReview
@@ -148,7 +189,7 @@ Cửa sổ PowerShell khác:
 ```powershell
 $env:ROK_COLLECTOR_URL   = "http://127.0.0.1:3031"
 $env:ROK_COLLECTOR_TOKEN = "<COLLECTOR_API_TOKEN trong .env.production trên server>"
-& $rok -m rok_lab.cli upload-scan "D:\ROK Forum\tools\rok-device-lab\artifacts\scans\...\scan.json"
+& $rok -m rok_lab.cli upload-scan "$ROK\tools\rok-device-lab\artifacts\scans\...\scan.json"
 ```
 
 Lấy token trên server:
