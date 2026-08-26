@@ -252,7 +252,8 @@ Trước khi duyệt, dữ liệu không xuất hiện ở đâu trên trang cô
 
 | Triệu chứng | Nguyên nhân thường gặp |
 |---|---|
-| `devices` trả về rỗng | app quản lý điện thoại đang giữ adb server; đóng app rồi chạy lại, hoặc trỏ `ADB_PATH` đúng bản adb của app |
+| `devices` trả về rỗng nhưng app quản lý vẫn thấy máy | app chạy adb server ở cổng khác 5037 (hay gặp: 5038). `env.ps1` tự dò và đặt `ANDROID_ADB_SERVER_PORT`; nếu không, đặt tay. **Đừng** `adb kill-server` — sẽ rớt hết máy của app |
+| `devices` rỗng và app cũng không điều khiển được | máy rớt khỏi VM, kiểm USB passthrough ở Proxmox chứ không sửa từ PowerShell |
 | `screenMatched: false` | máy không ở đúng màn hình, hoặc game vừa cập nhật đổi giao diện |
 | Tên tiếng Việt ra ký tự lạ | thiếu `vie.traineddata` trong `TESSDATA_DIR` |
 | `upload-scan` báo 401 | sai token hoặc tunnel chưa mở |

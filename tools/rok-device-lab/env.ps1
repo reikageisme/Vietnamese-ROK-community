@@ -60,6 +60,42 @@ if ($adb)       { $env:ADB_PATH = $adb }
 if ($tesseract) { $env:TESSERACT_PATH = $tesseract }
 if ($tessdata)  { $env:TESSDATA_DIR = $tessdata }
 
+# App quan ly dien thoai chay adb server rieng, va KHONG phai luc nao cung o
+# cong mac dinh 5037. Chay `adb devices` khong khai cong se dung mot server khac
+# rong khong, roi bao "khong thay may nao" — trong khi app van hien du 16 may.
+#
+# Khong tu chon 5037: dung o day la lam hong theo kieu im lang. Do cac cong dang
+# co tien trinh adb nghe, hoi tung cong, lay cong nao tra ve nhieu may nhat.
+# Chi hoi cong DA co server, vi `adb -P <cong>` vao cong trong se de ra mot
+# server moi khong ai can.
+if ($env:ADB_PATH -and -not $env:ANDROID_ADB_SERVER_PORT) {
+    try {
+        $adbPids = @(Get-Process -Name adb -ErrorAction SilentlyContinue |
+                     Select-Object -ExpandProperty Id)
+        $ports = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
+                   Where-Object { $adbPids -contains $_.OwningProcess } |
+                   Select-Object -ExpandProperty LocalPort -Unique)
+
+        $bestPort = $null
+        $bestCount = -1
+        foreach ($port in $ports) {
+            $count = 0
+            foreach ($line in (& $env:ADB_PATH -P $port devices 2>$null)) {
+                if ($line -match '^\S+\s+device\s*$') { $count += 1 }
+            }
+            if ($count -gt $bestCount) { $bestCount = $count; $bestPort = $port }
+        }
+
+        if ($bestPort -and $bestCount -gt 0) {
+            $env:ANDROID_ADB_SERVER_PORT = "$bestPort"
+            $global:AdbDeviceCount = $bestCount
+        }
+    } catch {
+        # Khong do duoc thi thoi, de adb dung cong mac dinh. Bang tom tat ben
+        # duoi se hien cong dang dung de con biet ma tu dat.
+    }
+}
+
 $global:rok = Join-Path $RokRepo "tools\rok-device-lab\.venv\Scripts\python.exe"
 
 Set-Location $RokRepo
@@ -76,6 +112,12 @@ Write-Host ""
 Write-Host "ROK FAQ · môi trường tool quét" -ForegroundColor Cyan
 Show-Line "repo"      $RokRepo ""
 Show-Line "adb"       $env:ADB_PATH "đặt thủ công: `$env:ADB_PATH = '...\adb.exe'"
+Show-Line "adb server" $(
+    if ($env:ANDROID_ADB_SERVER_PORT) {
+        "cong " + $env:ANDROID_ADB_SERVER_PORT +
+        $(if ($global:AdbDeviceCount) { " (" + $global:AdbDeviceCount + " may)" } else { "" })
+    } else { "" }
+) "khong do duoc cong. Dat tay: `$env:ANDROID_ADB_SERVER_PORT = '5038'"
 Show-Line "tesseract" $env:TESSERACT_PATH "winget install --id UB-Mannheim.TesseractOCR --exact"
 Show-Line "tessdata"  $env:TESSDATA_DIR "xem docs/scan-runbook.md mục 2a"
 Show-Line "python"    $(if (Test-Path $global:rok) { $global:rok } else { "" }) "py -3.11 -m venv tools\rok-device-lab\.venv"
