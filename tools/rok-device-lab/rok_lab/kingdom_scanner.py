@@ -89,6 +89,11 @@ class KingdomScanner:
             ).resolve()
         self.state_path = self.directory / "state.json"
         self.records: list[dict[str, Any]] = []
+        # Khoi tao o day, KHONG phai trong _load_state: _load_state thoat som
+        # khi khong co --resume, nen dat trong do la thuoc tinh chi ton tai o
+        # duong resume. _save_state goi ngay tu nguoi dau tien, va no no ra
+        # AttributeError.
+        self.rank_gaps: list[dict[str, Any]] = []
         self.started_at = utc_now()
         self.attempted_rank = 0
         self._load_state()
@@ -106,7 +111,7 @@ class KingdomScanner:
         ):
             raise AdbError("State resume không khớp serial hoặc kingdom.")
         self.records = list(state.get("records", []))
-        self.rank_gaps: list[dict[str, Any]] = list(state.get("rankGaps", []))
+        self.rank_gaps = list(state.get("rankGaps", []))
         self.started_at = str(state.get("startedAt") or self.started_at)
         self.attempted_rank = int(state.get("attemptedRank") or 0)
 
