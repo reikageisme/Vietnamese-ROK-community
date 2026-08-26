@@ -138,6 +138,12 @@ def build_parser() -> argparse.ArgumentParser:
     kingdom_scan.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
     kingdom_scan.add_argument("--tesseract", help="Đường dẫn tesseract.exe.")
     kingdom_scan.add_argument("--tessdata", help="Thư mục chứa *.traineddata.")
+    kingdom_scan.add_argument(
+        "--scroll-duration-ms",
+        type=int,
+        default=1500,
+        help="Thoi gian vuot. Cang ngan cang de bi fling va nhay mat dong.",
+    )
     kingdom_scan.add_argument("--confirm", action="store_true")
 
     fleet_scan = subcommands.add_parser(
@@ -211,6 +217,16 @@ def _print_scan_progress(event: dict[str, object]) -> None:
             f"[{serial}] {event.get('records')}/{event.get('target')} "
             f"rank={event.get('rank')} {event.get('name') or '(không đọc được tên)'}"
             f"{review}",
+            file=sys.stderr,
+            flush=True,
+        )
+    elif event.get("event") == "rank-gap":
+        # In ngay khi phat hien, mau noi bat. Ho thu hang khong lam ban quet
+        # dung lai — nguoi van hanh phai thay de con quyet dinh quet lai hay
+        # chap nhan.
+        print(
+            f"[{serial}] !! NHAY MAT {event.get('missing')} thu hang: "
+            f"{event.get('afterRank')} -> {event.get('nextRank')} (page {event.get('page')})",
             file=sys.stderr,
             flush=True,
         )
@@ -461,6 +477,7 @@ def main(argv: list[str] | None = None) -> int:
                     scan_name=args.name,
                     formats=formats,
                     evidence=args.evidence,
+                    scroll_duration_ms=args.scroll_duration_ms,
                     resume_directory=args.resume,
                 ),
                 confirmed=args.confirm,
