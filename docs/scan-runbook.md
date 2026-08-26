@@ -59,12 +59,33 @@ tools\rok-device-lab\.venv\Scripts\python.exe -m pip install -e tools\rok-device
 cd $ROK
 $env:ADB_PATH        = "<đường dẫn adb.exe của app quản lý điện thoại — xem mục 2b>"
 $env:TESSERACT_PATH  = "C:\Program Files\Tesseract-OCR\tesseract.exe"
-$env:TESSDATA_DIR    = "$ROK\RoK Tracker\deps\tessdata"
+$env:TESSDATA_DIR    = "C:\Program Files\Tesseract-OCR\tessdata"
 $rok = "tools\rok-device-lab\.venv\Scripts\python.exe"
 ```
 
 `ADB_PATH` phải trỏ tới đúng `adb.exe` mà app quản lý điện thoại đang dùng.
 Dùng một bản adb khác sẽ giết adb server của app đó và rớt hết kết nối.
+
+### 2a. Dữ liệu ngôn ngữ cho Tesseract
+
+Thư mục `RoK Tracker/` nằm trong `.gitignore` (1,4 GB), nên **bản clone trên VM
+200 KHÔNG có nó**. Bản cài Tesseract chỉ kèm `eng.traineddata`. Thiếu `vie` thì
+tên tiếng Việt ra ký tự rác mà không báo lỗi gì.
+
+Tải hai file còn thiếu vào ngay thư mục tessdata của Tesseract (PowerShell
+**Run as Administrator**):
+
+```powershell
+$dest = "C:\Program Files\Tesseract-OCR\tessdata"
+foreach ($lang in "vie","kor") {
+  Invoke-WebRequest -Uri "https://github.com/tesseract-ocr/tessdata/raw/main/$lang.traineddata" `
+    -OutFile "$dest\$lang.traineddata"
+}
+Get-ChildItem $dest -Filter *.traineddata | Select-Object Name, Length
+```
+
+Cần thấy đủ `eng` (~23 MB), `vie` (~7,8 MB), `kor` (~15 MB). Rồi trỏ
+`TESSDATA_DIR` vào đó thay vì vào repo.
 
 ### 2b. Tìm `adb.exe` của app quản lý điện thoại
 
