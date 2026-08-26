@@ -4,6 +4,8 @@ import json
 import math
 import re
 import shutil
+import unicodedata
+from difflib import SequenceMatcher
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -56,8 +58,34 @@ class ScanOptions:
     # So lan lui lai toi da moi trang khi vuot qua tron. Het so lan ma van qua
     # thi de nguyen va ghi vao rankGaps — bo sot con hon lui vo tan.
     scroll_corrections: int = 4
+    # So hang doc moi trang. Hang duoi cung hay bi bam truot xuong dong ke tiep
+    # vi no nam sat mep vung cuon, nen mac dinh bo qua no.
+    rows_per_page: int = 5
+    # Nguong giong nhau giua ten tren danh sach va ten trong ho so. Duoi nguong
+    # nay coi nhu bam nham nguoi.
+    name_match_min: float = 0.55
     scroll_wait: float = 1.6
     resume_directory: Path | None = None
+
+
+def _name_similarity(left: str, right: str) -> float:
+    """Do giong nhau giua hai ten, bo qua khac biet do OCR.
+
+    Ten nguoi choi ROK day ky tu trang tri (chi so tren, chu Han, Cyrillic) nen
+    so bang dau bang la se loai bo gan het. Chuan hoa ve chu thuong khong dau
+    roi do ty le trung, du de phan biet "cung mot nguoi, OCR hoi lech" voi
+    "hai nguoi khac han".
+    """
+    def normalise(value: str) -> str:
+        folded = unicodedata.normalize("NFKD", value.casefold())
+        return "".join(c for c in folded if c.isalnum())
+
+    a, b = normalise(left), normalise(right)
+    if not a or not b:
+        return 0.0
+    if a in b or b in a:
+        return 1.0
+    return SequenceMatcher(None, a, b).ratio()
 
 
 class KingdomScanner:
@@ -406,6 +434,33 @@ class KingdomScanner:
         }
         if hint:
             hint_name = clean_name(str(hint.get("name") or ""))
+
+            # Doi chieu ten doc tu DANH SACH voi ten trong HO SO vua mo.
+            #
+            # Day la cho duy nhat phat hien duoc "bam nham nguoi". Nguoi dung
+            # quan sat: toi hang 6 thi cu bam luon roi xuong tai khoan ben duoi.
+            # Truoc day doan nay chi dung hint de dien vao cho trong, nen bam
+            # nham la ghi thang du lieu nguoi khac vao dung vi tri do — sai ma
+            # khong co dau hieu gi.
+            #
+            # Tha bo mot nguoi con hon ghi nham mot nguoi: bo thi dem duoc, con
+            # ghi nham thi khong ai biet ma sua.
+            if hint_name and record["name"]:
+                if _name_similarity(hint_name, record["name"]) < self.options.name_match_min:
+                    self.last_miss_reason = {
+                        "reason": "ten-khong-khop",
+                        "hintName": hint_name,
+                        "profileName": record["name"],
+                        "shot": str(profile_image),
+                    }
+                    self._cleanup_panels()
+                    return None
+            elif not hint_name:
+                # Khong doc duoc ten tren danh sach thi khong the doi chieu.
+                # Van ghi nhan, nhung phai noi ra la chua kiem duoc.
+                record["needsReview"] = True
+                record["reviewReason"] = "khong-doi-chieu-duoc-ten"
+
             if not record["name"] or (
                 hint_name
                 and record["name"].startswith(hint_name)
@@ -554,7 +609,8 @@ class KingdomScanner:
                             self.progress({"serial": self.serial, "event": "rank-gap", **gap})
                     if page_seen:
                         self.last_screen_rank = max(self.last_screen_rank or 0, max(page_seen))
-                    for row in range(1, 7):
+                    rows = max(1, min(6, self.options.rows_per_page))
+                    for row in range(1, rows + 1):
                         if len(self.records) >= self.options.amount:
                             break
                         record = self._scan_governor(row, hints[row - 1])
@@ -643,6 +699,9 @@ class KingdomScanner:
                     "directory": str(self.directory),
                     "outputs": outputs,
                     "missedRows": len(self.missed_rows),
+                    "mismatchRejected": sum(
+                        1 for m in self.missed_rows if m.get("reason") == "ten-khong-khop"
+                    ),
                     "rankGaps": self.rank_gaps,
                     "ranksMissing": sum(g["missing"] for g in self.rank_gaps),
                     "attempts": self.attempted_rank,

@@ -150,6 +150,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.35,
         help="Phan quang duong vuot so voi profile. Nho hon = chong lan nhieu hon.",
     )
+    kingdom_scan.add_argument(
+        "--rows-per-page",
+        type=int,
+        default=5,
+        help="So hang doc moi trang. Hang thu 6 hay bam truot nen mac dinh bo.",
+    )
     kingdom_scan.add_argument("--confirm", action="store_true")
 
     fleet_scan = subcommands.add_parser(
@@ -246,7 +252,8 @@ def _print_scan_progress(event: dict[str, object]) -> None:
         # chap nhan.
         print(
             f"[{serial}] !! TRUOT hang {event.get('row')} trang {event.get('page')} "
-            f"(luot {event.get('attempt')}) - man hinh luc do: "
+            f"(luot {event.get('attempt')}) - "
+            f"{'BAM NHAM NGUOI: danh sach=' + str(event.get('hintName')) + ' ho so=' + str(event.get('profileName')) if event.get('reason') == 'ten-khong-khop' else 'man hinh luc do: '}"
             f"{event.get('screen') or 'khong nhan ra'}"
             f"{'' if event.get('distance') is None else ' (lech ' + str(event.get('distance')) + ' bit)'}",
             file=sys.stderr,
@@ -501,6 +508,7 @@ def main(argv: list[str] | None = None) -> int:
                     evidence=args.evidence,
                     scroll_duration_ms=args.scroll_duration_ms,
                     scroll_fraction=args.scroll_fraction,
+                    rows_per_page=args.rows_per_page,
                     resume_directory=args.resume,
                 ),
                 confirmed=args.confirm,
