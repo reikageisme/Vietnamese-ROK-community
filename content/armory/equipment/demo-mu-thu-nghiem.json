@@ -1,36 +1,58 @@
 {
-  "_ghi_chu": "DỮ LIỆU MẪU — số bịa để dựng giao diện, KHÔNG phải số trong game. Xoá cả ba file demo-*.json khi đã có số thật.",
+  "_ghi_chu": "DỮ LIỆU MẪU — tên món lấy từ ảnh chụp trong game, nhưng MỌI CON SỐ là số bịa để dựng giao diện. Thay bằng số thật rồi đổi verification.",
   "slug": "demo-mu-thu-nghiem",
-  "nameVi": "Mũ Thử Nghiệm",
-  "nameEn": "Test Helm",
+  "nameVi": "Mũ Giáp Của Kẻ Chinh Phạt",
+  "nameEn": "Conqueror's Helm",
   "slot": "HELMET",
   "rarity": "LEGENDARY",
-  "equipmentLevel": 50,
-  "seasonLimited": true,
+  "equipmentLevel": 45,
+  "seasonLimited": false,
   "patch": "2026.08",
   "maxTier": 5,
   "baseTier": 1,
+  "art": "5_15",
   "baseStats": [
-    { "statKey": "cav_atk", "base": 10, "perTier": 3.5 },
-    { "statKey": "march_speed", "base": 4, "perTier": 1 }
+    {
+      "statKey": "inf_atk",
+      "base": 10,
+      "perTier": 3.5
+    }
   ],
   "iconic": [
-    { "level": 1, "statKey": "cav_atk_flat", "base": 3, "perTier": 1 },
-    { "level": 2, "statKey": "enemy_def_ignore", "base": 1, "perTier": 0.5 },
-    { "level": 3, "statKey": "skill_damage", "base": 2, "perTier": 0.5 },
-    { "level": 4, "statKey": "rage_regen", "base": 3, "perTier": 1 },
+    {
+      "level": 1,
+      "statKey": "inf_def_flat",
+      "base": 3,
+      "perTier": 1
+    },
+    {
+      "level": 2,
+      "statKey": "enemy_def_ignore",
+      "base": 1,
+      "perTier": 0.5
+    },
+    {
+      "level": 3,
+      "statKey": "skill_damage",
+      "base": 2,
+      "perTier": 0.5
+    },
+    {
+      "level": 4,
+      "statKey": "rage_regen",
+      "base": 3,
+      "perTier": 1
+    },
     {
       "level": 5,
-      "nameVi": "Xung Kích",
-      "nameEn": "Charge",
-      "descriptionVi": "Khi bắt đầu trận đánh, đội quân nhận tăng cường sát thương kỹ năng trong vài giây đầu.",
+      "nameVi": "Áp Đảo",
+      "descriptionVi": "Khi tung kỹ năng, có xác suất gây thêm một đợt sát thương lên đội quân mục tiêu.",
       "conditional": true
     }
   ],
   "specialTalent": {
-    "troopType": "cavalry",
-    "bonusPercent": 30,
-    "descriptionVi": "Khi được trang bị bởi một chỉ huy có tài năng Kỵ binh, thuộc tính trang bị của món này tăng 30%."
+    "troopType": "infantry",
+    "bonusPercent": 30
   },
   "verification": "UNVERIFIED"
 }

@@ -87,6 +87,8 @@ for (const [slot, n] of [["helmet",15],["chest",28],["weapon",5],["gloves",47],
 }
 for (const n of [100,101,102,103,104,105]) MAP.push([`img_icon_Armament_${n}.png`, `armament/${n}.png`]);
 for (let n = 1; n <= 6; n += 1) MAP.push([`img_ItemTemplatFormationIcon${n}.png`, `formation/${n}.png`]);
+// Hinh khoi doi hinh that (cham vang), khac voi bieu tuong nut nho o tren.
+for (let n = 1; n <= 6; n += 1) MAP.push([`img_FormationSettingIcon_0${n}.png`, `formation/shape-${n}.png`]);
 
 const flags = new Set(process.argv.slice(2));
 if (flags.has("--commanders")) {

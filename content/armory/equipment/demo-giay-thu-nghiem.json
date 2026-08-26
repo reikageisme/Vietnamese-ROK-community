@@ -1,57 +1,57 @@
 {
   "_ghi_chu": "DỮ LIỆU MẪU — tên món lấy từ ảnh chụp trong game, nhưng MỌI CON SỐ là số bịa để dựng giao diện. Thay bằng số thật rồi đổi verification.",
-  "slug": "demo-giap-thu-nghiem",
-  "nameVi": "Áo Choàng Hy Vọng",
-  "nameEn": "Cloak of Hope",
-  "slot": "CHEST",
+  "slug": "demo-giay-thu-nghiem",
+  "nameVi": "Đêm Vĩnh Cửu",
+  "nameEn": "Eternal Night",
+  "slot": "BOOTS",
   "rarity": "LEGENDARY",
   "equipmentLevel": 45,
   "seasonLimited": false,
   "patch": "2026.08",
   "maxTier": 5,
   "baseTier": 1,
-  "art": "5_28",
+  "art": "5_60",
   "baseStats": [
     {
-      "statKey": "inf_def",
-      "base": 12,
-      "perTier": 4
+      "statKey": "march_speed",
+      "base": 6,
+      "perTier": 2
     },
     {
-      "statKey": "inf_hp",
-      "base": 8,
-      "perTier": 3
+      "statKey": "inf_def",
+      "base": 5,
+      "perTier": 2
     }
   ],
   "iconic": [
     {
       "level": 1,
-      "statKey": "inf_def_flat",
-      "base": 3,
-      "perTier": 1
+      "statKey": "damage_reduce",
+      "base": 2,
+      "perTier": 0.5
     },
     {
       "level": 2,
+      "statKey": "inf_hp",
+      "base": 2,
+      "perTier": 0.5
+    },
+    {
+      "level": 3,
+      "statKey": "march_speed",
+      "base": 2,
+      "perTier": 0.5
+    },
+    {
+      "level": 4,
       "statKey": "enemy_atk_ignore",
       "base": 1,
       "perTier": 0.5
     },
     {
-      "level": 3,
-      "statKey": "march_capacity",
-      "base": 500,
-      "perTier": 150
-    },
-    {
-      "level": 4,
-      "statKey": "damage_vs_rally_garrison",
-      "base": 1,
-      "perTier": 0.5
-    },
-    {
       "level": 5,
-      "nameVi": "Đòn Trả Thù",
-      "descriptionVi": "Mỗi khi đội quân bị trúng đòn tấn công cơ bản, có xác suất nhận tăng cường sát thương phản công trong vài giây.",
+      "nameVi": "Bóng Đêm",
+      "descriptionVi": "Trong vài giây đầu trận, đội quân nhận giảm sát thương phải chịu.",
       "conditional": true
     }
   ],

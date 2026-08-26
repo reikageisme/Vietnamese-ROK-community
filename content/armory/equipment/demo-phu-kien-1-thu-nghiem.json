@@ -1,40 +1,40 @@
 {
   "_ghi_chu": "DỮ LIỆU MẪU — tên món lấy từ ảnh chụp trong game, nhưng MỌI CON SỐ là số bịa để dựng giao diện. Thay bằng số thật rồi đổi verification.",
-  "slug": "demo-vu-khi-thu-nghiem",
-  "nameVi": "Búa Nhật Nguyệt",
-  "nameEn": "Sun and Moon Hammer",
-  "slot": "WEAPON",
+  "slug": "demo-phu-kien-1-thu-nghiem",
+  "nameVi": "Nhẫn Tận Thế",
+  "nameEn": "Doomsday Ring",
+  "slot": "ACCESSORY",
   "rarity": "LEGENDARY",
   "equipmentLevel": 45,
   "seasonLimited": false,
   "patch": "2026.08",
   "maxTier": 5,
   "baseTier": 1,
-  "art": "5_5",
+  "art": "5_39",
   "baseStats": [
     {
-      "statKey": "inf_atk",
-      "base": 11,
-      "perTier": 4
+      "statKey": "skill_damage",
+      "base": 7,
+      "perTier": 2.5
     }
   ],
   "iconic": [
     {
       "level": 1,
-      "statKey": "normal_damage",
+      "statKey": "rage_regen",
       "base": 2,
       "perTier": 0.5
     },
     {
       "level": 2,
-      "statKey": "skill_damage",
+      "statKey": "normal_damage",
       "base": 2,
       "perTier": 0.5
     },
     {
       "level": 3,
-      "statKey": "counter_damage",
-      "base": 2,
+      "statKey": "atk",
+      "base": 1,
       "perTier": 0.5
     },
     {
@@ -45,14 +45,11 @@
     },
     {
       "level": 5,
-      "nameVi": "Nhật Thực",
-      "descriptionVi": "Đòn tấn công cơ bản có xác suất làm giảm phòng thủ đội quân đối phương trong vài giây.",
+      "nameVi": "Tận Thế",
+      "descriptionVi": "Kỹ năng chủ động có xác suất hồi thêm nộ cho chỉ huy.",
       "conditional": true
     }
   ],
-  "specialTalent": {
-    "troopType": "infantry",
-    "bonusPercent": 30
-  },
+  "specialTalent": null,
   "verification": "UNVERIFIED"
 }

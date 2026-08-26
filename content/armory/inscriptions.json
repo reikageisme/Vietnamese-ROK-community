@@ -1,0 +1,54 @@
+{
+  "_ghi_chu": "DỮ LIỆU MẪU — tên món lấy từ ảnh chụp trong game, nhưng MỌI CON SỐ là số bịa để dựng giao diện. Thay bằng số thật rồi đổi verification.",
+  "_canh_bao_anh": "Biểu tượng đang mượn tạm img_icon_Armament_*. Thư mục 'minh văn' trong game-assets chứa đúng bộ ảnh đó, nhưng trong game chúng thuộc bảng Chọn Vũ Trang. Cần xác nhận ảnh minh văn thật.",
+  "inscriptions": [
+    {
+      "slug": "ke-lat-do",
+      "nameVi": "Kẻ Lật Đổ",
+      "art": 1,
+      "stats": {
+        "skill_damage": 3
+      }
+    },
+    {
+      "slug": "ke-tap-kich",
+      "nameVi": "Kẻ Tập Kích",
+      "art": 2,
+      "stats": {
+        "normal_damage": 3
+      }
+    },
+    {
+      "slug": "pha-song",
+      "nameVi": "Phá Sóng",
+      "art": 3,
+      "stats": {
+        "enemy_def_ignore": 2
+      }
+    },
+    {
+      "slug": "phan-cong",
+      "nameVi": "Phản Công",
+      "art": 4,
+      "stats": {
+        "counter_damage": 3
+      }
+    },
+    {
+      "slug": "chien-luy",
+      "nameVi": "Chiến Lũy",
+      "art": 5,
+      "stats": {
+        "damage_reduce": 2
+      }
+    },
+    {
+      "slug": "kien-co",
+      "nameVi": "Kiên Cố",
+      "art": 6,
+      "stats": {
+        "inf_def": 3
+      }
+    }
+  ]
+}

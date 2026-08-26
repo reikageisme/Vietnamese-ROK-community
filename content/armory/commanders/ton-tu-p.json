@@ -1,0 +1,135 @@
+{
+  "_ghi_chu": "Tên chỉ huy, tên kỹ năng và id ảnh là THẬT — đọc từ ảnh chụp panel và từ thư mục 'tôn tử P' đội đã phân loại. MỌI CON SỐ trong values là số bịa để dựng giao diện.",
+  "slug": "ton-tu-p",
+  "nameVi": "Tôn Tử (P)",
+  "nameEn": "Sun Tzu (Prime)",
+  "art": "182",
+  "rarity": "LEGENDARY",
+  "troop": "infantry",
+  "troops": [
+    "infantry",
+    "leadership"
+  ],
+  "roles": [
+    "conquest",
+    "versatile"
+  ],
+  "maxStars": 6,
+  "stats": {
+    "inf_atk": 8,
+    "inf_def": 6,
+    "skill_damage": 5,
+    "march_speed": 3
+  },
+  "verification": "UNVERIFIED",
+  "skills": [
+    {
+      "order": 1,
+      "name": "Binh Thư Mưu Lược",
+      "kind": "Chủ động",
+      "art": "598",
+      "text": "Gây {1} sát thương kỹ năng lên mục tiêu và giảm {2} sát thương quân địch gây ra trong 3 giây.",
+      "values": [
+        [
+          "300",
+          "350",
+          "400",
+          "450",
+          "550"
+        ],
+        [
+          "10%",
+          "13%",
+          "16%",
+          "20%",
+          "25%"
+        ]
+      ]
+    },
+    {
+      "order": 2,
+      "name": "Chiến Để Cầu Hòa",
+      "kind": "Bị động",
+      "art": "599",
+      "text": "Tăng {1} phòng thủ cho đội quân khi đang phòng thủ công trình.",
+      "values": [
+        [
+          "5%",
+          "6,5%",
+          "8%",
+          "10%",
+          "12%"
+        ]
+      ]
+    },
+    {
+      "order": 3,
+      "name": "Tấn Công Bất Ngờ",
+      "kind": "Bị động",
+      "art": "600",
+      "text": "Đòn tấn công thường có xác suất {1} gây thêm {2} sát thương diện rộng.",
+      "values": [
+        [
+          "10%",
+          "13%",
+          "16%",
+          "20%",
+          "25%"
+        ],
+        [
+          "150",
+          "180",
+          "220",
+          "270",
+          "340"
+        ]
+      ]
+    },
+    {
+      "order": 4,
+      "name": "Vạn Kế Quân Dụ",
+      "kind": "Bị động",
+      "art": "601",
+      "text": "Thưởng {1} tốc độ hành quân Bộ binh và {2} sức chứa đơn vị.",
+      "values": [
+        [
+          "10%",
+          "13%",
+          "16%",
+          "20%",
+          "25%"
+        ],
+        [
+          "200",
+          "260",
+          "330",
+          "410",
+          "500"
+        ]
+      ]
+    },
+    {
+      "order": 5,
+      "name": "Tinh Thông",
+      "kind": "Tinh thông",
+      "art": "wake-114",
+      "text": "Tăng {1} sát thương kỹ năng khi đội hình toàn Bộ binh, và {2} giảm sát thương nhận khi đang phòng thủ.",
+      "values": [
+        [
+          "3%",
+          "5%",
+          "8%",
+          "12%",
+          "15%"
+        ],
+        [
+          "2%",
+          "3%",
+          "5%",
+          "7%",
+          "10%"
+        ]
+      ]
+    }
+  ]
+}

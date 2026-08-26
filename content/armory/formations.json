@@ -1,0 +1,65 @@
+{
+  "_ghi_chu": "DỮ LIỆU MẪU — tên món lấy từ ảnh chụp trong game, nhưng MỌI CON SỐ là số bịa để dựng giao diện. Thay bằng số thật rồi đổi verification.",
+  "formations": [
+    {
+      "slug": "gong-kim",
+      "nameVi": "Gọng Kìm",
+      "troop": "infantry",
+      "art": 1,
+      "stats": {
+        "inf_def": 4,
+        "damage_reduce": 2
+      }
+    },
+    {
+      "slug": "mui-nhon",
+      "nameVi": "Mũi Nhọn",
+      "troop": "cavalry",
+      "art": 2,
+      "stats": {
+        "cav_atk": 4,
+        "march_speed": 3
+      }
+    },
+    {
+      "slug": "phuong-tran",
+      "nameVi": "Phương Trận",
+      "troop": "infantry",
+      "art": 3,
+      "stats": {
+        "inf_hp": 4,
+        "def": 2
+      }
+    },
+    {
+      "slug": "tan-cong",
+      "nameVi": "Tán Công",
+      "troop": "archer",
+      "art": 4,
+      "stats": {
+        "arc_atk": 4,
+        "skill_damage": 2
+      }
+    },
+    {
+      "slug": "vay-canh",
+      "nameVi": "Vây Cánh",
+      "troop": "integration",
+      "art": 5,
+      "stats": {
+        "atk": 3,
+        "hp": 2
+      }
+    },
+    {
+      "slug": "cong-thanh",
+      "nameVi": "Công Thành",
+      "troop": "siege",
+      "art": 6,
+      "stats": {
+        "sie_atk": 4,
+        "damage_vs_rally_garrison": 2
+      }
+    }
+  ]
+}

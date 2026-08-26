@@ -1,0 +1,56 @@
+{
+  "_ghi_chu": "DỮ LIỆU MẪU — tên món lấy từ ảnh chụp trong game, nhưng MỌI CON SỐ là số bịa để dựng giao diện. Thay bằng số thật rồi đổi verification.",
+  "slug": "demo-phu-kien-2-thu-nghiem",
+  "nameVi": "Vòng Cổ Bình Minh",
+  "nameEn": "Dawn Pendant",
+  "slot": "ACCESSORY",
+  "rarity": "LEGENDARY",
+  "equipmentLevel": 45,
+  "seasonLimited": false,
+  "patch": "2026.08",
+  "maxTier": 5,
+  "baseTier": 1,
+  "art": "5_40",
+  "baseStats": [
+    {
+      "statKey": "hp",
+      "base": 5,
+      "perTier": 2
+    }
+  ],
+  "iconic": [
+    {
+      "level": 1,
+      "statKey": "damage_reduce",
+      "base": 2,
+      "perTier": 0.5
+    },
+    {
+      "level": 2,
+      "statKey": "healing_speed",
+      "base": 3,
+      "perTier": 1
+    },
+    {
+      "level": 3,
+      "statKey": "def",
+      "base": 1,
+      "perTier": 0.5
+    },
+    {
+      "level": 4,
+      "statKey": "counter_damage",
+      "base": 1,
+      "perTier": 0.5
+    },
+    {
+      "level": 5,
+      "nameVi": "Bình Minh",
+      "descriptionVi": "Sau khi trận đánh kết thúc, một phần quân bị thương được hồi phục nhanh hơn.",
+      "conditional": true
+    }
+  ],
+  "specialTalent": null,
+  "verification": "UNVERIFIED",
+  "_ghi_chu_o": "Game co HAI o phu kien nhung dung chung mot loai o. Khong them ACCESSORY_2 vao enum Prisma chi de bay ra hai vi tri tren giao dien."
+}
