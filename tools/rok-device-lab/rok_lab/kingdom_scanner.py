@@ -105,7 +105,9 @@ class KingdomScanner:
         # khi khong co --resume, nen dat trong do la thuoc tinh chi ton tai o
         # duong resume. _save_state goi ngay tu nguoi dau tien, va no no ra
         # AttributeError.
-        self.rank_gaps: list[dict[str, Any]] = []
+        # Nhung hang bam vao ma khong mo duoc ho so. Day moi la thuoc do that
+        # cua do phu: "30 ban ghi" khong noi gi neu phai bam 45 lan moi duoc 30.
+        self.missed_rows: list[dict[str, Any]] = []
         self.started_at = utc_now()
         self.attempted_rank = 0
         self._load_state()
@@ -123,7 +125,7 @@ class KingdomScanner:
         ):
             raise AdbError("State resume không khớp serial hoặc kingdom.")
         self.records = list(state.get("records", []))
-        self.rank_gaps = list(state.get("rankGaps", []))
+        self.missed_rows = list(state.get("missedRows", []))
         self.started_at = str(state.get("startedAt") or self.started_at)
         self.attempted_rank = int(state.get("attemptedRank") or 0)
 
@@ -142,7 +144,7 @@ class KingdomScanner:
             # Ho thu hang phai song sot qua --resume. Khong luu thi chay tiep
             # mot lan la moi dau vet bi nhay qua bien mat, va ban quet trong
             # nhu mot ban quet lien mach.
-            "rankGaps": self.rank_gaps,
+            "missedRows": self.missed_rows,
         }
         if error:
             state["error"] = error
@@ -422,28 +424,29 @@ class KingdomScanner:
                     if record.get("governorId")
                 }
                 stagnant_pages = 0
-                # Thu hang cao nhat da nhin thay. Dung de phat hien ho: neu
-                # trang sau bat dau tu mot thu hang xa hon lien ke, co nguoi da
-                # bi nhay qua. Khong bat duoc thi ban quet van bao "300 nguoi"
-                # trong khi thuc te la 300 nguoi rai rac trong 450 thu hang —
-                # va nhin vao ket qua thi khong the biet.
-                last_rank = max(
-                    (r.get("rank") for r in self.records if isinstance(r.get("rank"), int)),
-                    default=None,
-                )
                 max_pages = max(4, math.ceil(self.options.amount / 4) + 8)
                 for page in range(max_pages):
                     hints = self._read_ranking_hints(page + 1)
                     added = 0
-                    page_ranks: list[int] = []
                     for row in range(1, 7):
                         if len(self.records) >= self.options.amount:
                             break
                         record = self._scan_governor(row, hints[row - 1])
                         if record is None:
+                            # Bam vao hang nay khong mo duoc ho so. Bo dem
+                            # attempted_rank VAN da tang, nen neu khong ghi lai
+                            # o day thi nguoi bi bo qua bien mat khong dau vet:
+                            # ket qua chi thay "30 ban ghi" va khong biet da
+                            # phai bam bao nhieu lan moi duoc 30.
+                            miss = {
+                                "page": page + 1,
+                                "row": row,
+                                "attempt": self.attempted_rank,
+                                "hintName": (hints[row - 1] or {}).get("name"),
+                            }
+                            self.missed_rows.append(miss)
+                            self.progress({"serial": self.serial, "event": "row-miss", **miss})
                             continue
-                        if isinstance(record.get("rank"), int):
-                            page_ranks.append(record["rank"])
                         governor_id = str(record.get("governorId") or "")
                         if governor_id and governor_id not in known_ids:
                             known_ids.add(governor_id)
@@ -461,19 +464,6 @@ class KingdomScanner:
                                     "needsReview": record.get("needsReview"),
                                 }
                             )
-                    if page_ranks:
-                        top = min(page_ranks)
-                        if last_rank is not None and top > last_rank + 1:
-                            gap = {
-                                "page": page + 1,
-                                "afterRank": last_rank,
-                                "nextRank": top,
-                                "missing": top - last_rank - 1,
-                            }
-                            self.rank_gaps.append(gap)
-                            self.progress({"serial": self.serial, "event": "rank-gap", **gap})
-                        last_rank = max(last_rank or 0, max(page_ranks))
-
                     if len(self.records) >= self.options.amount:
                         break
                     stagnant_pages = stagnant_pages + 1 if added == 0 else 0
@@ -524,8 +514,9 @@ class KingdomScanner:
                     ),
                     "directory": str(self.directory),
                     "outputs": outputs,
-                    "rankGaps": self.rank_gaps,
-                    "ranksMissing": sum(gap["missing"] for gap in self.rank_gaps),
+                    "missedRows": len(self.missed_rows),
+                    "attempts": self.attempted_rank,
+                    "missedDetail": self.missed_rows,
                 }
             except KeyboardInterrupt:
                 self._cleanup_panels()
