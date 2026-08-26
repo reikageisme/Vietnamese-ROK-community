@@ -24,14 +24,31 @@ def probe_rankings_menu(
         fingerprints = profile.screens.get("rankings-menu", ())
         matched, comparisons = match_fingerprints(screenshot, fingerprints)
         package_ok = foreground.startswith(f"{profile.game_package}/")
+
+        # Probe chi kiem man RANKINGS, nhung dien thoai co the dang o mot man
+        # khac ma profile VAN nhan ra. Bao "screen: unknown" trong truong hop do
+        # la noi sai: no khien nguoi van hanh tuong profile lech, trong khi thuc
+        # ra chi can lui lai mot man — hoac chay thang kingdom-scan, vi lenh do
+        # nhan ca trang Individual Power Rankings.
+        recognised = "rankings-menu" if matched else None
+        if recognised is None:
+            for name, prints in profile.screens.items():
+                if name == "rankings-menu" or not prints:
+                    continue
+                other_matched, _ = match_fingerprints(screenshot, prints)
+                if other_matched:
+                    recognised = name
+                    break
+
         result = {
             "ok": package_ok and matched,
             "serial": serial,
             "model": device.model,
             "foregroundActivity": foreground,
             "gamePackageMatched": package_ok,
-            "screen": "rankings-menu" if matched else "unknown",
+            "screen": recognised or "unknown",
             "screenMatched": matched,
+            "recognisedScreen": recognised,
             "resolution": list(size),
             "fingerprints": comparisons,
             "runDirectory": str(run.path.resolve()),
