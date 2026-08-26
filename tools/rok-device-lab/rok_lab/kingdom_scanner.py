@@ -40,6 +40,18 @@ class ScanOptions:
     # khong xac dinh. Mot lan chay nhay 6 dong, lan khac nhay 13 dong. Cham lai
     # de thanh keo chu khong phai bung.
     scroll_duration_ms: int = 1500
+    # Phan quang duong vuot so voi profile. Profile vuot 0.875 -> 0.32 = 4,96
+    # dong, dung bang mot trang tru mot dong chong lan.
+    #
+    # Nhung ROK la game Unity, danh sach cua no co quan tinh rieng va `input
+    # swipe` luon truyen van toc luc nhac tay. 599 px trong 1500 ms van la 400
+    # px/giay, trong khi nguong fling cua Android chi khoang 130 px/giay. Vuot
+    # cham khong bo duoc quan tinh — chi vuot NGAN moi bo duoc hau qua cua no.
+    #
+    # 0.5 = di ~2,5 dong moi lan. Doc 6 dong nen con du 3,5 dong dem: quan tinh
+    # co nhan doi quang duong thi van chong lan, khong ho. Doi lai la nhieu
+    # trang hon va cham hon. Cham ma du con hon nhanh ma thung.
+    scroll_fraction: float = 0.5
     scroll_wait: float = 1.6
     resume_directory: Path | None = None
 
@@ -386,11 +398,15 @@ class KingdomScanner:
         return record
 
     def _scroll(self) -> None:
+        start = self.profile.point("ranking.scroll-start", self.size)
+        end = self.profile.point("ranking.scroll-end", self.size)
+        fraction = max(0.1, min(1.0, self.options.scroll_fraction))
+        shortened = (
+            start[0] + round((end[0] - start[0]) * fraction),
+            start[1] + round((end[1] - start[1]) * fraction),
+        )
         self.client.swipe(
-            self.serial,
-            self.profile.point("ranking.scroll-start", self.size),
-            self.profile.point("ranking.scroll-end", self.size),
-            self.options.scroll_duration_ms,
+            self.serial, start, shortened, self.options.scroll_duration_ms
         )
         time.sleep(self.options.scroll_wait)
 

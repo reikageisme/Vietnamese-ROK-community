@@ -144,6 +144,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=1500,
         help="Thoi gian vuot. Cang ngan cang de bi fling va nhay mat dong.",
     )
+    kingdom_scan.add_argument(
+        "--scroll-fraction",
+        type=float,
+        default=0.5,
+        help="Phan quang duong vuot so voi profile. Nho hon = chong lan nhieu hon.",
+    )
     kingdom_scan.add_argument("--confirm", action="store_true")
 
     fleet_scan = subcommands.add_parser(
@@ -478,6 +484,7 @@ def main(argv: list[str] | None = None) -> int:
                     formats=formats,
                     evidence=args.evidence,
                     scroll_duration_ms=args.scroll_duration_ms,
+                    scroll_fraction=args.scroll_fraction,
                     resume_directory=args.resume,
                 ),
                 confirmed=args.confirm,
