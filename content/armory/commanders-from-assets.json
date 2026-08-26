@@ -1,0 +1,2213 @@
+{
+  "_ghi_chu": "Sinh ra từ scripts/scan-commander-folders.mjs — đừng sửa tay, chạy lại script.",
+  "_con_thieu": "Trường `art` là id ảnh chân dung; null nghĩa là thư mục chưa có ảnh chân dung bên trong.",
+  "commanders": [
+    {
+      "slug": "bao-ve-thanh-pho",
+      "name": "Bảo Vệ Thành Phố",
+      "rarity": "ADVANCED",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        6,
+        16,
+        17,
+        23
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "chi-huy-bach-binh-doan",
+      "name": "Chỉ Huy Bách Binh Đoàn",
+      "rarity": "ADVANCED",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        3,
+        6,
+        9,
+        24
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "nu-xa-thu",
+      "name": "Nữ Xạ Thủ",
+      "rarity": "ADVANCED",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        19,
+        22,
+        39,
+        48
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "thuong-si-giet-rong",
+      "name": "Thương Sĩ Giết Rồng",
+      "rarity": "ADVANCED",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        13,
+        14,
+        16,
+        21
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "constance",
+      "name": "Constance",
+      "rarity": "ELITE",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        55,
+        70,
+        73,
+        74
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "gaius-marius",
+      "name": "Gaius Marius",
+      "rarity": "ELITE",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        7,
+        69,
+        73,
+        76
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "lancelot",
+      "name": "Lancelot",
+      "rarity": "ELITE",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        1,
+        12,
+        59,
+        60
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "sarka",
+      "name": "Sarka",
+      "rarity": "ELITE",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        3,
+        9,
+        57,
+        73
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "tomoe-gozen",
+      "name": "Tomoe Gozen",
+      "rarity": "ELITE",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        20,
+        56,
+        64,
+        65
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "baibars",
+      "name": "Baibars",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        79,
+        87,
+        88,
+        89
+      ],
+      "wakeupArt": [
+        20
+      ]
+    },
+    {
+      "slug": "belisarius",
+      "name": "Belisarius",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        78,
+        84,
+        85,
+        86
+      ],
+      "wakeupArt": [
+        24
+      ]
+    },
+    {
+      "slug": "bjorn-ironside",
+      "name": "Bjorn Ironside",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        239,
+        240,
+        241,
+        242
+      ],
+      "wakeupArt": [
+        56
+      ]
+    },
+    {
+      "slug": "boudica",
+      "name": "Boudica",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        27,
+        48,
+        51,
+        63
+      ],
+      "wakeupArt": [
+        2
+      ]
+    },
+    {
+      "slug": "catherine-medici",
+      "name": "Catherine Medici",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        516,
+        517,
+        518,
+        519
+      ],
+      "wakeupArt": [
+        94
+      ]
+    },
+    {
+      "slug": "dieu-thuyen",
+      "name": "Điêu Thuyền",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        206,
+        207,
+        208,
+        209
+      ],
+      "wakeupArt": [
+        50
+      ]
+    },
+    {
+      "slug": "eulji-mundeok",
+      "name": "Eulji Mundeok",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        10,
+        16,
+        28,
+        53
+      ],
+      "wakeupArt": [
+        4
+      ]
+    },
+    {
+      "slug": "hermann",
+      "name": "Hermann",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        11,
+        19,
+        32,
+        52
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "imhotep",
+      "name": "Imhotep",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        328,
+        329,
+        330,
+        331
+      ],
+      "wakeupArt": [
+        70
+      ]
+    },
+    {
+      "slug": "joan-arc",
+      "name": "Joan Arc",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        5,
+        9,
+        29,
+        62
+      ],
+      "wakeupArt": [
+        1
+      ]
+    },
+    {
+      "slug": "keira",
+      "name": "Keira",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        48,
+        106,
+        138,
+        140,
+        142
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "kusunoki-masashige",
+      "name": "Kusunoki Masashige",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        1,
+        11,
+        19,
+        31
+      ],
+      "wakeupArt": [
+        5
+      ]
+    },
+    {
+      "slug": "lohar",
+      "name": "Lohar",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        48,
+        66,
+        67,
+        68
+      ],
+      "wakeupArt": [
+        9
+      ]
+    },
+    {
+      "slug": "matilda-flabders",
+      "name": "Matilda Flabders",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        71,
+        191,
+        192,
+        193
+      ],
+      "wakeupArt": [
+        19
+      ]
+    },
+    {
+      "slug": "narses",
+      "name": "Narses",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        520,
+        521,
+        522,
+        523
+      ],
+      "wakeupArt": [
+        95
+      ]
+    },
+    {
+      "slug": "osman-i",
+      "name": "Osman I",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        80,
+        90,
+        91,
+        92
+      ],
+      "wakeupArt": [
+        21
+      ]
+    },
+    {
+      "slug": "pelagius",
+      "name": "Pelagius",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        7,
+        11,
+        13,
+        26
+      ],
+      "wakeupArt": [
+        3
+      ]
+    },
+    {
+      "slug": "pericles",
+      "name": "Pericles",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        376,
+        377,
+        378,
+        379
+      ],
+      "wakeupArt": [
+        82
+      ]
+    },
+    {
+      "slug": "queen-tamar",
+      "name": "Queen Tamar",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        259,
+        260,
+        261,
+        262
+      ],
+      "wakeupArt": [
+        61
+      ]
+    },
+    {
+      "slug": "scipio-africanus",
+      "name": "Scipio Africanus",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        3,
+        17,
+        30,
+        45
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "ton-tu",
+      "name": "Tôn Tử",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        10,
+        16,
+        33,
+        47
+      ],
+      "wakeupArt": [
+        7
+      ]
+    },
+    {
+      "slug": "wak-chnil-ajaw",
+      "name": "Wak Chnil Ajaw",
+      "rarity": "EPIC",
+      "troop": null,
+      "art": null,
+      "skillArt": [
+        524,
+        525,
+        526,
+        527
+      ],
+      "wakeupArt": [
+        96
+      ]
+    },
+    {
+      "slug": "alp-arslan",
+      "name": "Alp Arslan",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        609,
+        610,
+        611,
+        612
+      ],
+      "wakeupArt": [
+        116
+      ]
+    },
+    {
+      "slug": "amanitore",
+      "name": "Amanitore",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        251,
+        252,
+        253,
+        254
+      ],
+      "wakeupArt": [
+        59
+      ]
+    },
+    {
+      "slug": "artemisia-i",
+      "name": "Artemisia I",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        167,
+        168,
+        169,
+        170
+      ],
+      "wakeupArt": [
+        41
+      ]
+    },
+    {
+      "slug": "athurbanipal",
+      "name": "Athurbanipal",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        404,
+        405,
+        406,
+        407
+      ],
+      "wakeupArt": [
+        88
+      ]
+    },
+    {
+      "slug": "boudica-2",
+      "name": "Boudica",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        320,
+        321,
+        322,
+        323
+      ],
+      "wakeupArt": [
+        68
+      ]
+    },
+    {
+      "slug": "choi-young",
+      "name": "Choi Young",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        471,
+        472,
+        473,
+        474,
+        475
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "cyrus",
+      "name": "Cyrus",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        210,
+        211,
+        212,
+        213
+      ],
+      "wakeupArt": [
+        51
+      ]
+    },
+    {
+      "slug": "dido",
+      "name": "Dido",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        364,
+        365,
+        366,
+        367
+      ],
+      "wakeupArt": [
+        79
+      ]
+    },
+    {
+      "slug": "edward",
+      "name": "Edward",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        118,
+        119,
+        120,
+        121
+      ],
+      "wakeupArt": [
+        30
+      ]
+    },
+    {
+      "slug": "elcid",
+      "name": "Elcid",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        5,
+        16,
+        34,
+        49
+      ],
+      "wakeupArt": [
+        17
+      ]
+    },
+    {
+      "slug": "gia-cat-luong",
+      "name": "Gia Cát Lượng",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        368,
+        369,
+        370,
+        371
+      ],
+      "wakeupArt": [
+        80
+      ]
+    },
+    {
+      "slug": "gilgamesh",
+      "name": "Gilgamesh",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        255,
+        256,
+        257,
+        258
+      ],
+      "wakeupArt": [
+        60
+      ]
+    },
+    {
+      "slug": "hayam-wuruk",
+      "name": "Hayam Wuruk",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        613,
+        614,
+        615,
+        616
+      ],
+      "wakeupArt": [
+        117
+      ]
+    },
+    {
+      "slug": "henry-v",
+      "name": "Henry V",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        324,
+        325,
+        326,
+        327
+      ],
+      "wakeupArt": [
+        69
+      ]
+    },
+    {
+      "slug": "hermann-2",
+      "name": "Hermann",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        400,
+        401,
+        402,
+        403
+      ],
+      "wakeupArt": [
+        87
+      ]
+    },
+    {
+      "slug": "nebuchadnezzar-ii",
+      "name": "Nebuchadnezzar II",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        214,
+        215,
+        216,
+        217
+      ],
+      "wakeupArt": [
+        52
+      ]
+    },
+    {
+      "slug": "ramesses-ii",
+      "name": "Ramesses II",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        163,
+        164,
+        165,
+        166
+      ],
+      "wakeupArt": [
+        40
+      ]
+    },
+    {
+      "slug": "shajar-al-durr",
+      "name": "Shajar Al-durr",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        476,
+        477,
+        478,
+        479,
+        480
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "shapur-i",
+      "name": "Shapur I",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        553,
+        554,
+        555,
+        556
+      ],
+      "wakeupArt": [
+        103
+      ]
+    },
+    {
+      "slug": "siyaj",
+      "name": "Siyaj",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        528,
+        529,
+        530,
+        531
+      ],
+      "wakeupArt": [
+        97
+      ]
+    },
+    {
+      "slug": "tan-thuy-hoang",
+      "name": "Tần Thủy Hoàng",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        549,
+        550,
+        551,
+        552
+      ],
+      "wakeupArt": [
+        102
+      ]
+    },
+    {
+      "slug": "thutmose-iii",
+      "name": "Thutmose III",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        332,
+        333,
+        334,
+        335
+      ],
+      "wakeupArt": [
+        71
+      ]
+    },
+    {
+      "slug": "tomyris",
+      "name": "Tomyris",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        122,
+        123,
+        124,
+        125
+      ],
+      "wakeupArt": [
+        31
+      ]
+    },
+    {
+      "slug": "yi-seong-gye",
+      "name": "Yi Seong -gye",
+      "rarity": "LEGENDARY",
+      "troop": "archer",
+      "art": null,
+      "skillArt": [
+        11,
+        20,
+        39,
+        47
+      ],
+      "wakeupArt": [
+        14
+      ]
+    },
+    {
+      "slug": "achilles",
+      "name": "Achilles",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        582,
+        583,
+        584,
+        585
+      ],
+      "wakeupArt": [
+        110
+      ]
+    },
+    {
+      "slug": "arthur-pendragon",
+      "name": "Arthur Pendragon",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        532,
+        533,
+        534,
+        535
+      ],
+      "wakeupArt": [
+        98
+      ]
+    },
+    {
+      "slug": "attila",
+      "name": "Attila",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        143,
+        144,
+        145,
+        146
+      ],
+      "wakeupArt": [
+        35
+      ]
+    },
+    {
+      "slug": "belisarius-2",
+      "name": "Belisarius",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        443,
+        444,
+        445,
+        446
+      ],
+      "wakeupArt": [
+        92
+      ]
+    },
+    {
+      "slug": "betrand-du-guesclin",
+      "name": "Betrand Du Guesclin",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        304,
+        305,
+        306,
+        307
+      ],
+      "wakeupArt": [
+        65
+      ]
+    },
+    {
+      "slug": "chandragupta",
+      "name": "Chandragupta",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        183,
+        184,
+        185,
+        186
+      ],
+      "wakeupArt": [
+        46
+      ]
+    },
+    {
+      "slug": "david-iv",
+      "name": "David IV",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        590,
+        591,
+        592,
+        593
+      ],
+      "wakeupArt": [
+        112
+      ]
+    },
+    {
+      "slug": "eleanor",
+      "name": "Eleanor",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        447,
+        448,
+        449,
+        450
+      ],
+      "wakeupArt": [
+        93
+      ]
+    },
+    {
+      "slug": "gang-gam-chan",
+      "name": "Gang Gam-chan",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        594,
+        595,
+        596,
+        597
+      ],
+      "wakeupArt": [
+        113
+      ]
+    },
+    {
+      "slug": "hang-vu",
+      "name": "Hạng Vũ",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        231,
+        232,
+        233,
+        234
+      ],
+      "wakeupArt": [
+        54
+      ]
+    },
+    {
+      "slug": "hoac-khu-benh",
+      "name": "Hoắc Khứ Bệnh",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        380,
+        381,
+        382,
+        383
+      ],
+      "wakeupArt": [
+        83
+      ]
+    },
+    {
+      "slug": "jadwiga",
+      "name": "Jadwiga",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        227,
+        228,
+        229,
+        230
+      ],
+      "wakeupArt": [
+        53
+      ]
+    },
+    {
+      "slug": "jan-zizka",
+      "name": "Jan Zizka",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        340,
+        341,
+        342,
+        343
+      ],
+      "wakeupArt": [
+        73
+      ]
+    },
+    {
+      "slug": "joan-arc-2",
+      "name": "Joan Arc",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        336,
+        337,
+        338,
+        339
+      ],
+      "wakeupArt": [
+        72
+      ]
+    },
+    {
+      "slug": "justinian-i",
+      "name": "Justinian I",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        384,
+        385,
+        386,
+        387
+      ],
+      "wakeupArt": [
+        84
+      ]
+    },
+    {
+      "slug": "minamoto-no-yoshitsune",
+      "name": "Minamoto No Yoshitsune",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        13,
+        36,
+        48,
+        49
+      ],
+      "wakeupArt": [
+        10
+      ]
+    },
+    {
+      "slug": "nevsky",
+      "name": "Nevsky",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        308,
+        309,
+        310,
+        311
+      ],
+      "wakeupArt": [
+        64
+      ]
+    },
+    {
+      "slug": "saladin",
+      "name": "Saladin",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        82,
+        96,
+        97,
+        98
+      ],
+      "wakeupArt": [
+        22
+      ]
+    },
+    {
+      "slug": "subutai",
+      "name": "Subutai",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        536,
+        537,
+        538,
+        539
+      ],
+      "wakeupArt": [
+        99
+      ]
+    },
+    {
+      "slug": "takeda-shingen",
+      "name": "Takeda Shingen",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        147,
+        148,
+        149,
+        150
+      ],
+      "wakeupArt": [
+        36
+      ]
+    },
+    {
+      "slug": "tao-thao",
+      "name": "Tào Tháo",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        5,
+        13,
+        38,
+        48
+      ],
+      "wakeupArt": [
+        15
+      ]
+    },
+    {
+      "slug": "thanh-cat-tu-han",
+      "name": "Thành Cát Tư Hãn",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        102,
+        103,
+        104,
+        105
+      ],
+      "wakeupArt": [
+        26
+      ]
+    },
+    {
+      "slug": "william-i",
+      "name": "William I",
+      "rarity": "LEGENDARY",
+      "troop": "cavalry",
+      "art": null,
+      "skillArt": [
+        187,
+        188,
+        189,
+        190
+      ],
+      "wakeupArt": [
+        45
+      ]
+    },
+    {
+      "slug": "alexander",
+      "name": "Alexander",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        110,
+        111,
+        112,
+        113
+      ],
+      "wakeupArt": [
+        28
+      ]
+    },
+    {
+      "slug": "bach-khoi",
+      "name": "Bạch Khởi",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        540,
+        541,
+        542,
+        543
+      ],
+      "wakeupArt": [
+        100
+      ]
+    },
+    {
+      "slug": "charles-martel",
+      "name": "Charles Martel",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        2,
+        11,
+        35,
+        58
+      ],
+      "wakeupArt": [
+        11
+      ]
+    },
+    {
+      "slug": "cheok-jun-gyeong",
+      "name": "Cheok Jun-gyeong",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        247,
+        248,
+        249,
+        250
+      ],
+      "wakeupArt": [
+        58
+      ]
+    },
+    {
+      "slug": "constantine-de-nhat",
+      "name": "Constantine Đệ Nhất",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        81,
+        93,
+        94,
+        95
+      ],
+      "wakeupArt": [
+        25
+      ]
+    },
+    {
+      "slug": "flavius",
+      "name": "Flavius",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        316,
+        317,
+        318,
+        319
+      ],
+      "wakeupArt": [
+        67
+      ]
+    },
+    {
+      "slug": "gorgo",
+      "name": "Gorgo",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        396,
+        397,
+        398,
+        399
+      ],
+      "wakeupArt": [
+        86
+      ]
+    },
+    {
+      "slug": "harlad-sigurdsson",
+      "name": "Harlad Sigurdsson",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        194,
+        195,
+        196,
+        197
+      ],
+      "wakeupArt": [
+        47
+      ]
+    },
+    {
+      "slug": "ivar",
+      "name": "Ivar",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        602,
+        603,
+        604,
+        605
+      ],
+      "wakeupArt": [
+        115
+      ]
+    },
+    {
+      "slug": "leonidas",
+      "name": "Leonidas",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        159,
+        160,
+        161,
+        162
+      ],
+      "wakeupArt": [
+        39
+      ]
+    },
+    {
+      "slug": "luu-triet",
+      "name": "Lưu Triệt",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        392,
+        393,
+        394,
+        395
+      ],
+      "wakeupArt": [
+        85
+      ]
+    },
+    {
+      "slug": "pakal",
+      "name": "Pakal",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        243,
+        244,
+        245,
+        246
+      ],
+      "wakeupArt": [
+        57
+      ]
+    },
+    {
+      "slug": "pyrrhus",
+      "name": "Pyrrhus",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        372,
+        373,
+        374,
+        375
+      ],
+      "wakeupArt": [
+        81
+      ]
+    },
+    {
+      "slug": "quan-vu",
+      "name": "Quan Vũ",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        155,
+        156,
+        157,
+        158
+      ],
+      "wakeupArt": [
+        38
+      ]
+    },
+    {
+      "slug": "ragnar-lodbrok",
+      "name": "Ragnar Lodbrok",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        481,
+        482,
+        483,
+        484,
+        485
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "richard",
+      "name": "Richard",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        6,
+        19,
+        37,
+        50
+      ],
+      "wakeupArt": [
+        16
+      ]
+    },
+    {
+      "slug": "sargon",
+      "name": "Sargon",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        348,
+        349,
+        350,
+        351
+      ],
+      "wakeupArt": [
+        74
+      ]
+    },
+    {
+      "slug": "spicio-aemilianus",
+      "name": "Spicio Aemilianus",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        466,
+        467,
+        468,
+        469,
+        470
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "spicio-africanus",
+      "name": "Spicio Africanus",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        312,
+        313,
+        314,
+        315
+      ],
+      "wakeupArt": [
+        66
+      ]
+    },
+    {
+      "slug": "tariq-ibn-ziyad",
+      "name": "Tariq Ibn Ziyad",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        344,
+        345,
+        346,
+        347
+      ],
+      "wakeupArt": [
+        75
+      ]
+    },
+    {
+      "slug": "tokugawa-ieyasu",
+      "name": "Tokugawa Ieyasu",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        544,
+        545,
+        546,
+        547
+      ],
+      "wakeupArt": [
+        101
+      ]
+    },
+    {
+      "slug": "ton-tu-p",
+      "name": "Tôn Tử P",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": "182",
+      "skillArt": [
+        598,
+        599,
+        600,
+        601
+      ],
+      "wakeupArt": [
+        114
+      ]
+    },
+    {
+      "slug": "william-wallace",
+      "name": "William Wallace",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        461,
+        462,
+        463,
+        464,
+        465
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "zenobia",
+      "name": "Zenobia",
+      "rarity": "LEGENDARY",
+      "troop": "infantry",
+      "art": null,
+      "skillArt": [
+        198,
+        199,
+        200,
+        201
+      ],
+      "wakeupArt": [
+        48
+      ]
+    },
+    {
+      "slug": "casimir-iii",
+      "name": "Casimir III",
+      "rarity": "LEGENDARY",
+      "troop": "integration",
+      "art": null,
+      "skillArt": [
+        577,
+        578,
+        579,
+        580
+      ],
+      "wakeupArt": [
+        109
+      ]
+    },
+    {
+      "slug": "cleopatra",
+      "name": "Cleopatra",
+      "rarity": "LEGENDARY",
+      "troop": "integration",
+      "art": null,
+      "skillArt": [
+        71,
+        73,
+        75,
+        77
+      ],
+      "wakeupArt": [
+        19
+      ]
+    },
+    {
+      "slug": "ishida-mitsunari",
+      "name": "Ishida Mitsunari",
+      "rarity": "LEGENDARY",
+      "troop": "integration",
+      "art": null,
+      "skillArt": [
+        151,
+        152,
+        153,
+        154
+      ],
+      "wakeupArt": [
+        37
+      ]
+    },
+    {
+      "slug": "moc-lan",
+      "name": "Mộc Lan",
+      "rarity": "LEGENDARY",
+      "troop": "integration",
+      "art": null,
+      "skillArt": [
+        130,
+        131,
+        132,
+        133
+      ],
+      "wakeupArt": [
+        33
+      ]
+    },
+    {
+      "slug": "pepin-iii",
+      "name": "Pepin III",
+      "rarity": "LEGENDARY",
+      "troop": "integration",
+      "art": null,
+      "skillArt": [
+        573,
+        574,
+        575,
+        576
+      ],
+      "wakeupArt": [
+        108
+      ]
+    },
+    {
+      "slug": "seondeok",
+      "name": "Seondeok",
+      "rarity": "LEGENDARY",
+      "troop": "integration",
+      "art": null,
+      "skillArt": [
+        126,
+        127,
+        128,
+        129
+      ],
+      "wakeupArt": [
+        32
+      ]
+    },
+    {
+      "slug": "yahya-ibn-khalid",
+      "name": "Yahya Ibn Khalid",
+      "rarity": "LEGENDARY",
+      "troop": "integration",
+      "art": null,
+      "skillArt": [
+        629,
+        630,
+        631,
+        632
+      ],
+      "wakeupArt": [
+        121
+      ]
+    },
+    {
+      "slug": "athelflaaed",
+      "name": "Athelflaaed",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        106,
+        107,
+        108,
+        109
+      ],
+      "wakeupArt": [
+        27
+      ]
+    },
+    {
+      "slug": "caesar",
+      "name": "Caesar",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        3,
+        6,
+        45,
+        61
+      ],
+      "wakeupArt": [
+        12
+      ]
+    },
+    {
+      "slug": "charlemagne",
+      "name": "Charlemagne",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        114,
+        115,
+        116,
+        117
+      ],
+      "wakeupArt": [
+        29
+      ]
+    },
+    {
+      "slug": "frederick",
+      "name": "Frederick",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        3,
+        5,
+        40,
+        45
+      ],
+      "wakeupArt": [
+        13
+      ]
+    },
+    {
+      "slug": "hannibal-barca",
+      "name": "Hannibal Barca",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        43,
+        44,
+        45,
+        46
+      ],
+      "wakeupArt": [
+        18
+      ]
+    },
+    {
+      "slug": "hector",
+      "name": "Hector",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        586,
+        587,
+        588,
+        589
+      ],
+      "wakeupArt": [
+        111
+      ]
+    },
+    {
+      "slug": "heraclius",
+      "name": "Heraclius",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        356,
+        357,
+        358,
+        359
+      ],
+      "wakeupArt": [
+        77
+      ]
+    },
+    {
+      "slug": "honda-tadakatsu",
+      "name": "Honda Tadakatsu",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        300,
+        301,
+        302,
+        303
+      ],
+      "wakeupArt": [
+        63
+      ]
+    },
+    {
+      "slug": "lapulapu",
+      "name": "Lapulapu",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        432,
+        433,
+        434,
+        435
+      ],
+      "wakeupArt": [
+        91
+      ]
+    },
+    {
+      "slug": "lu-bo",
+      "name": "Lữ Bố",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        202,
+        203,
+        204,
+        205
+      ],
+      "wakeupArt": [
+        49
+      ]
+    },
+    {
+      "slug": "matthias-i",
+      "name": "Matthias I",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        565,
+        566,
+        567,
+        568
+      ],
+      "wakeupArt": [
+        106
+      ]
+    },
+    {
+      "slug": "mehmed-ii",
+      "name": "Mehmed II",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        83,
+        99,
+        100,
+        101
+      ],
+      "wakeupArt": [
+        23
+      ]
+    },
+    {
+      "slug": "moctezuma-i",
+      "name": "Moctezuma I",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        48,
+        218,
+        223,
+        224,
+        225
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "philip-ii",
+      "name": "Philip II",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        504,
+        505,
+        506,
+        507,
+        508
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "ragnar-lodbrok-2",
+      "name": "Ragnar Lodbrok",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        235,
+        236,
+        237,
+        238
+      ],
+      "wakeupArt": [
+        55
+      ]
+    },
+    {
+      "slug": "suleiman-i",
+      "name": "Suleiman I",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        296,
+        297,
+        298,
+        299
+      ],
+      "wakeupArt": [
+        62
+      ]
+    },
+    {
+      "slug": "theodora",
+      "name": "Theodora",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        175,
+        176,
+        177,
+        178
+      ],
+      "wakeupArt": [
+        43
+      ]
+    },
+    {
+      "slug": "trajan",
+      "name": "Trajan",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        219,
+        220,
+        221,
+        222,
+        226
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "vercingetorix",
+      "name": "Vercingetorix",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        617,
+        618,
+        619,
+        620
+      ],
+      "wakeupArt": [
+        118
+      ]
+    },
+    {
+      "slug": "vo-tac-thien",
+      "name": "Võ Tắc Thiên",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        134,
+        135,
+        136,
+        137
+      ],
+      "wakeupArt": [
+        34
+      ]
+    },
+    {
+      "slug": "yi-sun-sin",
+      "name": "Yi Sun-sin",
+      "rarity": "LEGENDARY",
+      "troop": "leadership",
+      "art": null,
+      "skillArt": [
+        179,
+        180,
+        181,
+        182
+      ],
+      "wakeupArt": [
+        44
+      ]
+    },
+    {
+      "slug": "afonso",
+      "name": "Afonso",
+      "rarity": "LEGENDARY",
+      "troop": "siege",
+      "art": null,
+      "skillArt": [
+        569,
+        570,
+        571,
+        572
+      ],
+      "wakeupArt": [
+        107
+      ]
+    },
+    {
+      "slug": "archimedes",
+      "name": "Archimedes",
+      "rarity": "LEGENDARY",
+      "troop": "siege",
+      "art": null,
+      "skillArt": [
+        557,
+        558,
+        559,
+        560
+      ],
+      "wakeupArt": [
+        104
+      ]
+    },
+    {
+      "slug": "babur",
+      "name": "Babur",
+      "rarity": "LEGENDARY",
+      "troop": "siege",
+      "art": null,
+      "skillArt": [
+        360,
+        361,
+        362,
+        363
+      ],
+      "wakeupArt": [
+        78
+      ]
+    },
+    {
+      "slug": "elizabeth-i",
+      "name": "Elizabeth I",
+      "rarity": "LEGENDARY",
+      "troop": "siege",
+      "art": null,
+      "skillArt": [
+        621,
+        622,
+        623,
+        624
+      ],
+      "wakeupArt": [
+        119
+      ]
+    },
+    {
+      "slug": "gajah-mada",
+      "name": "Gajah Mada",
+      "rarity": "LEGENDARY",
+      "troop": "siege",
+      "art": null,
+      "skillArt": [
+        428,
+        429,
+        430,
+        431
+      ],
+      "wakeupArt": [
+        90
+      ]
+    },
+    {
+      "slug": "gonzalo-de-cordoba",
+      "name": "Gonzalo De Cordoba",
+      "rarity": "LEGENDARY",
+      "troop": "siege",
+      "art": null,
+      "skillArt": [
+        424,
+        425,
+        426,
+        427
+      ],
+      "wakeupArt": [
+        89
+      ]
+    },
+    {
+      "slug": "john-hunyadi",
+      "name": "John Hunyadi",
+      "rarity": "LEGENDARY",
+      "troop": "siege",
+      "art": null,
+      "skillArt": [
+        509,
+        510,
+        511,
+        512,
+        513
+      ],
+      "wakeupArt": []
+    },
+    {
+      "slug": "margaret-i",
+      "name": "Margaret I",
+      "rarity": "LEGENDARY",
+      "troop": "siege",
+      "art": null,
+      "skillArt": [
+        352,
+        353,
+        354,
+        355
+      ],
+      "wakeupArt": [
+        76
+      ]
+    },
+    {
+      "slug": "mary-i",
+      "name": "Mary I",
+      "rarity": "LEGENDARY",
+      "troop": "siege",
+      "art": null,
+      "skillArt": [
+        561,
+        562,
+        563,
+        564
+      ],
+      "wakeupArt": [
+        105
+      ]
+    },
+    {
+      "slug": "stephen-de-tam",
+      "name": "Stephen Đệ Tam",
+      "rarity": "LEGENDARY",
+      "troop": "siege",
+      "art": null,
+      "skillArt": [
+        499,
+        500,
+        501,
+        502,
+        503
+      ],
+      "wakeupArt": []
+    }
+  ]
+}
