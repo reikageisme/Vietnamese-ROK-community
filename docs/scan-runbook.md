@@ -23,10 +23,21 @@ máy. Chọn một thư mục gốc rồi dùng biến cho mọi lệnh sau:
 
 ```powershell
 # VM 200 (chỉ có ổ C:)
-$ROK = "C:\rok\ROK Forum"
+$RokRepo = "C:\rok\ROK Forum"
 
 # máy chính
-$ROK = "D:\ROK Forum"
+$RokRepo = "D:\ROK Forum"
+```
+
+**Đừng đặt tên biến repo là `$ROK`.** Tên biến PowerShell không phân biệt hoa
+thường, nên `$ROK` và `$rok` (đường dẫn python) là cùng một biến — cái gán sau
+đè mất cái trước, và lỗi hiện ra là `Set-Location` không tìm thấy `python.exe`,
+không hề nhắc gì tới chuyện trùng tên.
+
+Cách gọn nhất là không tự đặt biến, mà nạp sẵn:
+
+```powershell
+. .\tools\rok-device-lab\env.ps1
 ```
 
 ## 1. Cài trên VM 200 (làm một lần)
@@ -40,15 +51,15 @@ winget install --id Git.Git --exact
 Lấy repo về (dùng chính tài khoản GitHub của dự án):
 
 ```powershell
-New-Item -ItemType Directory -Force (Split-Path $ROK) | Out-Null
-cd (Split-Path $ROK)
-git clone https://github.com/reikageisme/Vietnamese-ROK-community.git (Split-Path $ROK -Leaf)
+New-Item -ItemType Directory -Force (Split-Path $RokRepo) | Out-Null
+cd (Split-Path $RokRepo)
+git clone https://github.com/reikageisme/Vietnamese-ROK-community.git (Split-Path $RokRepo -Leaf)
 ```
 
 Dựng môi trường Python riêng cho tool:
 
 ```powershell
-cd $ROK
+cd $RokRepo
 py -3.11 -m venv tools\rok-device-lab\.venv
 tools\rok-device-lab\.venv\Scripts\python.exe -m pip install -e tools\rok-device-lab
 ```
@@ -56,7 +67,7 @@ tools\rok-device-lab\.venv\Scripts\python.exe -m pip install -e tools\rok-device
 ## 2. Biến môi trường (mỗi lần mở PowerShell mới)
 
 ```powershell
-cd $ROK
+cd $RokRepo
 $env:ADB_PATH        = "<đường dẫn adb.exe của app quản lý điện thoại — xem mục 2b>"
 $env:TESSERACT_PATH  = "C:\Program Files\Tesseract-OCR\tesseract.exe"
 $env:TESSDATA_DIR    = "C:\Program Files\Tesseract-OCR\tessdata"
@@ -190,7 +201,7 @@ từ người cuối cùng đã xong, không quét lại từ đầu.
 Kết quả nằm ở:
 
 ```
-$ROK\tools\rok-device-lab\artifacts\scans\<serial>\kd2812-lan1-kd2812-<timestamp>\
+$RokRepo\tools\rok-device-lab\artifacts\scans\<serial>\kd2812-lan1-kd2812-<timestamp>\
   scan.json          ← file để đẩy lên
   governors.xlsx
   state.json         ← OCR thô + cờ needsReview
@@ -210,7 +221,7 @@ Cửa sổ PowerShell khác:
 ```powershell
 $env:ROK_COLLECTOR_URL   = "http://127.0.0.1:3031"
 $env:ROK_COLLECTOR_TOKEN = "<COLLECTOR_API_TOKEN trong .env.production trên server>"
-& $rok -m rok_lab.cli upload-scan "$ROK\tools\rok-device-lab\artifacts\scans\...\scan.json"
+& $rok -m rok_lab.cli upload-scan "$RokRepo\tools\rok-device-lab\artifacts\scans\...\scan.json"
 ```
 
 Lấy token trên server:

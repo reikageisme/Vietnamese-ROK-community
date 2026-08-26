@@ -16,8 +16,11 @@ $ErrorActionPreference = "Stop"
 
 # Thư mục repo suy ra từ vị trí chính file này, không hard-code ổ đĩa —
 # máy chính để ở D:, VM 200 để ở C:.
+# Ten bien PowerShell KHONG phan biet hoa thuong: $ROK va $rok la CUNG MOT
+# bien. Ban dau bien repo ten $ROK con duong dan python ten $rok, nen dong gan
+# python de len duong dan repo va Set-Location cd thang vao file python.exe.
 $script:LabDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$global:ROK = (Resolve-Path (Join-Path $script:LabDir "..\..")).Path
+$global:RokRepo = (Resolve-Path (Join-Path $script:LabDir "..\..")).Path
 
 function Find-First([string[]]$Candidates) {
     foreach ($path in $Candidates) {
@@ -57,9 +60,9 @@ if ($adb)       { $env:ADB_PATH = $adb }
 if ($tesseract) { $env:TESSERACT_PATH = $tesseract }
 if ($tessdata)  { $env:TESSDATA_DIR = $tessdata }
 
-$global:rok = Join-Path $ROK "tools\rok-device-lab\.venv\Scripts\python.exe"
+$global:rok = Join-Path $RokRepo "tools\rok-device-lab\.venv\Scripts\python.exe"
 
-Set-Location $ROK
+Set-Location $RokRepo
 
 function Show-Line([string]$Name, [string]$Value, [string]$Hint) {
     if ($Value) {
@@ -71,7 +74,7 @@ function Show-Line([string]$Name, [string]$Value, [string]$Hint) {
 
 Write-Host ""
 Write-Host "ROK FAQ · môi trường tool quét" -ForegroundColor Cyan
-Show-Line "repo"      $ROK ""
+Show-Line "repo"      $RokRepo ""
 Show-Line "adb"       $env:ADB_PATH "đặt thủ công: `$env:ADB_PATH = '...\adb.exe'"
 Show-Line "tesseract" $env:TESSERACT_PATH "winget install --id UB-Mannheim.TesseractOCR --exact"
 Show-Line "tessdata"  $env:TESSDATA_DIR "xem docs/scan-runbook.md mục 2a"
