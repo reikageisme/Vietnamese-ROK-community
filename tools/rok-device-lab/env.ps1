@@ -14,6 +14,12 @@
 
 $ErrorActionPreference = "Stop"
 
+# Console Windows mac dinh khong ve duoc ky tu ngoai bang ma cua no: ten nguoi
+# choi ROK day chu Han, Cyrillic va chi so tren, nen chung hien ra o vuong.
+# Do la loi HIEN THI, khong phai loi OCR — chuoi ghi vao xlsx van nguyen. Bat
+# UTF-8 de khoi nhin nham mot ban quet tot thanh mot ban quet hong.
+try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
+
 # Thư mục repo suy ra từ vị trí chính file này, không hard-code ổ đĩa —
 # máy chính để ở D:, VM 200 để ở C:.
 # Ten bien PowerShell KHONG phan biet hoa thuong: $ROK va $rok la CUNG MOT
