@@ -226,6 +226,13 @@ def _print_scan_progress(event: dict[str, object]) -> None:
             file=sys.stderr,
             flush=True,
         )
+    elif event.get("event") == "rank-gap":
+        print(
+            f"[{serial}] !! BO SOT {event.get('missing')} nguoi: thu hang "
+            f"{event.get('afterRank')} -> {event.get('nextRank')} (trang {event.get('page')})",
+            file=sys.stderr,
+            flush=True,
+        )
     elif event.get("event") == "row-miss":
         # In ngay khi phat hien, mau noi bat. Ho thu hang khong lam ban quet
         # dung lai — nguoi van hanh phai thay de con quyet dinh quet lai hay

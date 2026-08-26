@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import shutil
 import time
 from collections.abc import Callable
@@ -109,6 +110,8 @@ class KingdomScanner:
         # cua do phu: "30 ban ghi" khong noi gi neu phai bam 45 lan moi duoc 30.
         self.missed_rows: list[dict[str, Any]] = []
         self.last_miss_reason: dict[str, Any] | None = None
+        self.rank_gaps: list[dict[str, Any]] = []
+        self.last_screen_rank: int | None = None
         self.started_at = utc_now()
         self.attempted_rank = 0
         self._load_state()
@@ -127,6 +130,7 @@ class KingdomScanner:
             raise AdbError("State resume không khớp serial hoặc kingdom.")
         self.records = list(state.get("records", []))
         self.missed_rows = list(state.get("missedRows", []))
+        self.rank_gaps = list(state.get("rankGaps", []))
         self.started_at = str(state.get("startedAt") or self.started_at)
         self.attempted_rank = int(state.get("attemptedRank") or 0)
 
@@ -146,6 +150,7 @@ class KingdomScanner:
             # mot lan la moi dau vet bi nhay qua bien mat, va ban quet trong
             # nhu mot ban quet lien mach.
             "missedRows": self.missed_rows,
+            "rankGaps": self.rank_gaps,
         }
         if error:
             state["error"] = error
@@ -290,9 +295,36 @@ class KingdomScanner:
             page_root / f"page-{page:04d}-crops",
             page_segmentation=6,
         )
-        return [
-            parse_ranking_row(text, index, None) for index, text in enumerate(rows, 1)
-        ]
+
+        # Doc THU HANG THAT tren man hinh, khong dung vi tri hang lam thu hang.
+        #
+        # Truoc day truong `rank` la bo dem luot thu, nen mot nguoi bi bo qua
+        # khong de lai dau vet nao: ban quet van danh so 1,2,3... lien mach.
+        # Chinh vi vay ba nguoi hang 6,7,8 bien mat ma ket qua trong van sach.
+        #
+        # Chu so thu hang nam o x 0.136-0.198, ngay ben trai vung doc ten (bat
+        # dau tu 0.1979) — do la ly do no chua bao gio duoc nhin toi.
+        rank_regions = [f"ranking.rank{row}" for row in range(1, 7)]
+        try:
+            rank_texts = self._ocr_regions(
+                screenshot,
+                rank_regions,
+                page_root / f"page-{page:04d}-rank-crops",
+                page_segmentation=7,
+            )
+        except Exception:
+            rank_texts = [""] * 6
+
+        hints = []
+        for index, text in enumerate(rows, 1):
+            digits_only = re.sub(r"\D", "", rank_texts[index - 1] or "")
+            true_rank = int(digits_only) if digits_only else None
+            hint = parse_ranking_row(text, true_rank or index, None)
+            # Phan biet ro thu hang doc duoc voi thu hang suy tu vi tri hang:
+            # cai thu hai khong dung de phat hien bo sot duoc.
+            hint["rankFromScreen"] = true_rank
+            hints.append(hint)
+        return hints
 
     def _cleanup_panels(self) -> None:
         try:
@@ -354,8 +386,11 @@ class KingdomScanner:
             white_text=True,
         )
         alliance_tag, alliance_name = clean_alliance(general[2])
+        screen_rank = (hint or {}).get("rankFromScreen")
         record: dict[str, Any] = {
-            "rank": self.attempted_rank,
+            "rank": screen_rank or self.attempted_rank,
+            "rankFromScreen": screen_rank,
+            "attempt": self.attempted_rank,
             "governorId": str(digits(general[0]) or ""),
             "name": clean_name(general[1]),
             "allianceTag": alliance_tag,
@@ -469,6 +504,22 @@ class KingdomScanner:
                 for page in range(max_pages):
                     hints = self._read_ranking_hints(page + 1)
                     added = 0
+                    page_seen = [
+                        h.get("rankFromScreen") for h in hints if h and h.get("rankFromScreen")
+                    ]
+                    if page_seen and self.last_screen_rank is not None:
+                        top = min(page_seen)
+                        if top > self.last_screen_rank + 1:
+                            gap = {
+                                "page": page + 1,
+                                "afterRank": self.last_screen_rank,
+                                "nextRank": top,
+                                "missing": top - self.last_screen_rank - 1,
+                            }
+                            self.rank_gaps.append(gap)
+                            self.progress({"serial": self.serial, "event": "rank-gap", **gap})
+                    if page_seen:
+                        self.last_screen_rank = max(self.last_screen_rank or 0, max(page_seen))
                     for row in range(1, 7):
                         if len(self.records) >= self.options.amount:
                             break
@@ -558,6 +609,8 @@ class KingdomScanner:
                     "directory": str(self.directory),
                     "outputs": outputs,
                     "missedRows": len(self.missed_rows),
+                    "rankGaps": self.rank_gaps,
+                    "ranksMissing": sum(g["missing"] for g in self.rank_gaps),
                     "attempts": self.attempted_rank,
                     "missedDetail": self.missed_rows,
                 }
