@@ -1,3 +1,7 @@
+﻿# KEEP THE UTF-8 BOM AT THE START OF THIS FILE.
+# Windows PowerShell 5.1 reads .ps1 as ANSI unless the file starts with a UTF-8
+# BOM. Without it every Vietnamese character turns to mojibake and the parser
+# dies on the first accented word. Editors that strip the BOM break this file.
 # Nạp biến môi trường cho tool quét. Dùng bằng cách CHẤM rồi cách rồi đường dẫn:
 #
 #     . .\tools\rok-device-lab\env.ps1
@@ -88,5 +92,5 @@ if ($env:TESSDATA_DIR) {
 }
 
 Write-Host ""
-Write-Host "  Chạy thử:  & `$rok -m rok_lab.cli doctor" -ForegroundColor DarkGray
+Write-Host '  Chay thu:  & $rok -m rok_lab.cli doctor' -ForegroundColor DarkGray
 Write-Host ""
