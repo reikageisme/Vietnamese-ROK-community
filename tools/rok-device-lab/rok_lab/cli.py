@@ -147,7 +147,7 @@ def build_parser() -> argparse.ArgumentParser:
     kingdom_scan.add_argument(
         "--scroll-fraction",
         type=float,
-        default=0.5,
+        default=0.35,
         help="Phan quang duong vuot so voi profile. Nho hon = chong lan nhieu hon.",
     )
     kingdom_scan.add_argument("--confirm", action="store_true")
@@ -223,6 +223,13 @@ def _print_scan_progress(event: dict[str, object]) -> None:
             f"[{serial}] {event.get('records')}/{event.get('target')} "
             f"rank={event.get('rank')} {event.get('name') or '(không đọc được tên)'}"
             f"{review}",
+            file=sys.stderr,
+            flush=True,
+        )
+    elif event.get("event") == "scroll-back":
+        print(
+            f"[{serial}] .. vuot qua tron (thay hang {event.get('sawTop')}, "
+            f"can hang {event.get('expected')}) - lui lai",
             file=sys.stderr,
             flush=True,
         )

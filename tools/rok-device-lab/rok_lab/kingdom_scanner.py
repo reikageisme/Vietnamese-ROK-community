@@ -52,7 +52,10 @@ class ScanOptions:
     # 0.5 = di ~2,5 dong moi lan. Doc 6 dong nen con du 3,5 dong dem: quan tinh
     # co nhan doi quang duong thi van chong lan, khong ho. Doi lai la nhieu
     # trang hon va cham hon. Cham ma du con hon nhanh ma thung.
-    scroll_fraction: float = 0.5
+    scroll_fraction: float = 0.35
+    # So lan lui lai toi da moi trang khi vuot qua tron. Het so lan ma van qua
+    # thi de nguyen va ghi vao rankGaps — bo sot con hon lui vo tan.
+    scroll_corrections: int = 4
     scroll_wait: float = 1.6
     resume_directory: Path | None = None
 
@@ -475,17 +478,16 @@ class KingdomScanner:
             shutil.rmtree(governor_dir)
         return record
 
-    def _scroll(self) -> None:
+    def _scroll(self, fraction: float | None = None, direction: int = 1) -> None:
         start = self.profile.point("ranking.scroll-start", self.size)
         end = self.profile.point("ranking.scroll-end", self.size)
-        fraction = max(0.1, min(1.0, self.options.scroll_fraction))
-        shortened = (
-            start[0] + round((end[0] - start[0]) * fraction),
-            start[1] + round((end[1] - start[1]) * fraction),
+        ratio = max(0.05, min(1.0, fraction if fraction is not None else self.options.scroll_fraction))
+        ratio *= direction
+        target = (
+            start[0] + round((end[0] - start[0]) * ratio),
+            start[1] + round((end[1] - start[1]) * ratio),
         )
-        self.client.swipe(
-            self.serial, start, shortened, self.options.scroll_duration_ms
-        )
+        self.client.swipe(self.serial, start, target, self.options.scroll_duration_ms)
         time.sleep(self.options.scroll_wait)
 
     def scan(self) -> dict[str, Any]:
@@ -503,6 +505,38 @@ class KingdomScanner:
                 max_pages = max(4, math.ceil(self.options.amount / 4) + 8)
                 for page in range(max_pages):
                     hints = self._read_ranking_hints(page + 1)
+
+                    # Vuot bao nhieu cung khong the chinh xac: ROK la game
+                    # Unity, danh sach co quan tinh rieng va `input swipe` luon
+                    # truyen van toc luc nhac tay. Da thu vuot cham, vuot ngan,
+                    # deu chi giam chu khong het.
+                    #
+                    # Nhung gio doc duoc thu hang THAT tren man hinh, nen khong
+                    # can vuot chinh xac nua — chi can BIET minh dang o dau roi
+                    # lui lai. Chong lan thi vo hai (trung se bi loc theo
+                    # governorId); nhay cach moi la mat nguoi.
+                    for _ in range(self.options.scroll_corrections):
+                        seen = [
+                            h.get("rankFromScreen")
+                            for h in hints
+                            if h and h.get("rankFromScreen")
+                        ]
+                        if not seen or self.last_screen_rank is None:
+                            break
+                        if min(seen) <= self.last_screen_rank + 1:
+                            break
+                        self.progress(
+                            {
+                                "serial": self.serial,
+                                "event": "scroll-back",
+                                "page": page + 1,
+                                "expected": self.last_screen_rank + 1,
+                                "sawTop": min(seen),
+                            }
+                        )
+                        self._scroll(fraction=0.3, direction=-1)
+                        hints = self._read_ranking_hints(page + 1)
+
                     added = 0
                     page_seen = [
                         h.get("rankFromScreen") for h in hints if h and h.get("rankFromScreen")
