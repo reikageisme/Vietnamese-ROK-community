@@ -17,7 +17,7 @@
  *   node scripts/pick-game-assets.mjs --skills     # thêm toàn bộ biểu tượng kỹ năng
  */
 
-import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 const ROOT = process.cwd();
@@ -37,9 +37,17 @@ function index(dir, into = new Map()) {
     try { info = statSync(path); } catch { continue; }
     if (info.isDirectory()) { index(path, into); continue; }
     if (!entry.toLowerCase().endsWith(".png")) continue;
-    // Trùng tên ở hai thư mục thì giữ bản đầu và ghi lại, để còn biết mà kiểm.
-    if (into.has(entry)) into.get(entry).duplicates.push(path);
-    else into.set(entry, { path, duplicates: [] });
+    // Windows đặt "Bản sao của ..." khi chép file trong cùng thư mục. Đội phân
+    // loại kéo-thả nên có vài file mang tiền tố đó. Đăng ký thêm tên gốc, nếu
+    // không thì ảnh kỹ năng của tướng đó lặng lẽ biến mất khỏi web.
+    const names = [entry];
+    const copied = /^(?:Bản sao của|Copy of)\s+(.+)$/i.exec(entry);
+    if (copied) names.push(copied[1]);
+
+    for (const name of names) {
+      if (into.has(name)) into.get(name).duplicates.push(path);
+      else into.set(name, { path, duplicates: [], renamedFrom: name === entry ? null : entry });
+    }
   }
   return into;
 }
@@ -81,6 +89,26 @@ for (const n of [100,101,102,103,104,105]) MAP.push([`img_icon_Armament_${n}.png
 for (let n = 1; n <= 6; n += 1) MAP.push([`img_ItemTemplatFormationIcon${n}.png`, `formation/${n}.png`]);
 
 const flags = new Set(process.argv.slice(2));
+if (flags.has("--commanders")) {
+  // Chi chep anh cua nhung chi huy DA CO id anh chan dung trong
+  // commanders-from-assets.json. Chep het ~600 anh ky nang la them ~30 MB vao
+  // git, ma phan lon trong so do chua gan duoc voi ai. Danh sach nay lon dan
+  // theo dung nhip doi phan loai xong tung tuong.
+  const file = join(ROOT, "content", "armory", "commanders-from-assets.json");
+  if (!existsSync(file)) {
+    console.warn("chua co commanders-from-assets.json — chay: npm run scan-assets.");
+  } else {
+    const { commanders } = JSON.parse(readFileSync(file, "utf8"));
+    let skipped = 0;
+    for (const c of commanders) {
+      if (!c.art) { skipped += 1; continue; }
+      MAP.push(["img_icon_HeroProfile_" + c.art + ".png", "hero/" + c.art + ".png"]);
+      for (const n of c.skillArt ?? []) MAP.push(["img_HeroSkill" + n + ".png", "skill/" + n + ".png"]);
+      for (const n of c.wakeupArt ?? []) MAP.push(["img_WakeUpHeroSkill" + n + ".png", "skill/wake-" + n + ".png"]);
+    }
+    if (skipped) console.log("bo qua " + skipped + " chi huy chua co id anh chan dung");
+  }
+}
 if (flags.has("--portraits")) {
   for (const name of files.keys()) {
     const found = /^img_icon_HeroProfile_(\d+[a-zA-Z]*)\.png$/.exec(name);

@@ -66,6 +66,19 @@ Cột giữa chồng đỉnh chạm đỉnh; hai cặp bên nêm vào khe. Toạ
 2. **Viền huyền thoại.** Đang dùng `BGMask` (viền vàng mảnh) cho tướng cam.
    Còn `BGMask_Orange` là viền trắng bạc dày hơn. Cần đối chiếu với game.
 
+## Chép ảnh của chỉ huy đã nhận diện
+
+```bash
+npm run pick-assets -- --commanders
+```
+
+Chỉ chép ảnh của chỉ huy **đã có id ảnh chân dung** trong `commanders-from-assets.json`.
+Chép hết ~600 ảnh kỹ năng là thêm ~30 MB vào git, mà phần lớn trong số đó chưa gắn được
+với ai. Danh sách lớn dần theo đúng nhịp đội phân loại xong từng tướng.
+
+Trình chỉ mục nhận cả tiền tố "Bản sao của " mà Windows tự thêm khi chép file trong cùng
+thư mục. Không có luật đó thì bốn ảnh kỹ năng của Tôn Tử P lặng lẽ biến mất khỏi web.
+
 ## Về bản quyền
 
 Đây là tài sản của Lilith Games. Các trang cộng đồng vẫn dùng theo lệ, không
