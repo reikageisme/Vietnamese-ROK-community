@@ -155,7 +155,7 @@ notepad tools\rok-device-lab\config\devices.local.json
 
 Đặt alias `phone09` cho serial vừa tìm được. File `*.local.json` nằm ngoài git.
 
-## 4. Bắt buộc: quét thử 6 người trước
+## 4. Bắt buộc: đo kiểu vuốt rồi quét thử 6 người
 
 Mở game trên máy 09, vào `RANKINGS` → `Individual Power Rankings`, kéo lên đầu
 danh sách. Rồi:
@@ -168,7 +168,7 @@ Cần thấy `gamePackageMatched: true`, `screenMatched: true`, độ phân gi�
 1920×1080. Sai một trong ba thì dừng — profile chưa khớp máy này, quét tiếp chỉ
 ra dữ liệu rác.
 
-### 4a. Đo kiểu vuốt (làm một lần cho mỗi máy)
+## 4a. Đo kiểu vuốt (làm một lần cho mỗi máy)
 
 `input swipe` luôn nhấc tay trong lúc ngón tay còn đang di chuyển, nên danh sách
 còn trôi theo quán tính và trôi bao xa thì không đoán được. Đó là lý do trước
