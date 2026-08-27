@@ -168,6 +168,34 @@ Cần thấy `gamePackageMatched: true`, `screenMatched: true`, độ phân gi�
 1920×1080. Sai một trong ba thì dừng — profile chưa khớp máy này, quét tiếp chỉ
 ra dữ liệu rác.
 
+### 4a. Đo kiểu vuốt (làm một lần cho mỗi máy)
+
+`input swipe` luôn nhấc tay trong lúc ngón tay còn đang di chuyển, nên danh sách
+còn trôi theo quán tính và trôi bao xa thì không đoán được. Đó là lý do trước
+đây quét tới hàng 6 là nhảy sang rank 9. Cách vuốt mới giữ yên ngón tay trước
+khi nhấc nên không còn quán tính — nhưng máy có cho ghi vào `/dev/input` không,
+tấm cảm ứng xoay chiều nào, thì phải đo mới biết:
+
+```powershell
+& $rok -m rok_lab.cli scroll-calibrate <serial> --rows 4 --repeat 3 --confirm
+```
+
+Nó vuốt thử từng kiểu, đọc thứ hạng dòng đầu trước và sau, rồi báo kiểu nào
+dịch **đúng 4 dòng cả 3 lần**. Cuối cùng in ra đúng tham số cần dùng, ví dụ:
+
+```
+sendevent/auto         hàng 1 -> 5 (dịch 4 dòng, cần 4) DUNG
+swipe                  hàng 5 -> 12 (dịch 7 dòng, cần 4) lệch +3 dòng
+
+Dung kieu nay khi quet:  --scroll-gesture sendevent --rows-per-page 4
+```
+
+Số âm nghĩa là danh sách chạy ngược (sai chiều xoay tấm cảm ứng) — thêm
+`--scroll-mapping rot270`. Số 0 nghĩa là sự kiện không tới được game, dùng kiểu
+khác. Mặc định đã là `sendevent`, chỉ khi bảng đo báo khác mới cần thêm cờ.
+
+## 4b. Quét thử 6 người
+
 ```powershell
 & $rok -m rok_lab.cli kingdom-scan <serial> `
   --kingdom 2812 `

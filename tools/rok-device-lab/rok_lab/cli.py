@@ -13,6 +13,7 @@ from .collector import upload_scan
 from .control_client import ControlClient, load_agent_config
 from .fleet_ranking_scanner import run_fleet_ranking_job
 from .fleet_scanner import load_fleet_job, run_fleet_job
+from .gestures import GESTURE_KINDS
 from .kingdom_scanner import KingdomScanner, ScanOptions
 from .profiles import load_profile
 from .ranking_reader import read_visible_power_ranking
@@ -139,24 +140,47 @@ def build_parser() -> argparse.ArgumentParser:
     kingdom_scan.add_argument("--tesseract", help="Đường dẫn tesseract.exe.")
     kingdom_scan.add_argument("--tessdata", help="Thư mục chứa *.traineddata.")
     kingdom_scan.add_argument(
-        "--scroll-duration-ms",
-        type=int,
-        default=1500,
-        help="Thoi gian vuot. Cang ngan cang de bi fling va nhay mat dong.",
-    )
-    kingdom_scan.add_argument(
-        "--scroll-fraction",
-        type=float,
-        default=0.35,
-        help="Phan quang duong vuot so voi profile. Nho hon = chong lan nhieu hon.",
-    )
-    kingdom_scan.add_argument(
         "--rows-per-page",
         type=int,
-        default=5,
-        help="So hang doc moi trang. Hang thu 6 hay bam truot nen mac dinh bo.",
+        default=4,
+        help=(
+            "So hang doc moi trang. RokTracker chi bam 4 hang tren cua danh "
+            "sach; hai hang duoi hay bam truot xuong dong ke tiep."
+        ),
+    )
+    kingdom_scan.add_argument(
+        "--scroll-gesture",
+        choices=GESTURE_KINDS,
+        default="sendevent",
+        help=(
+            "Cach vuot. sendevent = giu yen ngon tay truoc khi nhac nen khong "
+            "con quan tinh (cach cua RokTracker). swipe = cach cu, luon bi troi."
+        ),
+    )
+    kingdom_scan.add_argument(
+        "--scroll-mapping",
+        choices=("auto", "direct", "rot90", "rot270"),
+        default="auto",
+        help="Chieu xoay cua tam cam ung. Dung scroll-calibrate de biet cai dung.",
     )
     kingdom_scan.add_argument("--confirm", action="store_true")
+
+    calibrate = subcommands.add_parser(
+        "scroll-calibrate",
+        help="Do tren may that xem kieu vuot nao dich dung so dong mong muon.",
+    )
+    calibrate.add_argument("device", help="Alias hoac ADB serial.")
+    calibrate.add_argument(
+        "--rows", type=int, default=4, help="So dong muon dich moi lan vuot."
+    )
+    calibrate.add_argument(
+        "--repeat", type=int, default=3, help="So lan thu moi kieu."
+    )
+    calibrate.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
+    calibrate.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
+    calibrate.add_argument("--tesseract", help="Duong dan tesseract.exe.")
+    calibrate.add_argument("--tessdata", help="Thu muc chua *.traineddata.")
+    calibrate.add_argument("--confirm", action="store_true")
 
     fleet_scan = subcommands.add_parser(
         "fleet-scan",
@@ -256,6 +280,29 @@ def _print_scan_progress(event: dict[str, object]) -> None:
             f"{'BAM NHAM NGUOI: danh sach=' + str(event.get('hintName')) + ' ho so=' + str(event.get('profileName')) if event.get('reason') == 'ten-khong-khop' else 'man hinh luc do: '}"
             f"{event.get('screen') or 'khong nhan ra'}"
             f"{'' if event.get('distance') is None else ' (lech ' + str(event.get('distance')) + ' bit)'}",
+            file=sys.stderr,
+            flush=True,
+        )
+    elif event.get("event") == "calibrate":
+        moved = event.get("moved")
+        mapping = event.get("mapping")
+        label = event.get("gesture") + (f"/{mapping}" if mapping else "")
+        verdict = (
+            "khong doc duoc" if moved is None
+            else "DUNG" if moved == event.get("wanted")
+            else f"lech {moved - event.get('wanted'):+d} dong"
+        )
+        print(
+            f"[{serial}] {label:<22} hang {event.get('before')} -> "
+            f"{event.get('after')} (dich {moved} dong, can {event.get('wanted')}) {verdict}",
+            file=sys.stderr,
+            flush=True,
+        )
+    elif event.get("event") == "gesture-fallback":
+        print(
+            f"[{serial}] !! kieu vuot '{event.get('requested')}' khong chay duoc "
+            f"tren may nay, da lui ve '{event.get('used')}'. Chay scroll-calibrate "
+            f"de biet kieu nao dung.",
             file=sys.stderr,
             flush=True,
         )
@@ -506,9 +553,11 @@ def main(argv: list[str] | None = None) -> int:
                     scan_name=args.name,
                     formats=formats,
                     evidence=args.evidence,
-                    scroll_duration_ms=args.scroll_duration_ms,
-                    scroll_fraction=args.scroll_fraction,
                     rows_per_page=args.rows_per_page,
+                    scroll_gesture=args.scroll_gesture,
+                    scroll_mapping=(
+                        None if args.scroll_mapping == "auto" else args.scroll_mapping
+                    ),
                     resume_directory=args.resume,
                 ),
                 confirmed=args.confirm,
@@ -517,6 +566,36 @@ def main(argv: list[str] | None = None) -> int:
                 progress=_print_scan_progress,
             ).scan()
             print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["ok"] else 2
+        elif args.command == "scroll-calibrate":
+            result = KingdomScanner(
+                client,
+                serial,
+                load_profile(args.profile),
+                args.artifacts,
+                ScanOptions(kingdom=0, amount=1, scan_name="calibrate", evidence="none"),
+                confirmed=args.confirm,
+                tesseract_path=args.tesseract,
+                tessdata_path=args.tessdata,
+                progress=_print_scan_progress,
+            ).calibrate_scroll(args.rows, args.repeat)
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            if result["recommended"]:
+                best = result["recommended"]
+                flags = f"--scroll-gesture {best['gesture']}"
+                if best["gesture"] == "sendevent" and best["mapping"] not in (None, "auto"):
+                    flags += f" --scroll-mapping {best['mapping']}"
+                print(
+                    f"\nDung kieu nay khi quet:  {flags} --rows-per-page {args.rows}",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    "\nKhong kieu nao dich dung so dong mong muon. Xem cot 'moved' "
+                    "o tren: neu so am thi danh sach chay nguoc (sai chieu xoay), "
+                    "neu bang 0 thi su kien khong toi duoc game.",
+                    file=sys.stderr,
+                )
             return 0 if result["ok"] else 2
         elif args.command == "ranking-scan":
             formats = {item.strip() for item in args.formats.split(",") if item.strip()}

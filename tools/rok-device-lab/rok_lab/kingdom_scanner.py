@@ -8,7 +8,7 @@ import unicodedata
 from difflib import SequenceMatcher
 import time
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -16,6 +16,14 @@ from typing import Any
 from PIL import Image, ImageEnhance, ImageOps
 
 from .adb import AdbClient, AdbError
+from .gestures import (
+    TouchDevice,
+    find_touch_device,
+    perform_scroll,
+    scroll_motionevent,
+    scroll_sendevent,
+    scroll_swipe,
+)
 from .governor import clean_alliance, clean_name, digits, finalize_record
 from .imaging import image_size, match_fingerprints
 from .ocr import available_languages, find_tessdata, find_tesseract, ocr_batch
@@ -35,37 +43,51 @@ class ScanOptions:
     open_wait: float = 1.8
     panel_wait: float = 0.8
     close_wait: float = 0.5
-    # Vuot 0.875 -> 0.32 la 599 px tren man 1080, dung bang 4,96 dong. Doc 6
-    # dong moi trang nen thiet ke la CO CHONG LAN mot dong — khong bao gio ho.
-    #
-    # Nhung 599 px trong 650 ms la 922 px/giay, du nhanh de Android coi la
-    # FLING: danh sach con truot tiep sau khi nhac tay, va truot bao xa thi
-    # khong xac dinh. Mot lan chay nhay 6 dong, lan khac nhay 13 dong. Cham lai
-    # de thanh keo chu khong phai bung.
-    scroll_duration_ms: int = 1500
-    # Phan quang duong vuot so voi profile. Profile vuot 0.875 -> 0.32 = 4,96
-    # dong, dung bang mot trang tru mot dong chong lan.
-    #
-    # Nhung ROK la game Unity, danh sach cua no co quan tinh rieng va `input
-    # swipe` luon truyen van toc luc nhac tay. 599 px trong 1500 ms van la 400
-    # px/giay, trong khi nguong fling cua Android chi khoang 130 px/giay. Vuot
-    # cham khong bo duoc quan tinh — chi vuot NGAN moi bo duoc hau qua cua no.
-    #
-    # 0.5 = di ~2,5 dong moi lan. Doc 6 dong nen con du 3,5 dong dem: quan tinh
-    # co nhan doi quang duong thi van chong lan, khong ho. Doi lai la nhieu
-    # trang hon va cham hon. Cham ma du con hon nhanh ma thung.
-    scroll_fraction: float = 0.35
     # So lan lui lai toi da moi trang khi vuot qua tron. Het so lan ma van qua
     # thi de nguyen va ghi vao rankGaps — bo sot con hon lui vo tan.
     scroll_corrections: int = 4
-    # So hang doc moi trang. Hang duoi cung hay bi bam truot xuong dong ke tiep
-    # vi no nam sat mep vung cuon, nen mac dinh bo qua no.
-    rows_per_page: int = 5
+    # So hang doc moi trang.
+    #
+    # RokTracker (MIT) bam theo bang Y = [285, 390, 490, 590, 605, 705, 805],
+    # nhung hai gia tri cuoi CHI dung cho nguoi thu 998 va 999 cua ca bang
+    # 1000. Suot ca lan quet no chi bam 4 hang tren. Trung khop voi cai nguoi
+    # dung quan sat: toi hang 6 la bam nham xuong dong duoi.
+    #
+    # 4 hang tren la vung RokTracker da chay hang nghin lan. Bo hai hang duoi
+    # doi lai nhieu lan vuot hon; nguoi dung da noi ro chinh xac quan trong hon
+    # nhanh.
+    rows_per_page: int = 4
+    # Kieu vuot. Xem gestures.py: `input swipe` khong bao giu yen ngon tay
+    # truoc khi nhac nen luon con quan tinh. Mac dinh dung lai cach cua
+    # RokTracker, va tu lui ve cach khac neu may khong cho.
+    scroll_gesture: str = "sendevent"
+    # Chieu xoay cua tam cam ung so voi man hinh: direct | rot90 | rot270.
+    # None = tu suy tu ti le khung hinh. `scroll-calibrate` do duoc cai dung.
+    scroll_mapping: str | None = None
     # Nguong giong nhau giua ten tren danh sach va ten trong ho so. Duoi nguong
     # nay coi nhu bam nham nguoi.
     name_match_min: float = 0.55
     scroll_wait: float = 1.6
     resume_directory: Path | None = None
+
+
+def _page_top_rank(hints: list[dict[str, Any]]) -> int | None:
+    """Thu hang cua dong TREN CUNG cua trang, lay theo da so.
+
+    Sau dong tren mot man hinh luon lien tiep, nen moi dong deu cho ra mot
+    du doan `rank - vi_tri`. Lay gia tri xuat hien nhieu nhat: mot dong OCR
+    hong khong lam lech ca trang.
+    """
+    votes: dict[int, int] = {}
+    for index, hint in enumerate(hints):
+        value = (hint or {}).get("rankFromScreen")
+        if value:
+            top = int(value) - index
+            if top >= 1:
+                votes[top] = votes.get(top, 0) + 1
+    if not votes:
+        return None
+    return max(votes.items(), key=lambda item: (item[1], -item[0]))[0]
 
 
 def _name_similarity(left: str, right: str) -> float:
@@ -142,9 +164,14 @@ class KingdomScanner:
         self.missed_rows: list[dict[str, Any]] = []
         self.last_miss_reason: dict[str, Any] | None = None
         self.rank_gaps: list[dict[str, Any]] = []
-        self.last_screen_rank: int | None = None
+        # Thu hang cao nhat da THUC SU bam toi (ke ca bam truot). Moi thu
+        # hang lon hon so nay + 1 o trang sau la nguoi bi nhay qua.
+        self.last_covered_rank: int | None = None
         self.started_at = utc_now()
         self.attempted_rank = 0
+        self._touch: TouchDevice | None = None
+        self._touch_probed = False
+        self._gesture_warned = False
         self._load_state()
 
     def _load_state(self) -> None:
@@ -533,17 +560,199 @@ class KingdomScanner:
             shutil.rmtree(governor_dir)
         return record
 
-    def _scroll(self, fraction: float | None = None, direction: int = 1) -> None:
-        start = self.profile.point("ranking.scroll-start", self.size)
-        end = self.profile.point("ranking.scroll-end", self.size)
-        ratio = max(0.05, min(1.0, fraction if fraction is not None else self.options.scroll_fraction))
-        ratio *= direction
-        target = (
-            start[0] + round((end[0] - start[0]) * ratio),
-            start[1] + round((end[1] - start[1]) * ratio),
-        )
-        self.client.swipe(self.serial, start, target, self.options.scroll_duration_ms)
-        time.sleep(self.options.scroll_wait)
+    def _row_pitch(self) -> float:
+        """Khoang cach giua hai dong trong danh sach, tinh bang pixel."""
+        first = self.profile.point("ranking.row1", self.size)
+        second = self.profile.point("ranking.row2", self.size)
+        pitch = abs(second[1] - first[1])
+        return float(pitch) if pitch else self.size[1] * 0.111
+
+    def _touch_device(self) -> TouchDevice | None:
+        if self._touch is None and not self._touch_probed:
+            self._touch_probed = True
+            self._touch = find_touch_device(self.client, self.serial)
+        return self._touch
+
+    def _scroll(self, rows: float | None = None, direction: int = 1) -> None:
+        """Cuon danh sach di DUNG bao nhieu DONG, khong phai bao nhieu phan man hinh.
+
+        Truoc day quang duong tinh theo ti le man hinh roi hy vong no roi vao
+        khoang mot trang. Gio tinh thang tu khoang cach giua hai dong doc duoc
+        trong ho so thiet bi, nen "vuot 4 dong" nghia dung la 4 dong.
+        """
+        pitch = self._row_pitch()
+        count = self.options.rows_per_page if rows is None else rows
+        distance = abs(pitch * count)
+
+        column = self.profile.point("ranking.scroll-start", self.size)[0]
+        low = self.profile.point("ranking.scroll-start", self.size)[1]
+        high = self.profile.point("ranking.scroll-end", self.size)[1]
+        travel = abs(low - high)
+        if travel < pitch:
+            travel = pitch * 4
+
+        remaining = distance
+        while remaining > 0.5:
+            step = min(remaining, travel)
+            if direction >= 0:
+                origin, target = low, round(low - step)
+            else:
+                origin, target = high, round(high + step)
+            used = perform_scroll(
+                self.client,
+                self.serial,
+                (column, round(origin)),
+                (column, target),
+                self.size,
+                self.options.scroll_gesture,
+                touch=self._touch_device(),
+                mapping=self.options.scroll_mapping,
+                settle=self.options.scroll_wait,
+            )
+            if used != self.options.scroll_gesture and not self._gesture_warned:
+                self._gesture_warned = True
+                self.progress(
+                    {
+                        "serial": self.serial,
+                        "event": "gesture-fallback",
+                        "requested": self.options.scroll_gesture,
+                        "used": used,
+                    }
+                )
+            remaining -= step
+
+    def _top_rank(self, page: int) -> int | None:
+        """Thu hang cua dong TREN CUNG dang hien tren man hinh.
+
+        Doc ca sau dong roi lay dong nao OCR duoc, tru di khoang cach dong —
+        chi tin mot dong duy nhat thi mot lan OCR hong la mat ca phep do.
+        """
+        return _page_top_rank(self._read_ranking_hints(page))
+
+    def calibrate_scroll(self, rows: int, repeat: int) -> dict[str, Any]:
+        """Do tren may THAT xem kieu vuot nao dich dung `rows` dong moi lan.
+
+        Khong the ngoi doan kieu nao chay duoc tren may nao: `input
+        motionevent` co tren may nay chua, tam cam ung xoay chieu nao, co
+        quyen ghi vao /dev/input khong — deu la thu chi may moi tra loi duoc.
+        Nen lam mot phep do: doc thu hang dong dau, vuot, doc lai, lay hieu.
+        Hieu = so dong da dich. Dung bao nhieu lan lien tiep moi la dat.
+        """
+        with DeviceLock(self.artifacts_root, self.serial, "scroll-calibrate"):
+            self.client.require_ready(self.serial)
+            self._ensure_power_ranking()
+            touch = self._touch_device()
+
+            candidates: list[tuple[str, str | None]] = []
+            if touch is not None:
+                # Chieu xoay tam cam ung: "auto" doan tu ti le khung hinh,
+                # nhung doan sai chieu thi danh sach chay NGUOC. Thu ca hai.
+                for mapping in ("auto", "rot270", "direct"):
+                    candidates.append(("sendevent", mapping))
+            candidates.extend(
+                (kind, None) for kind in ("motionevent", "swipe-slow", "swipe")
+            )
+
+            pitch = self._row_pitch()
+            column = self.profile.point("ranking.scroll-start", self.size)[0]
+            low = self.profile.point("ranking.scroll-start", self.size)[1]
+            distance = round(pitch * rows)
+            start = (column, round(low))
+            end = (column, round(low) - distance)
+
+            page = 0
+            report: list[dict[str, Any]] = []
+            for kind, mapping in candidates:
+                deltas: list[int | None] = []
+                error: str | None = None
+                for _ in range(max(1, repeat)):
+                    page += 1
+                    before = self._top_rank(page)
+                    try:
+                        if kind == "sendevent":
+                            assert touch is not None
+                            device = (
+                                touch
+                                if mapping in (None, "auto")
+                                else replace(touch, mapping=mapping)
+                            )
+                            scroll_sendevent(
+                                self.client,
+                                self.serial,
+                                start,
+                                end,
+                                self.size,
+                                touch=device,
+                            )
+                        elif kind == "motionevent":
+                            scroll_motionevent(
+                                self.client, self.serial, start, end, self.size
+                            )
+                        else:
+                            scroll_swipe(
+                                self.client,
+                                self.serial,
+                                start,
+                                end,
+                                self.size,
+                                duration_ms=4000 if kind == "swipe-slow" else 1500,
+                            )
+                    except (AdbError, OSError) as exc:
+                        error = str(exc)
+                        break
+                    time.sleep(self.options.scroll_wait)
+                    page += 1
+                    after = self._top_rank(page)
+                    deltas.append(
+                        None if (before is None or after is None) else after - before
+                    )
+                    self.progress(
+                        {
+                            "serial": self.serial,
+                            "event": "calibrate",
+                            "gesture": kind,
+                            "mapping": mapping,
+                            "before": before,
+                            "after": after,
+                            "moved": deltas[-1],
+                            "wanted": rows,
+                        }
+                    )
+                clean = [value for value in deltas if value is not None]
+                report.append(
+                    {
+                        "gesture": kind,
+                        "mapping": mapping,
+                        "moved": deltas,
+                        "exact": bool(clean)
+                        and len(clean) == len(deltas)
+                        and all(value == rows for value in clean),
+                        "spread": (max(clean) - min(clean)) if clean else None,
+                        "error": error,
+                    }
+                )
+
+            winner = next((entry for entry in report if entry["exact"]), None)
+            return {
+                "ok": winner is not None,
+                "serial": self.serial,
+                "wantedRows": rows,
+                "rowPitchPx": pitch,
+                "distancePx": distance,
+                "touchDevice": (
+                    None
+                    if touch is None
+                    else {
+                        "node": touch.node,
+                        "maxX": touch.max_x,
+                        "maxY": touch.max_y,
+                        "protocolB": touch.protocol_b,
+                        "mappingAuto": touch.resolved_mapping(self.size),
+                    }
+                ),
+                "results": report,
+                "recommended": winner,
+            }
 
     def scan(self) -> dict[str, Any]:
         with DeviceLock(self.artifacts_root, self.serial, "kingdom-scan"):
@@ -570,46 +779,59 @@ class KingdomScanner:
                     # can vuot chinh xac nua — chi can BIET minh dang o dau roi
                     # lui lai. Chong lan thi vo hai (trung se bi loc theo
                     # governorId); nhay cach moi la mat nguoi.
+                    rows = max(1, min(6, self.options.rows_per_page))
                     for _ in range(self.options.scroll_corrections):
-                        seen = [
-                            h.get("rankFromScreen")
-                            for h in hints
-                            if h and h.get("rankFromScreen")
-                        ]
-                        if not seen or self.last_screen_rank is None:
+                        top = _page_top_rank(hints)
+                        if top is None or self.last_covered_rank is None:
                             break
-                        if min(seen) <= self.last_screen_rank + 1:
+                        if top <= self.last_covered_rank + 1:
                             break
                         self.progress(
                             {
                                 "serial": self.serial,
                                 "event": "scroll-back",
                                 "page": page + 1,
-                                "expected": self.last_screen_rank + 1,
-                                "sawTop": min(seen),
+                                "expected": self.last_covered_rank + 1,
+                                "sawTop": top,
                             }
                         )
-                        self._scroll(fraction=0.3, direction=-1)
+                        self._scroll(rows=1, direction=-1)
                         hints = self._read_ranking_hints(page + 1)
 
                     added = 0
-                    page_seen = [
-                        h.get("rankFromScreen") for h in hints if h and h.get("rankFromScreen")
-                    ]
-                    if page_seen and self.last_screen_rank is not None:
-                        top = min(page_seen)
-                        if top > self.last_screen_rank + 1:
+                    page_top = _page_top_rank(hints)
+
+                    # So sanh voi thu hang DA BAM TOI, khong phai thu hang NHIN
+                    # THAY. Truoc day lay max cua ca sau dong dang hien, trong
+                    # khi moi trang chi bam bon dong dau — hai dong duoi coi
+                    # nhu da xong du chua he bam vao. Vuot lo mot dong la mat
+                    # mot nguoi, va phep do bao "khong bo sot ai".
+                    #
+                    # Chay thu: vuot lo 1 dong moi trang, quet 30 nguoi ->
+                    # mat 7 nguoi (5, 10, 15, 20, 25, 30, 35) ma rankGaps van
+                    # bao 0. Do la kieu hong nguy hiem nhat: ket qua trong
+                    # van sach se.
+                    if page_top is not None and self.last_covered_rank is not None:
+                        if page_top > self.last_covered_rank + 1:
                             gap = {
                                 "page": page + 1,
-                                "afterRank": self.last_screen_rank,
-                                "nextRank": top,
-                                "missing": top - self.last_screen_rank - 1,
+                                "afterRank": self.last_covered_rank,
+                                "nextRank": page_top,
+                                "missing": page_top - self.last_covered_rank - 1,
                             }
                             self.rank_gaps.append(gap)
                             self.progress({"serial": self.serial, "event": "rank-gap", **gap})
-                    if page_seen:
-                        self.last_screen_rank = max(self.last_screen_rank or 0, max(page_seen))
-                    rows = max(1, min(6, self.options.rows_per_page))
+
+                    # Cac dong tren MOT man hinh luon lien tiep nhau, nen suy
+                    # thu hang tung dong tu dong dau dang tin hon la OCR rieng
+                    # tung dong: mot lan doc hong khong keo ca trang di theo.
+                    if page_top is not None:
+                        for index, hint in enumerate(hints):
+                            if hint is not None:
+                                hint["rankFromScreen"] = page_top + index
+                        self.last_covered_rank = max(
+                            self.last_covered_rank or 0, page_top + rows - 1
+                        )
                     for row in range(1, rows + 1):
                         if len(self.records) >= self.options.amount:
                             break
