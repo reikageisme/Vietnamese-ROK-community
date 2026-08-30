@@ -58,7 +58,21 @@ ABS_MT_POSITION_Y = 54
 ABS_MT_TRACKING_ID = 57
 TRACKING_ID_LIFT = 4294967295
 
-GESTURE_KINDS = ("sendevent", "motionevent", "swipe-slow", "swipe")
+# Thu tu nay CHINH LA thu tu lui khi kieu duoc chon khong chay duoc, nen no
+# phai xep theo do tin cay do duoc chu khong theo do "dung ky thuat".
+#
+# Do tren may 09 (SM-A516B, khong root), keo dung mot dong, ba lan moi kieu:
+#   sendevent    khong chay — getevent -p khong liet ke node cam ung nao
+#   swipe-slow   1, 1, 1     (spread 0)
+#   motionevent  None, -1, 2 (co lan danh sach chay NGUOC)
+#   swipe        None, None, None
+#
+# Truoc day motionevent xep truoc swipe-slow, nen tren dan may khong root,
+# lui tu sendevent la roi thang vao kieu tòe toe nhat. `input swipe` giu tay
+# 4000ms cho mot quang 120px thi van toc luc nha gan bang 0 — ghi chu o dau
+# file noi swipe luon con quan tinh la dung voi quang DAI, khong dung voi
+# quang ngan mot dong.
+GESTURE_KINDS = ("sendevent", "swipe-slow", "motionevent", "swipe")
 
 
 @dataclass

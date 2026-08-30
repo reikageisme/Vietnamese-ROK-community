@@ -13,6 +13,7 @@ from rok_lab.gestures import (
     ABS_MT_POSITION_X,
     ABS_MT_POSITION_Y,
     ABS_MT_TRACKING_ID,
+    GESTURE_KINDS,
     TRACKING_ID_LIFT,
     TouchDevice,
     find_touch_device,
@@ -155,6 +156,17 @@ class MotionEventMacroTest(unittest.TestCase):
         self.assertEqual(
             6, sum(1 for line in lines if line == "input motionevent MOVE 960 465")
         )
+
+
+class FallbackOrderTest(unittest.TestCase):
+    def test_swipe_slow_is_tried_before_motionevent(self) -> None:
+        # Tren may khong root, lui tu sendevent la roi vao kieu ke tiep. Do
+        # tren may 09: swipe-slow ra 1,1,1 con motionevent ra None,-1,2 — mot
+        # lan danh sach chay nguoc. Xep sai thu tu la moi lan quet deu cuon
+        # bang kieu te nhat ma khong ai biet.
+        order = list(GESTURE_KINDS)
+        self.assertLess(order.index("swipe-slow"), order.index("motionevent"))
+        self.assertLess(order.index("motionevent"), order.index("swipe"))
 
 
 if __name__ == "__main__":

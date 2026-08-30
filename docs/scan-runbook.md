@@ -196,9 +196,13 @@ Dung kieu nay khi quet:  --scroll-gesture sendevent --rows-per-page 1
 muốn quét nhanh theo kiểu cũ thì đo `--rows 4` rồi quét với `--rows-per-page 4`,
 đổi lại chấp nhận rủi ro bấm nhầm người.
 
-Số âm nghĩa là danh sách chạy ngược (sai chiều xoay tấm cảm ứng) — thêm
-`--scroll-mapping rot270`. Số 0 nghĩa là sự kiện không tới được game, dùng kiểu
-khác. Mặc định đã là `sendevent`, chỉ khi bảng đo báo khác mới cần thêm cờ.
+Số âm nghĩa là danh sách chạy ngược, số 0 nghĩa là sự kiện không tới được game.
+
+Mặc định là `swipe-slow`, vì trên máy 09 (SM-A516B, **không root**) đó là kiểu
+duy nhất dịch đúng 1 dòng cả ba lần. `sendevent` — cách của RokTracker, chắc
+nhất — cần quyền ghi vào `/dev/input`; máy không root thì `getevent -p` không
+liệt kê nổi tấm cảm ứng nên nó không chạy được. Máy nào root thì thêm
+`--scroll-gesture sendevent`.
 
 ## 4b. Quét thử 6 người
 

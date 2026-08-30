@@ -152,10 +152,11 @@ def build_parser() -> argparse.ArgumentParser:
     kingdom_scan.add_argument(
         "--scroll-gesture",
         choices=GESTURE_KINDS,
-        default="sendevent",
+        default="swipe-slow",
         help=(
-            "Cach vuot. sendevent = giu yen ngon tay truoc khi nhac nen khong "
-            "con quan tinh (cach cua RokTracker). swipe = cach cu, luon bi troi."
+            "Cach vuot. swipe-slow = keo cham mot dong, do duoc 1,1,1 tren may "
+            "that. sendevent = cach cua RokTracker, chac hon nhung phai root. "
+            "Dung scroll-calibrate de biet may nay hop kieu nao."
         ),
     )
     kingdom_scan.add_argument(

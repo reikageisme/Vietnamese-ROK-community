@@ -62,10 +62,12 @@ class ScanOptions:
     # cua moi nguoi van la mo ho so va OCR ba man, nen ban quet cham hon chung
     # mot phan ba chu khong phai gap bon.
     rows_per_page: int = 1
-    # Kieu vuot. Xem gestures.py: `input swipe` khong bao giu yen ngon tay
-    # truoc khi nhac nen luon con quan tinh. Mac dinh dung lai cach cua
-    # RokTracker, va tu lui ve cach khac neu may khong cho.
-    scroll_gesture: str = "sendevent"
+    # Kieu vuot. sendevent la cach cua RokTracker va chac nhat, NHUNG no can
+    # quyen ghi vao /dev/input — dan may hien tai khong root nen no khong chay,
+    # va moi lan thu lai ton mot lan `getevent -p` qua adb. swipe-slow do duoc
+    # 1,1,1 tren may that (xem bang trong gestures.py), nen lay lam mac dinh.
+    # May nao root thi dat --scroll-gesture sendevent.
+    scroll_gesture: str = "swipe-slow"
     # Chieu xoay cua tam cam ung so voi man hinh: direct | rot90 | rot270.
     # None = tu suy tu ti le khung hinh. `scroll-calibrate` do duoc cai dung.
     scroll_mapping: str | None = None
