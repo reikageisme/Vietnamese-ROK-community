@@ -31,10 +31,18 @@ class FakeClient:
 class FakeKingdom:
     """Mot bang xep hang gia, cuon duoc, de do ban quet chu khong do OCR."""
 
-    def __init__(self, scanner: KingdomScanner, drift_rows: float, blind_rows=()) -> None:
+    def __init__(
+        self,
+        scanner: KingdomScanner,
+        drift_rows: float,
+        blind_rows=(),
+        deaf_ranks=(),
+    ) -> None:
         self.scanner = scanner
         self.drift = drift_rows
         self.blind = set(blind_rows)
+        # Nhung thu hang ma cu bam khong mo duoc ho so.
+        self.deaf = set(deaf_ranks)
         self.top = 1.0
         self.pitch = scanner._row_pitch()
         self.scroll_backs = 0
@@ -62,6 +70,8 @@ class FakeKingdom:
     def open_governor(self, row: int, hint):  # noqa: ANN001
         self.scanner.attempted_rank += 1
         rank = hint["rankFromScreen"]
+        if rank in self.deaf:
+            return None
         return {
             "rank": rank,
             "rankFromScreen": rank,
@@ -78,7 +88,7 @@ class FakeKingdom:
         }
 
 
-def run_scan(drift_rows=0.0, rows_per_page=4, amount=30, blind_rows=()):
+def run_scan(drift_rows=0.0, rows_per_page=4, amount=30, blind_rows=(), deaf_ranks=()):
     with TemporaryDirectory() as workspace:
         with (
             patch.object(scanner_module, "find_tesseract", lambda path=None: "tesseract"),
@@ -101,7 +111,7 @@ def run_scan(drift_rows=0.0, rows_per_page=4, amount=30, blind_rows=()):
                 confirmed=True,
             )
             scanner._touch_probed = True
-            world = FakeKingdom(scanner, drift_rows, blind_rows)
+            world = FakeKingdom(scanner, drift_rows, blind_rows, deaf_ranks)
             scanner._ensure_power_ranking = lambda: None
             scanner._read_ranking_hints = world.hints
             scanner._scan_governor = world.open_governor
@@ -135,7 +145,13 @@ class ScrollDistanceTest(unittest.TestCase):
                     "SERIAL",
                     load_profile(PROFILE),
                     Path(workspace),
-                    ScanOptions(kingdom=1, amount=1, evidence="none", scroll_wait=0),
+                    ScanOptions(
+                        kingdom=1,
+                        amount=1,
+                        evidence="none",
+                        rows_per_page=4,
+                        scroll_wait=0,
+                    ),
                     confirmed=True,
                 )
             scanner._touch_probed = True
@@ -220,6 +236,81 @@ class CoverageAccountingTest(unittest.TestCase):
         result, _ranks, skipped, _ = run_scan(blind_rows=(0, 1, 2, 3, 4))
         self.assertEqual([], skipped)
         self.assertEqual(0, result["ranksMissing"])
+
+
+class OneRowPerPageTest(unittest.TestCase):
+    """Che do mac dinh: bam DONG DAU, keo len mot dong, doc lai.
+
+    Truoc day hai con so trong `scan` gia dinh moi trang bam bon hang —
+    `max_pages` chia cho 4, va nguong dung la ba TRANG lien tiep khong them
+    duoc ai. Voi mot hang moi trang thi so trang can gap bon lan con so
+    duoc cap, va ba lan bam truot lien tiep du de ket thuc ban quet. Ca hai
+    deu ket thuc som ma bao "partial", nen khong ai nhin ra la loi.
+    """
+
+    def test_covers_everyone_one_row_at_a_time(self) -> None:
+        result, ranks, skipped, _ = run_scan(rows_per_page=1, amount=30)
+        self.assertEqual(list(range(1, 31)), ranks)
+        self.assertEqual([], skipped)
+        self.assertEqual("complete", result["status"])
+
+    def test_overshooting_every_scroll_is_pulled_back(self) -> None:
+        result, _ranks, skipped, world = run_scan(
+            rows_per_page=1, amount=30, drift_rows=1.0
+        )
+        self.assertEqual([], skipped)
+        self.assertEqual(0, result["ranksMissing"])
+        self.assertGreater(world.scroll_backs, 0)
+
+    def test_scattered_misses_do_not_end_the_scan_early(self) -> None:
+        # Cu ba nguoi thi mot nguoi bam khong mo duoc ho so. Khong bao gio
+        # co 12 lan truot lien tiep, nen ban quet phai di het 30 nguoi.
+        result, _ranks, _skipped, _ = run_scan(
+            rows_per_page=1, amount=30, deaf_ranks=range(3, 60, 3)
+        )
+        self.assertEqual("complete", result["status"])
+        self.assertEqual(30, result["records"])
+        self.assertGreater(result["missedRows"], 0)
+
+
+class RowShiftAppliesToTheRightThingsTest(unittest.TestCase):
+    """Do lech chi duoc dich danh sach, khong duoc dich ho so nguoi choi.
+
+    Danh sach troi theo quan tinh; bang ho so mo len la mot lop rieng nam
+    yen mot cho. Dich ca hai theo cung mot so la chua cai nay hong cai kia,
+    va cai hong moi im lang hon: OCR van ra CHU, chi la chu cua o ben canh.
+    """
+
+    def scanner(self, workspace: str) -> KingdomScanner:
+        with (
+            patch.object(scanner_module, "find_tesseract", lambda path=None: "t"),
+            patch.object(scanner_module, "find_tessdata", lambda a, b=None: Path(workspace)),
+            patch.object(scanner_module, "available_languages", lambda path: ["eng"]),
+        ):
+            return KingdomScanner(
+                FakeClient(),
+                "SERIAL",
+                load_profile(PROFILE),
+                Path(workspace),
+                ScanOptions(kingdom=1, amount=1, evidence="none", scroll_wait=0),
+                confirmed=True,
+            )
+
+    def test_ranking_boxes_move_and_governor_boxes_do_not(self) -> None:
+        with TemporaryDirectory() as workspace:
+            scanner = self.scanner(workspace)
+            before = {
+                name: scanner._region_box(name)
+                for name in ("ranking.row1", "ranking.rank1", "governor.name")
+            }
+            scanner.row_shift = -44
+            after = {name: scanner._region_box(name) for name in before}
+
+        for name in ("ranking.row1", "ranking.rank1"):
+            self.assertEqual(before[name][1] - 44, after[name][1], name)
+            self.assertEqual(before[name][3] - 44, after[name][3], name)
+            self.assertEqual(before[name][0], after[name][0], name)
+        self.assertEqual(before["governor.name"], after["governor.name"])
 
 
 if __name__ == "__main__":

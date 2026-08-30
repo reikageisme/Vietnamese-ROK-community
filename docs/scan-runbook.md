@@ -177,18 +177,24 @@ khi nhấc nên không còn quán tính — nhưng máy có cho ghi vào `/dev/i
 tấm cảm ứng xoay chiều nào, thì phải đo mới biết:
 
 ```powershell
-& $rok -m rok_lab.cli scroll-calibrate <serial> --rows 4 --repeat 3 --confirm
+& $rok -m rok_lab.cli scroll-calibrate <serial> --rows 1 --repeat 3 --confirm
 ```
 
 Nó vuốt thử từng kiểu, đọc thứ hạng dòng đầu trước và sau, rồi báo kiểu nào
-dịch **đúng 4 dòng cả 3 lần**. Cuối cùng in ra đúng tham số cần dùng, ví dụ:
+dịch **đúng 1 dòng cả 3 lần**. Cuối cùng in ra đúng tham số cần dùng, ví dụ:
 
 ```
-sendevent/auto         hàng 1 -> 5 (dịch 4 dòng, cần 4) DUNG
-swipe                  hàng 5 -> 12 (dịch 7 dòng, cần 4) lệch +3 dòng
+sendevent/auto         hàng 1 -> 2 (dịch 1 dòng, cần 1) DUNG
+swipe                  hàng 2 -> 5 (dịch 3 dòng, cần 1) lệch +2 dòng
 
-Dung kieu nay khi quet:  --scroll-gesture sendevent --rows-per-page 4
+Dung kieu nay khi quet:  --scroll-gesture sendevent --rows-per-page 1
 ```
+
+Đo **1 dòng** chứ không phải 4, vì bản quét giờ chỉ bấm dòng đầu rồi kéo lên
+đúng một dòng: bấm nhiều hàng mỗi trang là đặt cược rằng toạ độ hàng 2, 3, 4 vẫn
+đúng sau khi danh sách dừng lại, và cái đặt cược đó thua dần qua từng trang. Ai
+muốn quét nhanh theo kiểu cũ thì đo `--rows 4` rồi quét với `--rows-per-page 4`,
+đổi lại chấp nhận rủi ro bấm nhầm người.
 
 Số âm nghĩa là danh sách chạy ngược (sai chiều xoay tấm cảm ứng) — thêm
 `--scroll-mapping rot270`. Số 0 nghĩa là sự kiện không tới được game, dùng kiểu

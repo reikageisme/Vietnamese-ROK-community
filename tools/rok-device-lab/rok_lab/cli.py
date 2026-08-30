@@ -142,10 +142,11 @@ def build_parser() -> argparse.ArgumentParser:
     kingdom_scan.add_argument(
         "--rows-per-page",
         type=int,
-        default=4,
+        default=1,
         help=(
-            "So hang doc moi trang. RokTracker chi bam 4 hang tren cua danh "
-            "sach; hai hang duoi hay bam truot xuong dong ke tiep."
+            "So hang bam moi lan vuot. Mac dinh 1: bam dong dau roi keo len "
+            "dung mot dong, nen sai so vuot khong cong don qua cac trang. "
+            "Dat 4 de quay lai cach cua RokTracker (nhanh hon, hay truot hon)."
         ),
     )
     kingdom_scan.add_argument(
@@ -171,7 +172,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     calibrate.add_argument("device", help="Alias hoac ADB serial.")
     calibrate.add_argument(
-        "--rows", type=int, default=4, help="So dong muon dich moi lan vuot."
+        "--rows",
+        type=int,
+        default=1,
+        help=(
+            "So dong muon dich moi lan vuot. Mac dinh 1 vi ban quet cung keo "
+            "tung dong mot; do 4 chi co nghia neu se quet voi --rows-per-page 4."
+        ),
     )
     calibrate.add_argument(
         "--repeat", type=int, default=3, help="So lan thu moi kieu."

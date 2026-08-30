@@ -25,7 +25,7 @@ from .gestures import (
     scroll_swipe,
 )
 from .governor import clean_alliance, clean_name, digits, finalize_record
-from .imaging import image_size, match_fingerprints
+from .imaging import image_size, match_fingerprints, row_grid_offset
 from .ocr import available_languages, find_tessdata, find_tesseract, ocr_batch
 from .profiles import DeviceProfile
 from .ranking_reader import parse_ranking_row
@@ -46,17 +46,22 @@ class ScanOptions:
     # So lan lui lai toi da moi trang khi vuot qua tron. Het so lan ma van qua
     # thi de nguyen va ghi vao rankGaps — bo sot con hon lui vo tan.
     scroll_corrections: int = 4
-    # So hang doc moi trang.
+    # So hang bam moi lan vuot. 1 = bam dong dau, keo len dung mot dong, doc
+    # lai. 4 = cach cua RokTracker.
     #
-    # RokTracker (MIT) bam theo bang Y = [285, 390, 490, 590, 605, 705, 805],
-    # nhung hai gia tri cuoi CHI dung cho nguoi thu 998 va 999 cua ca bang
-    # 1000. Suot ca lan quet no chi bam 4 hang tren. Trung khop voi cai nguoi
-    # dung quan sat: toi hang 6 la bam nham xuong dong duoi.
+    # Bam nhieu hang moi trang dat cuoc rang toa do hang 2, 3, 4 van dung sau
+    # khi danh sach dung lai — chi dung neu cu vuot dap trung phoc mot so
+    # nguyen dong. ROK la Unity, danh sach luon troi them mot chut, nen cai dat
+    # cuoc do thua dan qua tung trang roi den luc bam nham nguoi. RokTracker
+    # (MIT) cung vay: bang Y cua no co bay gia tri nhung hai cai cuoi chi dung
+    # cho nguoi thu 998 va 999, suot ca lan quet no chi bam bon hang tren.
     #
-    # 4 hang tren la vung RokTracker da chay hang nghin lan. Bo hai hang duoi
-    # doi lai nhieu lan vuot hon; nguoi dung da noi ro chinh xac quan trong hon
-    # nhanh.
-    rows_per_page: int = 4
+    # Bam mot hang thi khong con dat cuoc nao: vuot lo hay vuot thieu deu thanh
+    # sai so cua RIENG vong do chu khong cong don sang vong sau. Gia phai tra la
+    # mot lan vuot cho moi nguoi thay vi moi bon nguoi — nhung phan nang nhat
+    # cua moi nguoi van la mo ho so va OCR ba man, nen ban quet cham hon chung
+    # mot phan ba chu khong phai gap bon.
+    rows_per_page: int = 1
     # Kieu vuot. Xem gestures.py: `input swipe` khong bao giu yen ngon tay
     # truoc khi nhac nen luon con quan tinh. Mac dinh dung lai cach cua
     # RokTracker, va tu lui ve cach khac neu may khong cho.
@@ -169,6 +174,9 @@ class KingdomScanner:
         self.last_covered_rank: int | None = None
         self.started_at = utc_now()
         self.attempted_rank = 0
+        # Danh sach dang nam lech bao nhieu pixel so voi luoi trong profile.
+        # Do lai sau MOI lan chup man; xem imaging.row_grid_offset.
+        self.row_shift = 0
         self._touch: TouchDevice | None = None
         self._touch_probed = False
         self._gesture_warned = False
@@ -288,7 +296,7 @@ class KingdomScanner:
         destination.mkdir(parents=True, exist_ok=True)
         with Image.open(screenshot) as source:
             for index, region in enumerate(regions):
-                crop = source.crop(self.profile.box(region, self.size))
+                crop = source.crop(self._region_box(region))
                 crop = crop.resize((crop.width * 3, crop.height * 3))
                 if white_text:
                     hsv = crop.convert("HSV")
@@ -313,6 +321,31 @@ class KingdomScanner:
                 crop.save(path)
                 paths.append(path)
         return paths
+
+    def _region_box(self, region: str) -> tuple[int, int, int, int]:
+        """Vung cat, da dich theo do lech cua luoi dong.
+
+        Chi cac vung `ranking.*` moi troi theo danh sach. Ho so nguoi choi la
+        mot bang rieng, no nam yen mot cho — dich no theo la cat truot.
+        """
+        left, top, right, bottom = self.profile.box(region, self.size)
+        if self.row_shift and region.startswith("ranking."):
+            return (left, top + self.row_shift, right, bottom + self.row_shift)
+        return (left, top, right, bottom)
+
+    def _measure_row_shift(self, screenshot: Path) -> None:
+        shift = row_grid_offset(
+            screenshot,
+            expected_top=self.profile.box("ranking.row1", self.size)[1],
+            pitch=round(self._row_pitch()),
+        )
+        if shift is None or shift == self.row_shift:
+            return
+        previous, self.row_shift = self.row_shift, shift
+        if abs(shift - previous) > 2:
+            self.progress(
+                {"serial": self.serial, "event": "row-shift", "pixels": shift}
+            )
 
     def _ocr_regions(
         self,
@@ -346,6 +379,7 @@ class KingdomScanner:
         screenshot = self._capture(page_root / f"page-{page:04d}.png")
         if not self._screen_matches(screenshot, "individual-power-ranking"):
             raise AdbError("Mất màn Individual Power Rankings trước khi đọc trang.")
+        self._measure_row_shift(screenshot)
         regions = [f"ranking.row{row}" for row in range(1, 7)]
         rows = self._ocr_regions(
             screenshot,
@@ -368,6 +402,7 @@ class KingdomScanner:
                 screenshot,
                 rank_regions,
                 page_root / f"page-{page:04d}-rank-crops",
+                white_text=True,
                 page_segmentation=7,
             )
         except Exception:
@@ -402,9 +437,11 @@ class KingdomScanner:
     ) -> dict[str, Any] | None:
         self.attempted_rank += 1
         governor_dir = self.directory / "evidence" / f"rank-{self.attempted_rank:04d}"
-        self.client.tap(
-            self.serial, *self.profile.point(f"ranking.row{row}", self.size)
-        )
+        # Bam theo luoi DA DO, khong theo luoi trong profile. Day moi la cho
+        # chua benh "toi hang duoi la bam nham xuong dong ke tiep": khong phai
+        # toa do hang sai, ma ca danh sach dang nam lech.
+        column, height = self.profile.point(f"ranking.row{row}", self.size)
+        self.client.tap(self.serial, column, height + self.row_shift)
         time.sleep(self.options.open_wait)
         profile_image = self._capture(governor_dir / "profile.png")
         if not self._screen_matches(profile_image, "governor-profile"):
@@ -765,8 +802,13 @@ class KingdomScanner:
                     for record in self.records
                     if record.get("governorId")
                 }
-                stagnant_pages = 0
-                max_pages = max(4, math.ceil(self.options.amount / 4) + 8)
+                stagnant_rows = 0
+                rows = max(1, min(6, self.options.rows_per_page))
+                # Moi trang thu duoc NHIEU NHAT `rows` nguoi, va it hon the moi
+                # khi bam truot. Nhan doi de mot nua so lan bam hong van con du
+                # trang ma di het `amount`; tinh theo /4 nhu truoc thi
+                # --rows-per-page 1 het trang o mot phan tu quang duong.
+                max_pages = math.ceil(self.options.amount / rows) * 2 + 8
                 for page in range(max_pages):
                     hints = self._read_ranking_hints(page + 1)
 
@@ -779,7 +821,6 @@ class KingdomScanner:
                     # can vuot chinh xac nua — chi can BIET minh dang o dau roi
                     # lui lai. Chong lan thi vo hai (trung se bi loc theo
                     # governorId); nhay cach moi la mat nguoi.
-                    rows = max(1, min(6, self.options.rows_per_page))
                     for _ in range(self.options.scroll_corrections):
                         top = _page_top_rank(hints)
                         if top is None or self.last_covered_rank is None:
@@ -872,8 +913,12 @@ class KingdomScanner:
                             )
                     if len(self.records) >= self.options.amount:
                         break
-                    stagnant_pages = stagnant_pages + 1 if added == 0 else 0
-                    if stagnant_pages >= 3:
+                    # Dem theo HANG chu khong theo trang: nguong 3 trang cu la
+                    # 12 hang khi moi trang bam 4 hang, nhung chi la 3 hang khi
+                    # moi trang bam 1 — ba lan bam truot lien tiep la ban quet
+                    # tu dung giua chung.
+                    stagnant_rows = stagnant_rows + rows if added == 0 else 0
+                    if stagnant_rows >= 12:
                         break
                     self.progress(
                         {
