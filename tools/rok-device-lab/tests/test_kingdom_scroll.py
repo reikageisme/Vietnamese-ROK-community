@@ -240,6 +240,14 @@ class CoverageAccountingTest(unittest.TestCase):
         self.assertEqual(0, result["ranksMissing"])
         self.assertGreater(world.scroll_backs, 0)
 
+    def test_a_scan_full_of_holes_is_not_called_complete(self) -> None:
+        # 31/08: quet 3 nguoi, bat duoc hang 109, 4 va 1, va ket qua ghi
+        # status=complete ranksMissing=0. Du so luong thi chua phai la du
+        # nguoi — thu hang phai lien tuc thi moi goi la tron ven.
+        result, _ranks, skipped, _ = run_scan(drift_rows=8.0)
+        self.assertGreater(len(skipped), 0)
+        self.assertEqual("partial", result["status"])
+
     def test_overshoot_is_reported_not_hidden(self) -> None:
         # Vuot lo qua xa de lui lai khong kip. Khong doi ban quet cuu duoc, chi
         # doi no BAO DUNG so nguoi da mat — bao cao sai con te hon quet thieu.
@@ -283,9 +291,12 @@ class OneRowPerPageTest(unittest.TestCase):
         result, _ranks, _skipped, _ = run_scan(
             rows_per_page=1, amount=30, deaf_ranks=range(3, 60, 3)
         )
-        self.assertEqual("complete", result["status"])
         self.assertEqual(30, result["records"])
         self.assertGreater(result["missedRows"], 0)
+        # Di het 30 nguoi chu khong dung som — nhung du SO LUONG ma thieu
+        # NGUOI thi van la partial, vi cu ba nguoi lai nhay mot.
+        self.assertEqual("partial", result["status"])
+        self.assertGreater(result["ranksMissing"], 0)
 
 
 class RowShiftAppliesToTheRightThingsTest(unittest.TestCase):

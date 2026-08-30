@@ -981,9 +981,27 @@ class KingdomScanner:
                 outputs = write_exports(
                     self.directory, self.records, metadata, self.options.formats
                 )
+                # Dem nguoi bi bo sot tu CHINH nhung thu hang da ghi duoc,
+                # khong tu so sach cong don doc duong.
+                #
+                # So sach cu (rank_gaps) chi cong khi thu hang di TOI, nen no
+                # mu voi viec danh sach nhay LUI. Lan chay 31/08 bat duoc ba
+                # nguoi hang 109, 4, 1 va bao ranksMissing=0, status=complete
+                # — mot ban quet ba nguoi ngau nhien trong nhu mot ban quet
+                # tron ven. rank_gaps van giu de bao ngay luc dang chay, con
+                # con so cuoi cung thi lay tu du lieu that.
+                ranks = sorted(
+                    int(record["rank"])
+                    for record in self.records
+                    if isinstance(record.get("rank"), int)
+                )
+                ranks_missing = (
+                    max(0, ranks[-1] - ranks[0] + 1 - len(ranks)) if ranks else 0
+                )
                 status = (
                     "complete"
                     if len(self.records) >= self.options.amount
+                    and ranks_missing == 0
                     else "partial"
                 )
                 self._save_state(status)
@@ -1011,7 +1029,7 @@ class KingdomScanner:
                         )
                     ),
                     "rankGaps": self.rank_gaps,
-                    "ranksMissing": sum(g["missing"] for g in self.rank_gaps),
+                    "ranksMissing": ranks_missing,
                     "attempts": self.attempted_rank,
                     "missedDetail": self.missed_rows,
                 }
