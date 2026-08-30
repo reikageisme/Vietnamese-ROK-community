@@ -5,6 +5,7 @@ import math
 import re
 import shutil
 import unicodedata
+from collections import Counter
 from difflib import SequenceMatcher
 import time
 from collections.abc import Callable
@@ -896,23 +897,54 @@ class KingdomScanner:
                             self.missed_rows.append(miss)
                             self.progress({"serial": self.serial, "event": "row-miss", **miss})
                             continue
+                        # Mo duoc ho so KHONG co nghia la ghi duoc ban ghi.
+                        #
+                        # Truoc day cho nay chi co `if governor_id and
+                        # governor_id not in known_ids:` va khong co nhanh
+                        # nao khac: ban ghi trung ID, hay ban ghi ma OCR
+                        # khong doc noi ID, deu roi vao hu vo. Chay thu 6
+                        # nguoi: 14 lan bam, 2 ban ghi, va bao cao ghi
+                        # missedRows=0 ranksMissing=0 — 12 nguoi bien mat
+                        # ma ket qua trong nhu mot ban quet sach.
+                        #
+                        # Gio moi ban ghi bi vut deu phai khai ly do.
                         governor_id = str(record.get("governorId") or "")
-                        if governor_id and governor_id not in known_ids:
-                            known_ids.add(governor_id)
-                            self.records.append(record)
-                            added += 1
-                            self._save_state("running")
+                        reason = (
+                            "khong-doc-duoc-id"
+                            if not governor_id
+                            else "trung-id"
+                            if governor_id in known_ids
+                            else None
+                        )
+                        if reason is not None:
+                            miss = {
+                                "page": page + 1,
+                                "row": row,
+                                "attempt": self.attempted_rank,
+                                "reason": reason,
+                                "governorId": governor_id or None,
+                                "name": record.get("name"),
+                            }
+                            self.missed_rows.append(miss)
                             self.progress(
-                                {
-                                    "serial": self.serial,
-                                    "event": "governor",
-                                    "rank": record.get("rank"),
-                                    "name": record.get("name"),
-                                    "records": len(self.records),
-                                    "target": self.options.amount,
-                                    "needsReview": record.get("needsReview"),
-                                }
+                                {"serial": self.serial, "event": "row-miss", **miss}
                             )
+                            continue
+                        known_ids.add(governor_id)
+                        self.records.append(record)
+                        added += 1
+                        self._save_state("running")
+                        self.progress(
+                            {
+                                "serial": self.serial,
+                                "event": "governor",
+                                "rank": record.get("rank"),
+                                "name": record.get("name"),
+                                "records": len(self.records),
+                                "target": self.options.amount,
+                                "needsReview": record.get("needsReview"),
+                            }
+                        )
                     if len(self.records) >= self.options.amount:
                         break
                     # Dem theo HANG chu khong theo trang: nguong 3 trang cu la
@@ -968,8 +1000,15 @@ class KingdomScanner:
                     "directory": str(self.directory),
                     "outputs": outputs,
                     "missedRows": len(self.missed_rows),
-                    "mismatchRejected": sum(
-                        1 for m in self.missed_rows if m.get("reason") == "ten-khong-khop"
+                    # Con so tong khong noi duoc phai lam gi tiep. "12 lan
+                    # trung-id" nghia la danh sach khong cuon; "12 lan
+                    # khong-doc-duoc-id" nghia la vung cat ho so sai. Hai
+                    # benh khac han nhau nen phai tach ra.
+                    "missedByReason": dict(
+                        Counter(
+                            str(m.get("reason") or "khong-mo-duoc-ho-so")
+                            for m in self.missed_rows
+                        )
                     ),
                     "rankGaps": self.rank_gaps,
                     "ranksMissing": sum(g["missing"] for g in self.rank_gaps),

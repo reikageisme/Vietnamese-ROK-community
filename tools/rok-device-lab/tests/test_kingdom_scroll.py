@@ -37,17 +37,23 @@ class FakeKingdom:
         drift_rows: float,
         blind_rows=(),
         deaf_ranks=(),
+        frozen_after=None,
     ) -> None:
         self.scanner = scanner
         self.drift = drift_rows
         self.blind = set(blind_rows)
         # Nhung thu hang ma cu bam khong mo duoc ho so.
         self.deaf = set(deaf_ranks)
+        # Vuot khong con an nua ke tu thu hang nay. Do la dieu da xay ra tren
+        # may 09: page-0002 den page-0014 giong het nhau.
+        self.frozen_after = frozen_after
         self.top = 1.0
         self.pitch = scanner._row_pitch()
         self.scroll_backs = 0
 
     def scroll(self, client, serial, start, end, screen, kind, **kwargs):  # noqa: ANN001
+        if self.frozen_after is not None and self.top >= self.frozen_after:
+            return kind
         moved = (start[1] - end[1]) / self.pitch
         if moved > 0:
             self.top += moved + self.drift
@@ -88,7 +94,14 @@ class FakeKingdom:
         }
 
 
-def run_scan(drift_rows=0.0, rows_per_page=4, amount=30, blind_rows=(), deaf_ranks=()):
+def run_scan(
+    drift_rows=0.0,
+    rows_per_page=4,
+    amount=30,
+    blind_rows=(),
+    deaf_ranks=(),
+    frozen_after=None,
+):
     with TemporaryDirectory() as workspace:
         with (
             patch.object(scanner_module, "find_tesseract", lambda path=None: "tesseract"),
@@ -111,7 +124,9 @@ def run_scan(drift_rows=0.0, rows_per_page=4, amount=30, blind_rows=(), deaf_ran
                 confirmed=True,
             )
             scanner._touch_probed = True
-            world = FakeKingdom(scanner, drift_rows, blind_rows, deaf_ranks)
+            world = FakeKingdom(
+                scanner, drift_rows, blind_rows, deaf_ranks, frozen_after
+            )
             scanner._ensure_power_ranking = lambda: None
             scanner._read_ranking_hints = world.hints
             scanner._scan_governor = world.open_governor
@@ -311,6 +326,34 @@ class RowShiftAppliesToTheRightThingsTest(unittest.TestCase):
             self.assertEqual(before[name][3] - 44, after[name][3], name)
             self.assertEqual(before[name][0], after[name][0], name)
         self.assertEqual(before["governor.name"], after["governor.name"])
+
+
+class DroppedRecordsAreCountedTest(unittest.TestCase):
+    """Ban ghi bi vut phai khai ly do, khong duoc bien mat.
+
+    Chay that ngay 31/08 tren may 09: 14 lan bam, 2 ban ghi, va bao cao ghi
+    missedRows=0, ranksMissing=0, rankGaps=[]. Danh sach dung im tu trang 2
+    nen 12 lan sau bam lai dung mot nguoi, va nhanh loc trung ID khong co
+    `else` nen khong de lai dau vet nao. Bao cao trong y het mot ban quet
+    thanh cong — kieu hong te nhat, vi khong ai di kiem tra mot ket qua
+    sach se.
+    """
+
+    def test_a_frozen_list_is_reported_as_duplicates_not_as_success(self) -> None:
+        result, _ranks, _skipped, _ = run_scan(
+            rows_per_page=1, amount=6, frozen_after=2
+        )
+        self.assertEqual("partial", result["status"])
+        self.assertGreater(result["missedRows"], 0)
+        self.assertGreater(result["missedByReason"].get("trung-id", 0), 0)
+        # Bam nhieu hon so nguoi ghi duoc — do la thuoc do do phu that.
+        self.assertGreater(result["attempts"], result["records"])
+
+    def test_a_clean_scan_reports_nothing_missed(self) -> None:
+        result, _ranks, _skipped, _ = run_scan(rows_per_page=1, amount=6)
+        self.assertEqual(6, result["records"])
+        self.assertEqual(0, result["missedRows"])
+        self.assertEqual({}, result["missedByReason"])
 
 
 if __name__ == "__main__":
