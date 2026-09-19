@@ -21,7 +21,7 @@ export const collectorGovernorSchema = z.object({
   rangedPoints: bigintMetric.optional().default(BigInt(0)),
   resourcesGathered: bigintMetric.optional().default(BigInt(0)),
   helps: bigintMetric.optional().default(BigInt(0)),
-});
+}).passthrough();
 
 export const collectorBatchSchema = z.object({
   externalId: z.string().trim().min(8).max(191),

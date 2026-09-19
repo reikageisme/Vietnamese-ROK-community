@@ -78,6 +78,7 @@ model GovernorSnapshot {
   capturedAt        DateTime
   evidenceUploadId  String?
   collectorBatchId  String?
+  metadata          Json?
   governorProfile   GovernorProfile @relation(fields: [governorProfileId], references: [id], onDelete: Cascade)
   evidenceUpload    UploadAsset?    @relation(fields: [evidenceUploadId], references: [id], onDelete: SetNull)
   collectorBatch    CollectorBatch? @relation(fields: [collectorBatchId], references: [id], onDelete: SetNull)

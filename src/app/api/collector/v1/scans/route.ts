@@ -50,17 +50,18 @@ export async function POST(request: Request) {
         }
         const profile = await tx.governorProfile.upsert({
           where: { governorId: record.governorId },
-          update: { governorName: record.name, kingdomId: kingdom.id, allianceId },
+          update: { kingdomId: kingdom.id, allianceId },
           create: { ownerId: systemUser.id, governorId: record.governorId, governorName: record.name, kingdomId: kingdom.id, allianceId },
         });
-        await tx.governorSnapshot.create({ data: { governorProfileId: profile.id, power: record.power, killPoints: record.killPoints, deadTroops: record.deadTroops, t1Kills: record.t1Kills, t2Kills: record.t2Kills, t3Kills: record.t3Kills, t4Kills: record.t4Kills, t5Kills: record.t5Kills, rangedPoints: record.rangedPoints, resourcesGathered: record.resourcesGathered, helps: record.helps, source: MetricSource.SCREENSHOT_OCR, capturedAt: new Date(input.capturedAt), collectorBatchId: batch.id } });
+        const { governorId, name, allianceTag, allianceName, power: p, killPoints: kp, deadTroops: dt, t1Kills, t2Kills, t3Kills, t4Kills: t4k, t5Kills: t5k, rangedPoints, resourcesGathered, helps, ...metadata } = record;
+        await tx.governorSnapshot.create({ data: { governorProfileId: profile.id, power: record.power, killPoints: record.killPoints, deadTroops: record.deadTroops, t1Kills: record.t1Kills, t2Kills: record.t2Kills, t3Kills: record.t3Kills, t4Kills: record.t4Kills, t5Kills: record.t5Kills, rangedPoints: record.rangedPoints, resourcesGathered: record.resourcesGathered, helps: record.helps, source: MetricSource.SCREENSHOT_OCR, capturedAt: new Date(input.capturedAt), collectorBatchId: batch.id, metadata: metadata as any } });
         power = add(power, record.power); killPoints = add(killPoints, record.killPoints); deadTroops = add(deadTroops, record.deadTroops); t4Kills = add(t4Kills, record.t4Kills); t5Kills = add(t5Kills, record.t5Kills);
       }
       const summary = { power: power.toString(), killPoints: killPoints.toString(), deadTroops: deadTroops.toString(), t4Kills: t4Kills.toString(), t5Kills: t5Kills.toString() };
       await tx.kingdomSnapshot.create({ data: { kingdomId: kingdom.id, collectorBatchId: batch.id, power, killPoints, deadTroops, t4Kills, t5Kills, governorCount: input.records.length, coveragePercent: input.coveragePercent, capturedAt: new Date(input.capturedAt) } });
       await tx.collectorBatch.update({ where: { id: batch.id }, data: { summary } });
       return { batchId: batch.id, recordCount: input.records.length, summary };
-    }, { timeout: 60_000 });
+    }, { timeout: 600_000, maxWait: 30_000 });
     return NextResponse.json({ ...result, status: "PENDING_REVIEW", duplicate: false }, { status: 202 });
   } catch (error) {
     console.error("collector ingestion failed", error);
